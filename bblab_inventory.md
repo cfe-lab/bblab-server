@@ -77,8 +77,16 @@
     - Untested tool. It also doesn't exist in the MDF folder. Dates to August 2019.
 
 
+## TCR interpretation and analysis   
+
+- __TCR Distance__
+    - This tool is fairly recent, and uses `alldata/bblab_site/tools/tcr_distance/tcr_distance.py` as well as `bblab_site/static/tcr_dist.js`
+- __TCR Visualizer__
+    - This tool does not contain a Python script, but uses `bblab_site/static/tcr_vis.js`.
+
+
 # List of unavailable tools
-These tools exist in the BBLab backup (MDF) but have not been ported to Python 3/Django. They are all under source control from deleted repos, dating from 2014-2017.
+These tools will not be hosted on the server. They exist in the BBLab-Wiki backup (MDF) but have not been ported to Python 3/Django. They are all under source control from deleted repos, dating from 2014-2017.
 - __HAPC__ - HLA Associated Polymorphism Counter HAPC
 - __HAPA__ - HLA Associated Polymorphism Analyzer HAPA
 - __PHAGE-I__ - Proportion of HLA Associated Genomic Escape (individual) 
@@ -120,7 +128,7 @@ Under the `Other useful resources` section of the Wiki
 
 - ['Primer tables'] for sequencing or PCR
     - Link is working.
-- ['Papers'] about HIV virology, epidemiology, immunology']
+- ['Papers'] about HIV virology, epidemiology, immunology
     - Link is working.
 - Microsoft collaborator tools: http://research.microsoft.com/en-us/um/redmond/projects/MSCompBio
     - __Link redirects to landing page: ['Microsoft Research Lab - Redmond']__ Needs an update. 
