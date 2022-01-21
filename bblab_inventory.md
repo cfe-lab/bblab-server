@@ -14,11 +14,21 @@
 # List of BBLab tools with existing repos
 - __Phylogenetic Dating__ : tracking [`cfe-lab/phylodating`], missing some recent commits which update documentation
     - __Blind Dating__ : old version of Pylogenetic Dating, also on Git at [`cfe-lab/blind-dating`] (tracking the `web` branch). Git structure is messy.
+
 - __PHAGE-I-expanded__: should be tracking [`cfe-lab/PHAGE-I-expanded`], needs some repo cleanup on the server.
+
+- __Fasta Converter__ : tracking [`cfe-lab/fasta_converter`], reconstructed history from Python 2.7 to Python 3 and Django. Awaiting a `git checkout` before any new update.
+
+- __DNA translator__ : tracking [`cfe-lab/translate_DNA`], reconstructed history from Python 2.7 to Python 3 and Django. Awaiting a `git checkout` before any new update.
+
 
 [`cfe-lab/phylodating`]: https://github.com/cfe-lab/phylodating
 [`cfe-lab/blind-dating`]: https://github.com/cfe-lab/blind-dating/tree/web
 [`cfe-lab/PHAGE-I-expanded`]: https://github.com/cfe-lab/PHAGE-I-expanded
+[`cfe-lab/fasta_converter`]: https://github.com/cfe-lab/fasta_converter
+[`cfe-lab/translate_DNA`]: https://github.com/cfe-lab/translate_DNA
+
+
 
 # List of BBLab tools that need source control
 
@@ -37,9 +47,6 @@
 
 ## QC and data processing
 
-- __Fasta Converter__ 
-    - Two old versions exist and track a deleted repository, last updated November 2014. One version is on the server `/alldata/WebContent/tools/fasta_converter`, checked for Python 3.7, uses CGI. A version on the MDF under `Eric_server_tools/Sites/dan/webtools/fastaConverter` is written for Python 2.7. 
-
 - __Text to columns__ 
     - No source control and does not appear on the MDF. A text manipulation tool which counts the characters in each column in the input text field.
 
@@ -50,9 +57,6 @@
 
 - __HXB2 Genome genome map__ 
     - No scripts here, it's an HTML display page. There is a version on the MDF (`Eric_server_tools/Sites/dan/HIVgenome/`) under source control (deleted repository).
-
-- __DNA translator__ 
-    - Under source control from 2014 (deleted repo), not up to date with changes for Django & Python 3. Older version is located on the MDF in `/Eric_server_tools/Sites/dan/`.
 
 - __Quality Check Tool__
     
