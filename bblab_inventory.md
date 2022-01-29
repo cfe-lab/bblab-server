@@ -21,13 +21,18 @@
 
 - __DNA translator__ : tracking [`cfe-lab/translate_DNA`], reconstructed history from Python 2.7 to Python 3 and Django. Awaiting a `git checkout` before any new update.
 
+- __HXB2 Genome genome map__ : tracking [`cfe-lab/HIV_genome`], reconstructed minor changes and move to Django. Awaiting a `git checkout` before any new update.
+
+- __False discovery rate q-value calculator__ : tracking [`cfe-lab/qvalue`], reconstructed history from Perl, Python 2.7 to Python 3 and Django. Awaiting a `git checkout` before any new update.
+
 
 [`cfe-lab/phylodating`]: https://github.com/cfe-lab/phylodating
 [`cfe-lab/blind-dating`]: https://github.com/cfe-lab/blind-dating/tree/web
 [`cfe-lab/PHAGE-I-expanded`]: https://github.com/cfe-lab/PHAGE-I-expanded
 [`cfe-lab/fasta_converter`]: https://github.com/cfe-lab/fasta_converter
 [`cfe-lab/translate_DNA`]: https://github.com/cfe-lab/translate_DNA
-
+[`cfe-lab/HIV_genome`]: https://github.com/cfe-lab/HIV_genome
+[`cfe-lab/qvalue`]: https://github.com/cfe-lab/qvalue
 
 
 # List of BBLab tools that need source control
@@ -50,16 +55,9 @@
 - __Text to columns__ 
     - No source control and does not appear on the MDF. A text manipulation tool which counts the characters in each column in the input text field.
 
-- __False discovery rate q-value calculator__ 
-    - There are multiple renamed revisions of the Python script `qvalue_generate_file.py` located on the server in `/alldata/bblab_site/WebContent/codelink/legacy_code`. The original Perl scripts on the MDF in `Eric_server_tools/Sites/cgi_bin/generate_q_values.pl`. A history could probably be reconstructed. 
-
 ## HIV sequence/function analyses
 
-- __HXB2 Genome genome map__ 
-    - No scripts here, it's an HTML display page. There is a version on the MDF (`Eric_server_tools/Sites/dan/HIVgenome/`) under source control (deleted repository).
-
 - __Quality Check Tool__
-    
     - There are multiple revisions of the Python script `quality_check.py` located on the server in `bblab_site/WebContent/codelink/legacy_code` and on the MDF in `/Eric_server_tools/Sites/`. A history could probably be reconstructed.
 
 - __Unique Sequence Finder (USF)__
