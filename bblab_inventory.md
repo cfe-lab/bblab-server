@@ -12,62 +12,65 @@
 
 
 # List of BBLab tools with existing repos
-- __Phylogenetic Dating__ : tracking [`cfe-lab/phylodating`], missing some recent commits which update documentation
-    - __Blind Dating__ : old version of Pylogenetic Dating, also on Git at [`cfe-lab/blind-dating`] (tracking the `web` branch). Git structure is messy.
 
-- __PHAGE-I-expanded__: should be tracking [`cfe-lab/PHAGE-I-expanded`], needs some repo cleanup on the server.
-
-- __Fasta Converter__ : tracking [`cfe-lab/fasta_converter`], reconstructed history from Python 2.7 to Python 3 and Django. Awaiting a `git checkout` before any new update.
-
-- __DNA translator__ : tracking [`cfe-lab/translate_DNA`], reconstructed history from Python 2.7 to Python 3 and Django. Awaiting a `git checkout` before any new update.
-
-- __HXB2 Genome genome map__ : tracking [`cfe-lab/HIV_genome`], reconstructed minor changes and move to Django. Awaiting a `git checkout` before any new update.
-
-- __False discovery rate q-value calculator__ : tracking [`cfe-lab/qvalue`], reconstructed history from Perl, Python 2.7 to Python 3 and Django. Awaiting a `git checkout` before any new update.
-
-
-[`cfe-lab/phylodating`]: https://github.com/cfe-lab/phylodating
-[`cfe-lab/blind-dating`]: https://github.com/cfe-lab/blind-dating/tree/web
-[`cfe-lab/PHAGE-I-expanded`]: https://github.com/cfe-lab/PHAGE-I-expanded
-[`cfe-lab/fasta_converter`]: https://github.com/cfe-lab/fasta_converter
-[`cfe-lab/translate_DNA`]: https://github.com/cfe-lab/translate_DNA
-[`cfe-lab/HIV_genome`]: https://github.com/cfe-lab/HIV_genome
-[`cfe-lab/qvalue`]: https://github.com/cfe-lab/qvalue
-
-
-# List of BBLab tools that need source control
 
 ## Layout Generators
 
-- __Sequencing layout designer__ 
-    - Has no source control. Previous Python 3 (CGI) and Perl versions are located on the server at `/alldata/WebContent/codelink` and on the MDF under `Eric_server_tools/Sites/cgi-bin/`. 
-- __Sequencing plate layout archive__ 
-    - links to `tools/sequencing_layout/output/`, requires authentication to access.
+- __Sequencing layout designer__ : tracking [`cfe-lab/sequencing_layout`]. Awaiting a `git checkout` before any new update.
+- __Guava layout designer__ : tracking [`cfe-lab/guava_layout`]. Awaiting a `git checkout` before any new update.
 
-- __Guava layout designer__ 
-    - Has no source control. Previous Python 3 (CGI) and Perl versions are located on the server at `/alldata/WebContent/codelink` and on the MDF under `Eric_server_tools/Sites/cgi-bin/`. 
+ [`cfe-lab/sequencing_layout`]: https://github.com/cfe-lab/sequencing_layout
+ [`cfe-lab/guava_layout`]: https://github.com/cfe-lab/guava_layout
 
-- __Guava plate layout archive__ 
-    - links to `tools/guava_layout/output/`, requires authentication to access.
 
 ## QC and data processing
 
-- __Text to columns__ 
-    - No source control and does not appear on the MDF. A text manipulation tool which counts the characters in each column in the input text field.
+- __Fasta Converter__ : tracking [`cfe-lab/fasta_converter`]. Awaiting a `git checkout` before any new update.
+
+- __Text to columns__ : tracking [`cfe-lab/text_to_columns`]. Awaiting a `git checkout` before any new update.
+    
+- __False discovery rate q-value calculator__ : tracking [`cfe-lab/qvalue`]. Awaiting a `git checkout` before any new update.
+
+[`cfe-lab/fasta_converter`]: https://github.com/cfe-lab/fasta_converter
+[`cfe-lab/text_to_columns`]: https://github.com/cfe-lab/text_to_columns
+[`cfe-lab/qvalue`]: https://github.com/cfe-lab/qvalue
+
 
 ## HIV sequence/function analyses
 
-- __Quality Check Tool__
-    - There are multiple revisions of the Python script `quality_check.py` located on the server in `bblab_site/WebContent/codelink/legacy_code` and on the MDF in `/Eric_server_tools/Sites/`. A history could probably be reconstructed.
+- __HXB2 Genome genome map__ : tracking [`cfe-lab/HIV_genome`]. Awaiting a `git checkout` before any new update.
 
-- __Unique Sequence Finder (USF)__
-    - There is an older Python script `unique_sequence_checker.py` located in `bblab_site/WebContent/codelink/`, and in `Eric_server_tools/Sites/cgi_bin/python/`. A history could probably be reconstructed.
+- __DNA translator__ : tracking [`cfe-lab/translate_DNA`]. Awaiting a `git checkout` before any new update.
 
-- __Variable Function Analysis: in house variable-function analyzer__
-    - There is an old version (Python 2.7) of the Python script `variable_function.py` in `SFU_BBlabWiki_tools/Eric_server_tools/Sites/dan/webtools/VFA/cgi-bin/`. A history could probably be reconstructed. 
+- __Quality Check Tool__ : tracking [`cfe-lab/quality_check`]. Awaiting a `git checkout` before any new update.
 
-- __Codon by codon in house analysis tool__:
-    - There are multiple revisions of the Python script `codon_by_codon.py` located in `bblab_site/WebContent/codelink/legacy_code`. We also have the original Perl scripts in `Eric_server_tools/Sites/cgi_bin/codon_by_codon.pl`. A history could probably be reconstructed. 
+- __Unique Sequence Finder (USF)__ : tracking [`cfe-lab/unique_sequence`]. Awaiting a `git checkout` before any new update.
+
+- __Variable Function Analysis: in house variable-function analyzer__ : tracking [`cfe-lab/variable_function`]. Awaiting a `git checkout` before any new update.
+
+- __Codon by codon in house analysis tool__ : tracking [`cfe-lab/codon_by_codon`]. Awaiting a `git checkout` before any new update. 
+
+- __Phylogenetic Dating__ : tracking [`cfe-lab/phylodating`], missing some recent commits which update documentation
+    - __Blind Dating__ : old version of Pylogenetic Dating, also on Git at [`cfe-lab/blind-dating`] (tracking the `web` branch). Git structure is messy.
+
+[`cfe-lab/HIV_genome`]: https://github.com/cfe-lab/HIV_genome
+[`cfe-lab/translate_DNA`]: https://github.com/cfe-lab/translate_DNA
+[`cfe-lab/quality_check`]: https://github.com/cfe-lab/quality_check
+[`cfe-lab/unique_sequence`]: https://github.com/cfe-lab/unique_sequence
+[`cfe-lab/variable_function`]: https://github.com/cfe-lab/variable_function
+[`cfe-lab/codon_by_codon`]: https://github.com/cfe-lab/codon_by_codon
+[`cfe-lab/phylodating`]: https://github.com/cfe-lab/phylodating
+[`cfe-lab/blind-dating`]: https://github.com/cfe-lab/blind-dating/tree/web
+
+
+## HLA interpretation and analyses
+
+- __PHAGE-I-expanded__: should be tracking [`cfe-lab/PHAGE-I-expanded`], needs some repo cleanup on the server.
+
+[`cfe-lab/PHAGE-I-expanded`]: https://github.com/cfe-lab/PHAGE-I-expanded
+
+
+# List of BBLab tools that need source control
 
 
 ## HLA interpretation and analyses
@@ -83,6 +86,7 @@
 
 - __TCR Distance__
     - This tool is fairly recent, and uses `alldata/bblab_site/tools/tcr_distance/tcr_distance.py` as well as `bblab_site/static/tcr_dist.js`
+    
 - __TCR Visualizer__
     - This tool does not contain a Python script, but uses `bblab_site/static/tcr_vis.js`.
 
