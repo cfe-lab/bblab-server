@@ -16,79 +16,81 @@
 
 ## Layout Generators
 
-- __Sequencing layout designer__ : tracking [`cfe-lab/sequencing_layout`]. Awaiting a `git checkout` before any new update.
-- __Guava layout designer__ : tracking [`cfe-lab/guava_layout`]. Awaiting a `git checkout` before any new update.
+- __Sequencing layout designer__ : tracking [`cfe-lab/sequencing-layout`]. Awaiting a `git checkout` before any new update.
+- __Guava layout designer__ : tracking [`cfe-lab/guava-layout`]. Awaiting a `git checkout` before any new update.
 
- [`cfe-lab/sequencing_layout`]: https://github.com/cfe-lab/sequencing_layout
- [`cfe-lab/guava_layout`]: https://github.com/cfe-lab/guava_layout
+ [`cfe-lab/sequencing-layout`]: https://github.com/cfe-lab/sequencing-layout
+ [`cfe-lab/guava-layout`]: https://github.com/cfe-lab/guava-layout
 
 
 ## QC and data processing
 
-- __Fasta Converter__ : tracking [`cfe-lab/fasta_converter`]. Awaiting a `git checkout` before any new update.
+- __Fasta Converter__ : tracking [`cfe-lab/fasta-converter`]. Awaiting a `git checkout` before any new update.
 
-- __Text to columns__ : tracking [`cfe-lab/text_to_columns`]. Awaiting a `git checkout` before any new update.
+- __Text to columns__ : tracking [`cfe-lab/text-to-columns`]. Awaiting a `git checkout` before any new update.
     
 - __False discovery rate q-value calculator__ : tracking [`cfe-lab/qvalue`]. Awaiting a `git checkout` before any new update.
 
-[`cfe-lab/fasta_converter`]: https://github.com/cfe-lab/fasta_converter
-[`cfe-lab/text_to_columns`]: https://github.com/cfe-lab/text_to_columns
+[`cfe-lab/fasta-converter`]: https://github.com/cfe-lab/fasta-converter
+[`cfe-lab/text-to-columns`]: https://github.com/cfe-lab/text-to-columns
 [`cfe-lab/qvalue`]: https://github.com/cfe-lab/qvalue
 
 
 ## HIV sequence/function analyses
 
-- __HXB2 Genome genome map__ : tracking [`cfe-lab/HIV_genome`]. Awaiting a `git checkout` before any new update.
+- __HXB2 Genome genome map__ : tracking [`cfe-lab/HIV-genome`]. Awaiting a `git checkout` before any new update.
 
-- __DNA translator__ : tracking [`cfe-lab/translate_DNA`]. Awaiting a `git checkout` before any new update.
+- __DNA translator__ : tracking [`cfe-lab/translate-DNA`]. Awaiting a `git checkout` before any new update.
 
-- __Quality Check Tool__ : tracking [`cfe-lab/quality_check`]. Awaiting a `git checkout` before any new update.
+- __Quality Check Tool__ : tracking [`cfe-lab/quality-check`]. Awaiting a `git checkout` before any new update.
 
-- __Unique Sequence Finder (USF)__ : tracking [`cfe-lab/unique_sequence`]. Awaiting a `git checkout` before any new update.
+- __Unique Sequence Finder (USF)__ : tracking [`cfe-lab/unique-sequence`]. Awaiting a `git checkout` before any new update.
 
-- __Variable Function Analysis: in house variable-function analyzer__ : tracking [`cfe-lab/variable_function`]. Awaiting a `git checkout` before any new update.
+- __Variable Function Analysis: in house variable-function analyzer__ : tracking [`cfe-lab/variable-function`]. Awaiting a `git checkout` before any new update.
 
-- __Codon by codon in house analysis tool__ : tracking [`cfe-lab/codon_by_codon`]. Awaiting a `git checkout` before any new update. 
+- __Codon by codon in house analysis tool__ : tracking [`cfe-lab/codon-by-codon`]. Awaiting a `git checkout` before any new update. 
 
 - __Phylogenetic Dating__ : tracking [`cfe-lab/phylodating`], missing some recent commits which update documentation
     - __Blind Dating__ : old version of Pylogenetic Dating, also on Git at [`cfe-lab/blind-dating`] (tracking the `web` branch). Git structure is messy.
 
-[`cfe-lab/HIV_genome`]: https://github.com/cfe-lab/HIV_genome
-[`cfe-lab/translate_DNA`]: https://github.com/cfe-lab/translate_DNA
-[`cfe-lab/quality_check`]: https://github.com/cfe-lab/quality_check
-[`cfe-lab/unique_sequence`]: https://github.com/cfe-lab/unique_sequence
-[`cfe-lab/variable_function`]: https://github.com/cfe-lab/variable_function
-[`cfe-lab/codon_by_codon`]: https://github.com/cfe-lab/codon_by_codon
+[`cfe-lab/HIV-genome`]: https://github.com/cfe-lab/HIV-genome
+[`cfe-lab/translate-DNA`]: https://github.com/cfe-lab/translate-DNA
+[`cfe-lab/quality-check`]: https://github.com/cfe-lab/quality-check
+[`cfe-lab/unique-sequence`]: https://github.com/cfe-lab/unique-sequence
+[`cfe-lab/variable-function`]: https://github.com/cfe-lab/variable-function
+[`cfe-lab/codon-by-codon`]: https://github.com/cfe-lab/codon-by-codon
 [`cfe-lab/phylodating`]: https://github.com/cfe-lab/phylodating
 [`cfe-lab/blind-dating`]: https://github.com/cfe-lab/blind-dating/tree/web
 
 
 ## HLA interpretation and analyses
 
+- __HLA class I sequence-based typing interpretation tool__ : tracking [`cfe-lab/hla-class`]. Awaiting a `git checkout` before any new update. 
+
 - __PHAGE-I-expanded__: should be tracking [`cfe-lab/PHAGE-I-expanded`], needs some repo cleanup on the server.
 
+[`cfe-lab/hla-class`]: https://github.com/cfe-lab/hla-class
 [`cfe-lab/PHAGE-I-expanded`]: https://github.com/cfe-lab/PHAGE-I-expanded
-
-
-# List of BBLab tools that need source control
-
-
-## HLA interpretation and analyses
-
-- __HLA class I sequence-based typing interpretation tool__ 
-    - Located on the server in `/alldata/hla_class`, and on the MDF in `/McCloskey_server_tools/McCloskeySites/hla`
-
-- __Best Probability Get the best probabilities only from HLA Imputation__ 
-    - Untested tool. It also doesn't exist in the MDF folder. Dates to August 2019.
 
 
 ## TCR interpretation and analysis   
 
-- __TCR Distance__
-    - This tool is fairly recent, and uses `alldata/bblab_site/tools/tcr_distance/tcr_distance.py` as well as `bblab_site/static/tcr_dist.js`
+- __TCR Distance__ : tracking [`cfe-lab/tcr-distance`]. Awaiting a `git checkout` before any new update. 
+Note: this tool uses the repo [`tcr-dist`] which is currently out of date on thes server.
     
-- __TCR Visualizer__
-    - This tool does not contain a Python script, but uses `bblab_site/static/tcr_vis.js`.
+- __TCR Visualizer__ : tracking [`cfe-lab/tcr-visualizer`]. Awaiting a `git checkout` before any new update.
+
+[`cfe-lab/tcr-distance`]: https://github.com/cfe-lab/tcr-distance
+[`cfe-lab/tcr-visualizer`]: https://github.com/cfe-lab/tcr-visualizer
+[`tcr-dist`]: https://github.com/phbradley/tcr-dist
+
+
+# List of BBLab tools that need source control
+
+## HLA interpretation and analyses
+
+- __Best Probability Get the best probabilities only from HLA Imputation__ 
+    - Untested tool. It also doesn't exist in the MDF folder. Dates to August 2019.
 
 
 # List of unavailable tools
