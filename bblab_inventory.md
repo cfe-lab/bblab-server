@@ -67,9 +67,12 @@
 
 - __HLA class I sequence-based typing interpretation tool__ : tracking [`cfe-lab/hla-class`]. Awaiting a `git checkout` before any new update. 
 
+- __Best Probability Get the best probabilities only from HLA Imputation__ : tracking [`cfe-lab/best-prob-HLA-imputation`]. Awaiting a `git checkout` before any new update. Note: untested tool.
+
 - __PHAGE-I-expanded__: should be tracking [`cfe-lab/PHAGE-I-expanded`], needs some repo cleanup on the server.
 
 [`cfe-lab/hla-class`]: https://github.com/cfe-lab/hla-class
+[`cfe-lab/best-prob-HLA-imputation`]: https://github.com/cfe-lab/best-prob-HLA-imputation
 [`cfe-lab/PHAGE-I-expanded`]: https://github.com/cfe-lab/PHAGE-I-expanded
 
 
@@ -83,14 +86,6 @@ Note: this tool uses the repo [`tcr-dist`] which is currently out of date on the
 [`cfe-lab/tcr-distance`]: https://github.com/cfe-lab/tcr-distance
 [`cfe-lab/tcr-visualizer`]: https://github.com/cfe-lab/tcr-visualizer
 [`tcr-dist`]: https://github.com/phbradley/tcr-dist
-
-
-# List of BBLab tools that need source control
-
-## HLA interpretation and analyses
-
-- __Best Probability Get the best probabilities only from HLA Imputation__ 
-    - Untested tool. It also doesn't exist in the MDF folder. Dates to August 2019.
 
 
 # List of unavailable tools

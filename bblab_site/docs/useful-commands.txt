@@ -1,0 +1,24 @@
+Here are a bunch of useful commands that I can never remember off the top of my head.
+
+
+
+# for converting from python 2 to 3
+sudo $(which 2to3-3.7) -w filename.py 
+      
+# for restarting the webserver nicely so that code changes will take place.
+sudo /usr/sbin/apachectl -k graceful               
+
+# helps will creating tools.
+sudo $(which python3.7) /alldata/bblab_site/manage.py startapp tool_name       
+
+# for opening the debug log
+sudo vi /alldata/bblab_site/logs/debug.log
+
+# this debug log handles internal server errors (usually when python files don't pass the beginning compile-like step)
+vi /etc/httpd/logs/ssl_error_log
+
+# For updating any django apps like the wiki. (usually you run this for database structure changes)
+# If you don't haven't set up database access I think this won't work.
+sudo $(which python3.7) /alldata/bblab_site/manage.py migrate
+
+

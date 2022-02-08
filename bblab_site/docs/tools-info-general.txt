@@ -1,0 +1,20 @@
+The following tools share a similar structure as they originated as cgi tools converted to python:
+- Sequencing layout
+- guava layout
+- unique sequence checker
+- quality check tool
+- qvalue tool
+- codon by codon
+- fasta converter
+
+These tools are contructed as basic django applications with an index.html file which contains the tool's data input form and general ui. 
+The index.html file has been converted from its original form to become a django template, which extends from the header toolbar parent template. ("tool_base.html")
+Each tool contains a little bit of input processing in the views.py file which then calls (what used to be) the main script from the scripts/ directory.
+The script in the scripts/ directory is mostly comprised of a run() function which returns, as a string, the html contents of the response page to the views.py file.
+In situations where the tool has to let the user download a file, what is returned is instead a tuple which contains instructions for how the views.py file should interperet the data.
+(boolean, string)  //ex: (is_file, string)  //ex: (False, "<html><body><p>hi</p></body></html>") //ex: (True, "1/aWM3HA5fg^*%0S53f24.j84r?Jsimple:a4")
+To update webserver changes, run the command "sudo /usr/sbin/apachectl -k graceful" 
+
+The HLA class I tool is an exception because it is running on ruby and php. It is currently not part of django and is still running with cgi.
+
+Another exception is the qvalue tool which needs to run an R script to use a certain function. The python structure is still the same though.

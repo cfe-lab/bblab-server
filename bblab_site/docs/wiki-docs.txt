@@ -1,0 +1,19 @@
+When I installed the wiki i used the pip command to do it, therefore the templates for the wiki are stored wherever the python 3.7.4 module was installed.
+
+sudo python3.7 -m pip install wiki
+
+-----------------------------------------------------------------
+
+How to edit the wiki:
+
+- the wiki we are using is this one: https://django-wiki.readthedocs.io/en/master/
+- I followed this to install the wiki: https://django-wiki.readthedocs.io/en/latest/installation.html
+- This means, to edit the wiki you need an account (part of django authentication). 
+- Once you have an account and log on you can use the webpage gui to edit the wiki.
+
+-----------------------------------------------------------------
+
+How to make an account:
+
+- This is part of the django authentication system, so see here: https://docs.djangoproject.com/en/2.1/topics/auth/
+-  

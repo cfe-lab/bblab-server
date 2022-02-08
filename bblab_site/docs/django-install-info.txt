@@ -1,0 +1,17 @@
+To properly install the modwsgi with django I had to install python 3.7 but first the package had to be configured with the '--enable-shared' option so that pip could properly install mod-wsgi. 
+
+When pip did install mod_wsgi the needed apache file was in a different location than I expected it to be so I had to look for it.
+
+This new version of python is not the anaconda version which was being used before (with the shebangs to the anaconda python path). 
+
+Note:
+
+- /usr/local/bin/python3.7 this version of python is the one django uses.
+- the python3.6 version is different. Django is not installed on it.
+- note that the following commands are different:
+	- python3.6 -m django --version
+	- python3.7 -m django --version
+- The 3.6 python version is for the non-django section of the webserver.
+
+
+
