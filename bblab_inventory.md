@@ -1,7 +1,6 @@
 # Table of Contents
 
 - [List of BBLab tools with existing repos](#list-of-bblab-tools-with-existing-repos)
-- [List of BBLab tools that need source control](#list-of-bblab-tools-that-need-source-control)
 - [List of unavailable tools](#list-of-unavailable-tools)
 - [Misc To-Do](#misc-to-do)
 - [Further Notes](#further-notes)
