@@ -1,0 +1,23 @@
+{% extends "auth_base.html" %}
+
+{% block content %}
+    {% if next %}
+    <form action="/django/account/login/?next={{next}}" method="post">
+    {% else %}
+    <form action="/django/account/login/" method="post">
+    {% endif %}
+        {% csrf_token %}
+
+        <label class="label-main" for="id_username">Username:</label>
+	<input class="input-main" type="text" name="username" maxlength="150" required id="id_username">	
+
+	<label class="label-main" for="id_password">Password:</label>
+	<input class="input-main" type="password" name="password" maxlength="150" required id="id_password">	
+
+	<input class="button-main" type="submit" value="LOG IN">
+
+        {% if login_failed %}
+        <p><b><span style="color:red;">Error:</span> Incorrect username or password,</b> if you don't have an account and would like one, please contact an admin.</p>
+        {% endif %}
+    </form>
+{% endblock %}
