@@ -1,0 +1,16 @@
+{% extends "auth_base.html" %}
+{% block content %}
+    {% if logout_state == "verify" %}
+        {% if next %}
+	<form action="/django/account/logout/?next={{next}}" method="post">
+        {% else %}
+	<form action="/django/account/logout/" method="post">
+	{% endif %}
+	    {% csrf_token %}
+            <h3>Are you sure you want to logout?</h3>
+            <input class="button-main" id="verified" type="submit" value="I'm sure">
+        </form>
+    {% elif logout_state == "logged_out" %}
+        <p>User is already logged out.<p>
+    {% endif %}
+{% endblock %}

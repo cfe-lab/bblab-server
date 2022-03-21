@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html>
+	<head>
+		<link rel="stylesheet" href="{% static "tool_style.css" %}">
+		<meta name="robots" content="noindex" />
+		{% block head %}
+		{% endblock %}
+	</head>
+	
+	<body>
+		<div id="header-tl">
+			{% if user_authenticated %}
+                	<div class="user-tool">
+                        	<div>Hello, <b>{{username}}</b></div>
+                        </div>
+			{% else %}	
+			<div class="user-tool">
+				<div>You're not logged in</div>
+			</div>
+			{% endif %}
+
+                        <div class="user-tool">
+                                <span>&nbsp;/&nbsp;</span>
+                                
+				{% if user_authenticated %}
+				<a class="header-link" href="/django/account/logout/?next={{request.path}}">log out</a>
+                                {% else %}
+				<a class="header-link" href="/django/account/login/?next={{request.path}}">log in</a>
+                                {% endif %}
+
+				<span>&nbsp;/&nbsp;</span>
+                                <a class="header-link" href="/django/wiki/">admin page</a>
+                                <span>&nbsp;/&nbsp;</span>
+                                <a class="header-link" href="/wiki">wiki</a>
+                                <span>&nbsp;/&nbsp;</span>
+                        </div>
+                </div>
+
+                <div id="content-tl">
+            		{% block content %}
+    			{% endblock %}
+        	</div>
+	</body>
+</html>

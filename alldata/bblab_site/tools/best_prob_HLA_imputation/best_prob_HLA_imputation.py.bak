@@ -1,0 +1,57 @@
+#!/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/python
+import cgi, sys
+
+form = cgi.FieldStorage()
+userinput = form.getvalue("userinput")
+runtranslate = form.getvalue("runbestprob")
+dltranslate = form.getvalue("dlbestprob")
+
+def printHtmlHeaders():
+	print "Content-Type: text/html"
+	print
+	print """<!DOCTYPE html><html><head>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="../cgi-bin/script.js"></script>
+	<link rel="stylesheet" href="../css/style.css"></head><body>"""
+
+def printFileHeaders(filename):
+	print "Content-Disposition: attachment; filename=\""+filename+"\""
+	print "Content-Type:application/octet-stream; name=\""+filename+"\""
+	print
+
+def makeD(lines):
+	lines = lines.translate(None, '\r').strip()
+	lines = lines.split('\n')[2:]
+	lines = [x.split('\t') for x in lines]
+	d = {}
+	for line in lines[1:]:
+		if (line[0] not in d):
+			d[line[0]] = [line[1:]]
+		else:
+			d[line[0]].append(line[1:])
+	return d
+
+if (runtranslate is not None):
+	printHtmlHeaders()
+	print '<div class="container">'
+	d = makeD(userinput)
+	print '<table>'
+	print """
+		<tr>
+			<th>pid</th>
+			<th>A1</th>
+			<th>A2</th>
+			<th>B1</th>
+			<th>B2</th>
+			<th>C1</th>
+			<th>C2</th>
+			<th>Probability</th>
+			<th>Ethnicity</th>
+			<th>Error</th>
+		</tr>
+	"""
+	for id in d.keys():
+		print '<tr>'
+		print '<td>'+id+'</td><td>'+('</td><td>').join(sorted([x for x in d[id]],key=lambda x: x[-1], reverse=True)[0])+'</td>'
+		print '</tr>'
+	print '</table>'

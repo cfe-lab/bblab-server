@@ -1,0 +1,170 @@
+@import 'myframework/mixins';
+@import 'myframework/grid';
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
+
+$blue:			#33b5e5;
+$purple:		#aa66cc;
+$green:			#99cc00;
+$orange:		#ffbb33;
+$red:			#ff4444;
+$darkblue:		#0099cc;
+$darkpurple:	#9933cc;
+$darkgreen:		#669900;
+$darkorange:	#ff8800;
+$darkred:		#cc0000;
+
+* {
+	font-family: 'Open Sans', sans-serif;
+}
+
+*, *:after, *:before {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+h1 {
+	font-size: 25px;
+}
+
+div, p {
+	padding: 0;
+	margin: 0;
+	font-size: 14px;
+}
+
+.spacer {
+	margin: 10px 0 0 0;
+}
+
+.word-wrap {
+	word-break: break-all;
+}
+
+.italic {
+	font-style: italic;
+}
+
+@include btn('red', #FF6666);
+@include btn('green', #BADA55);
+@include btn('blue', #33B5E5);
+@include btn('grey', #777);
+
+.round-sm {
+	@include border-radius(2px);
+}
+
+.btn-blank {
+	@include appearance(none);
+	border: none;
+	&:active, &:focus {
+		outline: none;
+	}
+}
+
+.title {
+	h1, p {
+		display: inline-block;
+		margin: 0;
+	}
+	p {
+		margin-left: 30px;
+		font-style: italic;
+		font-size: 14px;
+	}
+}
+
+span {
+	&.highlight {
+		background-color: yellow;
+	}
+	&.bold {
+		font-weight: bold;	
+	}
+}
+
+#output_table {
+	table-layout: fixed;
+	border-collapse: collapse;
+	width: 100%;
+	td {
+		border: 1px solid black;
+	}
+}
+
+.container {
+	max-width: 1570px;
+	margin: 0 auto;
+	@include clearfix();
+}
+
+textarea {
+	font-size: 14px;
+	padding: 20px;
+	font-family: monospace;
+	display: block;
+	margin: 0 auto;
+	border: none;
+	width: 100%;
+	min-height: 200px;
+	background-color: #E9E9E9;
+	@include border-radius(0 20px 0 20px);
+	@include transition(all ease-out 0.1s);
+	&:focus {
+		outline: none;
+		background-color: lighten($blue,30%);
+	@include transition(all ease-out 0.1s);
+	}
+	&:hover + .clearbutton {
+		display: block;
+	}
+}
+
+.usage {
+	h1 {
+		margin-bottom: 10px;
+		margin-top: 0;
+	}
+}
+
+.clearbutton {
+	&:hover {
+		display: block;
+		color: white;
+		background: $red;
+		cursor: pointer;
+	}
+	&:active {
+		background: $darkred;
+	}
+	display: none;
+	position: absolute;
+	@include border-radius(2px);
+	padding: 5px 8px;
+	top: 0;
+	right: 40px;
+	background: lighten($red,20%);
+}
+
+.checkbox_wrapper {
+    padding: 5px;
+    background-color: lighten(#777,40%); 
+    display: inline-block;
+}
+
+ul {
+	list-style: square outside none;
+	margin: 0.75em 0;
+	padding: 0;
+}
+
+li {
+	margin: 0;
+	padding: 0;
+	margin-left: 2em;
+}
+
+.metrobox {
+	padding: 0.5em 1.5em;
+	/*background-color: $orange;*/
+}

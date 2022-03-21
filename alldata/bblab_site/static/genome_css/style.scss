@@ -1,0 +1,468 @@
+$blue:			#33b5e5;
+$purple:		#aa66cc;
+$green:			#99cc00;
+$orange:		#ffbb33;
+$red:			#ff4444;
+$darkblue:		#0099cc;
+$darkpurple:	#9933cc;
+$darkgreen:		#669900;
+$darkorange:	#ff8800;
+$darkred:		#cc0000;
+
+body {
+	margin: 0;
+	font-family: "Helvetica Neue";
+}
+
+div {
+	box-sizing: border-box;
+}
+
+p {
+	padding: 0;
+	margin: 0;
+}
+
+@mixin clearfix() {
+	&:before, &:after {
+		content: " "; // 1
+		display: table; // 2
+	}
+	&:after {
+		clear: both;
+	}
+}
+
+@mixin transform($transforms) {
+	-moz-transform: $transforms;
+	-o-transform: $transforms;
+	-ms-transform: $transforms;
+	-webkit-transform: $transforms;
+	transform: $transforms;
+}
+
+// rotate
+@mixin rotate ($deg) {
+	@include transform(rotate(#{$deg}deg));
+}
+
+@mixin transition($transition...) {
+  -webkit-transition: $transition;
+  transition: $transition;
+}
+
+@mixin placeholder {
+	&::-webkit-input-placeholder {@content}
+	&:-moz-placeholder {@content}
+	&::-moz-placeholder {@content}
+	&:-ms-input-placeholder {@content}
+}
+
+@mixin border-radius($values) {
+	-moz-border-radius: $values;
+	-webkit-border-radius: $values;
+	border-radius: $values;
+}
+
+@mixin appearance($value) {
+	-webkit-appearance: $value;
+	-moz-appearance: $value;
+	appearance: $value;
+}
+
+.spacer {
+	margin: 10px 0 0 0;
+}
+
+.word-wrap {
+	word-break: break-all;
+}
+
+.italic {
+	font-style: italic;
+}
+
+@mixin btn($name,$colour) {
+	.btn-#{$name} {
+		background-color: $colour;
+		color: #FFF;
+		&:hover {
+			background-color: lighten($colour, 10%);
+		}
+		&:active {
+			background-color: $colour;
+			outline: none;
+		}
+	}
+}
+
+@include btn('red', #FF6666);
+@include btn('green', #BADA55);
+@include btn('blue', #33B5E5);
+
+.round-sm {
+	@include border-radius(2px);
+}
+
+.btn-large {
+	padding: 10px 20px;
+	&:active {
+		padding: 8px 18px;
+		margin: 2px 0 0 2px;
+	}
+}
+
+.btn-blank {
+	@include appearance(none);
+	border: none;
+}
+
+.title {
+	h1, p {
+		display: inline-block;
+	}
+	p {
+		margin-left: 30px;
+		font-style: italic;
+	}
+}
+
+#clearbutton {
+	$color: #ff4c4c;
+	background-color: $color;
+	text-align: center;
+	color: white;
+	height: 20px;
+	max-width: 50%;
+	@include transition(height ease-out 0.2s);
+	&:active {
+		background-color: darken($color,30%);
+	}
+	&.hide {
+		display: block !important;
+		@include transition(height ease-out 0.2s);
+		font-size: 0;
+		height: 0;
+	}
+}
+
+span {
+	&.highlight {
+		background-color: yellow;
+	}
+	&.bold {
+		font-weight: bold;	
+	}
+}
+
+table {
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.gene {
+	font-size: 11px;
+	line-height: 11px;
+	box-sizing: border-box;
+	min-height: 44px;
+	padding-top: 16px;
+	float: left;
+	position: relative;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	text-align: center;
+	&:before, &:after {
+		position: absolute;
+		font-size: 10px;
+		font-style: italic;
+		top: -14px;
+	}
+	&:after {
+		top: auto;
+		bottom: -14px;
+	}
+}
+
+$scale: 6;
+
+@mixin gene($name, $start, $end, $startlabel: 1, $endlabel: 1, $leftborder: 1px solid black, $rightborder: 1px solid black, $bg: #FFF, $gap: 0) {
+	##{$name} {
+		$startlen: str-length(inspect($start));
+		$endlen: str-length(inspect($end));
+		width: round(($end - $start) / $scale) + px;
+		&:before, &:after {
+			color: black;
+		}
+		@if $startlabel != 0 {
+			&:before {
+				left: ($startlen * -3) + px;
+				content: quote(inspect($start));
+			}
+		}
+		@if $endlabel != 0 {
+			&:after {
+				right: ($endlen * -3) + px;
+				content: quote(inspect($end));
+			}
+		}
+		border-left: $leftborder;
+		border-right: $rightborder;
+		$background-color: "";
+		@if $bg == "auto" {
+			$background-color: hsl(round((360 / ($end - $start))*80), 80, 80);
+			background-color: $background-color;
+		} @else {
+			$background-color: $bg;
+			background-color: $bg;
+		}
+		@if $gap == 1 {
+			border: none;
+		}
+		&:hover {
+			.hover_info {
+				display: block;
+			}
+			background-color: lighten($background-color, 10%);
+		}
+	}
+}
+
+@include gene("gap11", 0, 1, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("fiveLTR", 1, 634);
+@include gene("gap12", 634, 790, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("p17", 790, 1186, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("p24", 1186, 1879, 0, 0, $leftborder: none, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("p2", 1879, 1921, $leftborder: none, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("p7", 1921, 2086, 0, 0, $leftborder: none, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("p1", 2086, 2134, $leftborder: none, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("p6", 2134, 2292, 0, $leftborder: none, $bg: "auto");
+@include gene("gap13", 2292, 5041, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("vif", 5041, 5619, $bg: "auto");
+@include gene("gap14", 5619, 8379, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("tat2", 8379, 8469, $bg: "auto");
+@include gene("gap15", 8469, 8797, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("nef", 8797, 9417, $bg: "auto");
+
+@include gene("f2start", 0, 5831, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("tat1", 5831, 6045, $bg: "auto");
+@include gene("gap21", 6045, 6062, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("vpu", 6062, 6310, $bg: "auto");
+@include gene("gap22", 6310, 8379, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("rev2", 8379, 8653, $bg: "auto");
+@include gene("gap23", 8653, 9086, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("threeLTR", 9086, 9719);
+
+@include gene("f3start", 0, 2085, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("pol_start", 2085, 2253, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("prot", 2253, 2550, 0, $rightborder: 1px dashed black, $leftborder: none, $bg: "auto");
+@include gene("p51_RT", 2550, 3870, 0, $leftborder: none, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("p15_RNase", 3870, 4230, 0, $leftborder: none, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("p31_int", 4230, 5096, 0, $leftborder: none, $bg: "auto");
+@include gene("gap31", 5096, 5559, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("vpr", 5559, 5850, $bg: "auto");
+@include gene("gap32", 5850, 5970, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("rev1", 5970, 6045, $bg: "auto");
+@include gene("gap33", 6045, 6225, $startlabel: 0, $endlabel: 0, $gap: 1);
+@include gene("gp120", 6225, 7758, $rightborder: 1px dashed black, $bg: "auto");
+@include gene("gp41", 7758, 8795, $startlabel: 0, $leftborder: none, $bg: "auto");
+
+#p1, #p2 {
+	font-size: 8px;
+}
+
+.gene p.rot-c90 {
+	@include rotate(90);
+}
+
+.region {
+	@include clearfix();
+	float: left;
+}
+
+.regionlabel {
+	position: relative;
+	margin-top: 70px;
+	text-align: center;
+	border-top: 4px solid grey;
+	margin-bottom: -20px;
+	&:hover {
+		.hover_info {
+			display: block;
+			width: 500px;
+			margin-left: -250px;
+			border-color: $purple;
+			&:before {
+				border-bottom-color: $purple;
+			}
+		}
+	}
+}
+
+.ruler {
+	border-top: 1px solid black;
+	width: round(9719px / $scale);
+}
+
+.rlabel {
+	float: left;
+	width: round(1000px / $scale);
+	text-align: right;
+	border-right: 1px solid black;
+	&.first {
+		width: 0px;
+		margin-right: -1px;
+	}
+	&.last {
+		width: round(719px / $scale);
+	}
+}
+
+.container {
+	width: round(9719px / $scale) + 55px;
+	padding-bottom: 25px;
+	padding-left: 50px;
+}
+
+.readingframe {
+	position: relative;
+	@include clearfix();
+	padding: 25px 0 25px 0;
+	border-top: 1px dotted grey;
+	&:before {
+		top: 50%;
+		margin-top: -15px;
+		position: absolute;
+		left: -40px;
+		font-size: 25px;
+		font-weight: bold;
+	}
+	&.one {
+		&:before {
+			content: "1";
+		}
+	}
+	&.two {
+		&:before {
+			content: "2";
+		}
+	}
+	&.three {
+		border-bottom: 1px dotted grey;
+		&:before {
+			content: "3";
+		}
+	}
+}
+
+.line {
+	position: absolute;
+	background: black;
+	z-index: 100;
+}
+
+#rev1 .right {
+	right: -10px;
+	width: 10px;
+	height: 2px;
+	.up {
+		top: -54px;
+		right: 0px;
+		width: 2px;
+		height: 54px;
+		.right {
+			width: (2400px / $scale);
+			left:0;
+			.up {
+				top: auto;
+				right: 0;
+				bottom: 0;
+				height: 28px;
+			}
+		}
+	}
+}
+
+#tat1 .up {
+	top: -27px;
+	right: 50%;
+	height: 27px;
+	width: 2px;
+	.right {
+		left: 0;
+		width: (2400px / $scale);
+		height: 2px;
+		.up {
+			right: 0;
+			bottom: 0;
+			top: auto;
+			height: 77px;
+			width: 2px;
+			.right {
+				right: 0;
+				width: (65px / $scale);
+				height: 2px;
+			}
+		}
+	}
+}
+
+@mixin calc($property, $value) {
+	#{$property}: -webkit-calc(#{$value});
+	#{$property}: -moz-calc(#{$value});
+	#{$property}: calc(#{$value});
+}
+
+.hover_info {
+	display: none;
+	position: absolute;
+	z-index: 100;
+	$width: 300px;
+	width: $width;
+	background-color: white;
+	$border-color: $blue;
+	$border-width: 2px;
+	border: $border-width solid $border-color;
+	@include border-radius(2px);
+	@include calc(top, "100% + 10px");
+	left: 50%;
+	margin-left: $width / -2;
+	text-align: left;
+	padding: 10px;
+	&:before, &:after {
+		position: absolute;
+		content: "";
+		bottom: 100%;
+		left: 50%;
+		width: 0;
+		height: 0;
+	}
+	&:before {
+		margin-left: -10px;
+		border: {
+			left: 10px solid transparent;
+			right:	10px solid transparent;
+			bottom:	10px solid $border-color;
+		}
+	}
+	&:after {
+		margin-left: -7px;
+		border: {
+			left: 7px solid transparent;
+			right:	7px solid transparent;
+			bottom:	7px solid white;
+		}
+	}
+	h3 {
+		margin: 0;
+		margin-bottom: 5px;
+		font-size: 16px;
+	}
+	p {
+		margin-left: 8px;
+		font-size: 14px;
+		line-height: 14px;
+	}
+	h3:not(:first-child) {
+		margin-top: 10px;
+	}
+}

@@ -1,0 +1,9 @@
+{% extends "account_base.html" %}
+{% block content %}
+<p>This is {{username}}'s account page</p>
+{% if user.is_staff %}
+<p><a href="/django/wiki/password_change/">change your password</a></p>
+{% else %}
+<p>You are not a staff user so you can't change your password.</p>
+{% endif %}
+{% endblock %}

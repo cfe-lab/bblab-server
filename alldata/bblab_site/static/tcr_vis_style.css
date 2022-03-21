@@ -1,0 +1,197 @@
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-style: normal;
+    font-variant: normal;
+
+    /*auto colours*/
+    color: #222;
+    background-color: #eee;
+
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+input {
+    -webkit-appearance: none;
+    background: #fff;
+
+    border: 2px solid #ccc;
+    border-radius: 4px;	 
+}
+
+input[type=submit]:active {
+    background: #ccc;
+
+    border: 2px solid #ccc;
+    border-radius: 4px;	 
+}
+
+textarea {
+    resize: vertical;
+    border: 2px solid #ccc;
+    border-radius: 4px;	
+
+    -webkit-appearance: none;
+}
+
+#sidebar {
+    width: 460px;
+    height: calc(100% - 20px);
+
+    padding: 10px;
+
+    display: block;
+
+    float: left;
+    background-color: #c8b297;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#title {
+    width: 10em;
+
+    margin: auto;
+    margin-top: 0.25em;   
+    padding: 0.25em;
+	
+    background-color: #ffb;
+    border-radius: 16px;
+
+    /* box-shadow: 0 0 0.5px 0.5px #ffb; */
+
+    z-index: 1000;
+
+    text-align: center;
+}
+
+#content {
+    /* height: calc(100% - 3.25em);  /* Sort of a magic number */
+    float: left;
+
+    width: calc(100% - 460px - 20px);
+    height: 100%;
+}
+
+#svgCanvas {
+    width: 100%;
+    height: 99.6%;
+}
+
+#main-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+#mainForm {
+    margin: 0 1em 0 1em;
+}
+
+.formitem {
+    margin: 0.5em 0 0.5em 0
+}
+
+.slidercontainer {
+    margin: auto;
+    width: 80%;
+}
+
+.slider {
+    width: calc(100% - 4px); /* border is 2px */
+    margin: 0;
+}
+
+.proc-box {
+    display: block;  
+    height: auto;
+
+    margin-top: 0;	
+    padding: 0.6em 1em 0.6em 1em;
+
+    border-radius: 1em;
+		
+    background-color: #b99970;
+}
+
+#visualizeBtn {
+    width: 60%;  
+    height: 4em;
+}
+
+#sampleBtn {
+    width: 32%;  
+    height: 3em;
+}
+
+#svgDownload {
+    width: 16em;  
+    height: 3em;
+}
+
+/* f stands for faded */
+f {
+    color: #888;
+    font-size: 0.8em;	
+}
+
+/* This is the styled checkbox class */
+.customCheckbox {
+    width: 1.5em;  height: 1.5em;
+
+    transform: translateY(4px);
+    margin-right: 0;	
+    -webkit-appearance: checkbox !important;  /* Safari? */
+    -moz-appearance: checkbox !important;  /* Firefox */
+    -ms-appearance: checkbox !important;  /* Internet Explorer/Edge */
+    -o-appearance: checkbox !important;
+    appearance: checkbox !important;  /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+.customRadioButton {
+    width: 1em;  height: 1em;
+
+    /*transform: translateY(4px);*/
+    /*margin-right: 0;*/	
+    -webkit-appearance: radio !important;  /* Safari? */
+    -moz-appearance: radio !important;  /* Firefox */
+    -ms-appearance: radio !important;  /* Internet Explorer/Edge */
+    -o-appearance: radio !important;
+    appearance: radio !important;  /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+/* Centered on the x and y axis */
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Centered on the x axis */
+.centered-horizontal {
+    position: fixed;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+/* Text doesn't wrap */
+.nowrap {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Text cannot be selected */
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}

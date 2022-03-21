@@ -1,0 +1,62 @@
+@mixin clearfix() {
+	&:before, &:after {
+		content: " "; // 1
+		display: table; // 2
+	}
+	&:after {
+		clear: both;
+	}
+}
+
+@mixin transform($transforms) {
+	-moz-transform: $transforms;
+	-o-transform: $transforms;
+	-ms-transform: $transforms;
+	-webkit-transform: $transforms;
+	transform: $transforms;
+}
+
+@mixin rotate ($deg) {
+	@include transform(rotate(#{$deg}deg));
+}
+
+@mixin transition($transition...) {
+  -webkit-transition: $transition;
+  transition: $transition;
+}
+
+@mixin placeholder {
+	&::-webkit-input-placeholder {@content}
+	&:-moz-placeholder {@content}
+	&::-moz-placeholder {@content}
+	&:-ms-input-placeholder {@content}
+}
+
+@mixin border-radius($values) {
+	-moz-border-radius: $values;
+	-webkit-border-radius: $values;
+	border-radius: $values;
+}
+
+@mixin appearance($value) {
+	-webkit-appearance: $value;
+	-moz-appearance: $value;
+	appearance: $value;
+}
+
+@mixin btn($name,$colour) {
+	.btn-#{$name} {
+		font-size: 14px;
+		padding: 10px 20px;
+		background-color: $colour;
+		color: #FFF;
+		&:hover {
+			background-color: lighten($colour, 10%);
+		}
+		&:active {
+			background-color: $colour;
+			padding: 8px 18px;
+			margin: 4px 4px 4px 4px;
+		}
+	}
+}

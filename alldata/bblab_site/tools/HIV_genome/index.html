@@ -1,0 +1,135 @@
+{% extends "tool_base.html" %}
+{% load static %}
+
+{% block head %}
+		<title>HIV-I HXB2 Genome</title>
+		<link rel="stylesheet" href="{% static "/genome_css/style.css" %}">
+{% endblock %}
+
+{% block content %}
+	<div id="body-div">
+		<div class="container">
+			<div class="title">
+				<h1>HIV-I HXB2 Genome</h1>
+			</div>
+			<div class="spacer"></div>
+			<div class="readingframe one">
+				<div class="gene" id="gap11"></div>
+				<div class="gene" id="fiveLTR">5' LTR</div>
+				<div class="gene" id="gap12"></div>
+				<div class="region">
+					<div class="gene" id="p17">p17</div>
+					<div class="gene" id="p24">p24</div>
+					<div class="gene" id="p2"><p class="rot-c90">p2</p></div>
+					<div class="gene" id="p7">p7</div>
+					<div class="gene" id="p1"><p class="rot-c90">p1</p></div>
+					<div class="gene" id="p6">p6</div>
+					<div class="regionlabel">gag</div>
+				</div>
+				<div class="gene" id="gap13"></div>
+				<div class="gene" id="vif">vif</div>
+				<div class="gene" id="gap14"></div>
+				<div class="gene" id="tat2"><p class="rot-c90">tat2</p></div>
+				<div class="gene" id="gap15"></div>
+				<div class="gene" id="nef">nef</div>
+			</div>
+			<div class="readingframe two">
+				<div class="gene" id="f2start"></div>
+				<div class="gene" id="tat1">tat1<div class="line up"><div class="line right"><div class="line up"><div class="line right"></div></div></div></div></div>
+				<div class="gene" id="gap21"></div>
+				<div class="gene" id="vpu">vpu</div>
+				<div class="gene" id="gap22"></div>
+				<div class="gene" id="rev2">rev2</div>
+				<div class="gene" id="gap23"></div>
+				<div class="gene" id="threeLTR">3' LTR</div>
+			</div>
+			<div class="readingframe three">
+				<div class="gene" id="f3start"></div>
+				<div class="region">
+					<div class="gene" id="pol_start"></div>
+					<div class="gene" id="prot">prot</div>
+					<div class="gene" id="p51_RT">
+						p51 RT
+						<div class="hover_info">
+							<h3>Attributes</h3>
+							<p>Length: 1320bp</p>
+							<h3>Description</h3>
+							<p>
+								HIV-1 reverse transcriptase is the enzyme responsible for creating
+								a DNA copy of the HIV viral genome. It uses the viral genome (which
+								is composed of single stranded RNA) as a template to create a double
+								stranded DNA copy of the viral genome so that it can be incorporated
+								into the host cell and use the host cell's machinery to make many copies
+								of itself (Sadava et al., 2008). This enzyme has DNA polymerase activity
+								for creating a DNA copy of the viral genome and ribonuclease H (RNase H)
+								activity for cleaving the viral template ssRNA after it has been copied
+								(Rodgers et al., 1995).
+							</p>
+						</div>
+					</div>
+					<div class="gene" id="p15_RNase">
+						p15 RNase H
+						<div class="hover_info">
+							<h3>Attributes</h3>
+							<p>Length: 360bp</p>
+							<h3>Description</h3>
+							<p>
+								Ribonuclease (commonly abbreviated RNase) is a type of nuclease that catalyzes the degradation of RNA into smaller components.
+							</p>
+						</div>
+					</div>
+					<div class="gene" id="p31_int">p31 int</div>
+					<div class="regionlabel">
+						pol
+						<div class="hover_info">
+							<h3>Description</h3>
+							<p>
+								The genomic region encoding the viral enzymes protease, reverse transcriptase, and integrase.
+								These enzymes are produced as a Gag-Pol precursor polyprotein, which is processed by the viral
+								protease; the Gag-Pol precursor is produced by ribosome frameshifting near the 3' end of gag.
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="gene" id="gap31"></div>
+				<div class="gene" id="vpr">vpr</div>
+				<div class="gene" id="gap32"></div>
+				<div class="gene" id="rev1"><p class="rot-c90">rev1</p><div class="line right"><div class="line up"><div class="line right"><div class="line up"></div></div></div></div></div>
+				<div class="gene" id="gap33"></div>
+				<div class="region">
+					<div class="gene" id="gp120">gp120</div>
+					<div class="gene" id="gp41">gp41</div>
+					<div class="regionlabel">
+						env
+						<div class="hover_info">
+							<h3>Description</h3>
+							<p>
+								Viral glycoproteins produced as a precursor (gp160), which is processed to give a noncovalent complex of the external
+								glycoprotein gp120 and the transmembrane glycoprotein gp41. The mature gp120-gp41 proteins are bound by non-covalent
+								interactions and are associated as a trimer on the cell surface. A substantial amount of gp120 can be found released
+								in the medium. gp120 contains the binding site for the CD4 receptor, and the seven transmembrane domain chemokine
+								receptors that serve as co-receptors for HIV-1.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<br>
+			<br>
+			<br>
+			<br>
+			<div class="ruler"></div>
+			<div class="rlabel first">0</div>
+			<div class="rlabel">1000</div>
+			<div class="rlabel">2000</div>
+			<div class="rlabel">3000</div>
+			<div class="rlabel">4000</div>
+			<div class="rlabel">5000</div>
+			<div class="rlabel">6000</div>
+			<div class="rlabel">7000</div>
+			<div class="rlabel">8000</div>
+			<div class="rlabel">9000</div>
+			<div class="rlabel last">9719</div>
+		</div>
+	</div>
+{% endblock %}

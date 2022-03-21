@@ -1,0 +1,22 @@
+<!Doctype html>
+{% load static %}
+
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>{{ site_title }}</title>
+	   	<meta name="robots" content="noindex" />
+		<link rel="stylesheet" href="{% static "auth_style.css" %}">
+	</head>
+	<body>
+    		<div id="content-box">
+			<div id="content-title">
+				<div>{{ content_title }}</div>
+			</div>	
+			<div id="main-content">
+				{% block content %}
+        			{% endblock %}
+			</div>
+    		</div>
+	</body>
+</html>

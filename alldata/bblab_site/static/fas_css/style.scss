@@ -1,0 +1,223 @@
+@import "bootstrap/mixins";
+@import "bootstrap/variables"; 
+@import "bootstrap/grid"; 
+
+$theme: orange;
+
+body * {
+	font-size: 14px;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   	font-weight: 300;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+h1 {
+	font-size: 24px;
+}
+
+h2 {
+	font-size: 20px;
+}
+
+h3 {
+	font-size: 18px;
+}
+
+ol {
+	margin-left: 20px;
+}
+
+#example_table {
+	margin: 10px auto;
+	border-collapse: collapse;
+	th {
+		padding: 2px 5px;
+		border: 1px solid black;
+	}
+	tr {
+		td {
+			padding: 2px 10px;
+			border: 1px solid black;
+		}
+	}
+}
+
+li {
+	list-style-position: inside;
+}
+
+.tred {
+	color: red;
+}
+
+.container {
+        max-width: 1200px;
+        margin: 0 auto;
+}
+
+@mixin border-radius($values) {
+    -moz-border-radius: $values;
+    -webkit-border-radius: $values;
+    border-radius: $values;
+}
+
+@mixin placeholder {
+    &::-webkit-input-placeholder {@content}
+    &:-moz-placeholder {@content}
+    &::-moz-placeholder {@content}
+    &:-ms-input-placeholder {@content}
+}
+
+textarea {
+	padding: 20px;
+	display: block;
+	margin: 0 auto;
+	border: none;
+	width: 100%;
+	@include border-radius(50px 0 50px 0);
+	min-height: 200px;
+	background-color: #E9E9E9;
+	@include transition(all ease-out 0.1s);
+	&:focus {
+		outline: none;
+		background-color: lighten($theme,20%);
+	@include placeholder {
+		color: #FFF;
+		opacity: 1;
+	}
+	@include transition(all ease-out 0.1s);
+	}
+}
+
+.spacer {
+    margin: 10px 0 0 0;
+}
+
+#clearbutton {
+	$color: #ff4c4c;
+	background-color: $color;
+	text-align: center;
+	color: white;
+	height: 20px;
+	max-width: 50%;
+	@include transition(height ease-out 0.2s);
+	&:active {
+		background-color: darken($color,30%);
+	}
+	&.hide {
+		display: block !important;
+		@include transition(height ease-out 0.2s);
+		font-size: 0;
+		height: 0;
+	}
+}
+
+@mixin appearance($value) {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+}
+
+@mixin button($name, $color) {
+	.button.#{$name} {
+		color: white;
+		text-shadow: 1px 1px 1px black;
+		@include gradient-vertical(lighten($color,10%), darken($color, 10%));
+		&:active {
+			@include gradient-vertical(darken($color, 10%), lighten($color,10%));
+			@include box-shadow(0 8px 6px -6px black inset);
+			outline: none;
+		}
+	}
+}
+
+@include button(green, #8fc31f);
+@include button(red, #e60012);
+@include button(orange, #FF994C);
+@include button(blue, #1E5799);
+
+.button {
+        -webkit-border-radius: 10px;
+        -webkit-appearance: none;
+        padding: 10px 0;
+        border: none;
+        display: block;
+        width: 100%;
+		font-size: 20px;
+}
+
+.nowrap {
+	white-space: nowrap;
+}
+
+.textoverflow {
+	word-break: break-all;
+}
+
+.multibutton {
+	display: inline-block;
+	width: auto;
+	&.dual {
+		&:not(:first-of-type):not(:nth-of-type(2)) {
+			margin-top: 10px;
+		}
+		width: 50%;
+	}
+	&.left {
+		border-right: 1px solid white;
+		@include border-right-radius(0);
+	}
+	&.right {
+		border-left: 1px solid white;
+		@include border-left-radius(0);
+	}
+}
+
+.spacer {
+	min-height: 20px;
+}
+
+.info-box {
+	$br: 10px;
+	$bg: #f8f8f8;
+	@include border-top-radius($br);
+	padding: 0 10px 10px 10px;
+	background: $bg;
+	border: 1px solid darken($bg,10%);
+	h2 {
+		padding: 10px;
+		margin: 0 -10px 0 -10px;
+		background: darken($bg,10%);
+		@include border-top-radius($br);
+	}
+	&.important {
+		$bg: #ffb7b7;
+		border: 1px solid darken($bg,10%);
+		background: $bg;
+		h2 {
+			background: darken($bg,10%);
+		}
+	}
+}
+
+.example {
+	margin: 5px 0;
+	padding: 5px;
+	background: #dcf4ff;
+}
+
+#fasta-convert-table {
+	width: 100%;
+}
+
+.row.checkbox {
+	padding: 2.5px;
+	margin: 2.5px;
+	background-color: lighten(red,45%);
+}
+
+div[class*='col-'].description {
+	font-style: italic;
+}
