@@ -1,0 +1,431 @@
+version: "3.2"
+
+volumes:
+  db_data:
+networks:
+  bb-lab:
+    external: true
+    name: dock_net
+
+services:
+  bbtool:
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools.dockerfile
+      target: bblab-tool
+    image: cfe-lab/bbtool-base:latest
+
+  wiki:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools.dockerfile
+      target: bblab-wiki
+    # command: bash
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtools-wiki:latest
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bbwiki.entrypoints=web-secure"
+      - "traefik.http.routers.bbwiki.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/wiki`) || PathPrefix(`/django/account`) || PathPrefix(`/static`) || Path(`/`) || PathPrefix(`/wiki`)) "
+      - "traefik.http.routers.bbwiki.tls=true"
+      - "traefik.http.routers.bbwiki.service=bbwiki"
+      - "traefik.http.services.bbwiki.loadbalancer.server.port=80"
+
+  best-prob-hla-imputation:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-bphi.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-bphi:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.best-prob-hla-imputation.entrypoints=web-secure"
+      - "traefik.http.routers.best-prob-hla-imputation.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/best_prob_HLA_imputation`) || PathPrefix(`/static/bphi*`))"
+      - "traefik.http.routers.best-prob-hla-imputation.tls=true"
+      - "traefik.http.routers.best-prob-hla-imputation.service=best-prob-hla-imputation"
+      - "traefik.http.services.best-prob-hla-imputation.loadbalancer.server.port=80"
+
+  # blind-dating:
+  #   restart: unless-stopped
+  #   build:
+  #     context: .
+  #     dockerfile: dockerfiles/bbtools-wiki.dock
+  #     target: blind-dating
+  #   # command: bash
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - bb-lab
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.blind-dating.entrypoints=web-secure"
+  #     - "traefik.http.routers.blind-dating.rule=Host(`bbtools-test.bccfe.ca`) && PathPrefix(`/django/tools/blind_dating`)"
+  #     - "traefik.http.routers.blind-dating.tls=true"
+  #     - "traefik.http.routers.blind-dating.service=blind-dating"
+  #     - "traefik.http.services.blind-dating.loadbalancer.server.port=80"
+
+  codon-by-codon:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-codon_by_codon.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-codon-by-codon:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.codon-by-codon.entrypoints=web-secure"
+      - "traefik.http.routers.codon-by-codon.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/codon_by_codon`) || PathPrefix(`/static/cbc*`))"
+      - "traefik.http.routers.codon-by-codon.tls=true"
+      - "traefik.http.routers.codon-by-codon.service=codon-by-codon"
+      - "traefik.http.services.codon-by-codon.loadbalancer.server.port=80"
+
+  fasta-converter:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-fasta_converter.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-fasta-converter:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fasta-converter.entrypoints=web-secure"
+      - "traefik.http.routers.fasta-converter.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/fasta_converter`) || PathPrefix(`/static/fa*`))"
+      - "traefik.http.routers.fasta-converter.tls=true"
+      - "traefik.http.routers.fasta-converter.service=fasta-converter"
+      - "traefik.http.services.fasta-converter.loadbalancer.server.port=80"
+
+  guava-layout:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-guava_layout.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-guava-layout:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.guava-layout.entrypoints=web-secure"
+      - "traefik.http.routers.guava-layout.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/guava_layout`) || PathPrefix(`/static/gld*`))"
+      - "traefik.http.routers.guava-layout.tls=true"
+      - "traefik.http.routers.guava-layout.service=guava-layout"
+      - "traefik.http.services.guava-layout.loadbalancer.server.port=80"
+
+  hiv-genome:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-hiv_genome.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-hiv-genome:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hiv-genome.entrypoints=web-secure"
+      - "traefik.http.routers.hiv-genome.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/HIV_genome`) || PathPrefix(`/static/genome_css`))"
+      - "traefik.http.routers.hiv-genome.tls=true"
+      - "traefik.http.routers.hiv-genome.service=hiv-genome"
+      - "traefik.http.services.hiv-genome.loadbalancer.server.port=80"
+
+  hla-class:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-hla_class.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    # depends_on:
+    #   - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-hla-class:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hla-class.entrypoints=web-secure"
+      - "traefik.http.routers.hla-class.rule=Host(`bbtools-test.bccfe.ca`) && PathPrefix(`/django/tools/hla_class`) "
+      - "traefik.http.routers.hla-class.tls=true"
+      - "traefik.http.routers.hla-class.service=hla-class"
+      - "traefik.http.services.hla-class.loadbalancer.server.port=80"
+
+  phage-i-expanded:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-phage_i_expanded.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-phage-i-expanded:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.phage-i-expanded.entrypoints=web-secure"
+      - "traefik.http.routers.phage-i-expanded.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/phage_i_expanded`) || PathPrefix(`/static/PI*`))"
+      - "traefik.http.routers.phage-i-expanded.tls=true"
+      - "traefik.http.routers.phage-i-expanded.service=phage-i-expanded"
+      - "traefik.http.services.phage-i-expanded.loadbalancer.server.port=80"
+
+  phylodating:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-phylodating.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-phylodating:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.phylodating.entrypoints=web-secure"
+      - "traefik.http.routers.phylodating.rule=Host(`bbtools-test.bccfe.ca`) && PathPrefix(`/django/tools/phylodating`)"
+      - "traefik.http.routers.phylodating.tls=true"
+      - "traefik.http.routers.phylodating.service=phylodating"
+      - "traefik.http.services.phylodating.loadbalancer.server.port=80"
+
+  quality-check:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-quality_check.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-quality-check:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.quality-check.entrypoints=web-secure"
+      - "traefik.http.routers.quality-check.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/quality_check`) || PathPrefix(`/static/qc`))"
+      - "traefik.http.routers.quality-check.tls=true"
+      - "traefik.http.routers.quality-check.service=quality-check"
+      - "traefik.http.services.quality-check.loadbalancer.server.port=80"
+    
+  qvalue:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-qvalue.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-qvalue:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qvalue.entrypoints=web-secure"
+      - "traefik.http.routers.qvalue.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/qvalue`) || PathPrefix(`/static/qv`))"
+      - "traefik.http.routers.qvalue.tls=true"
+      - "traefik.http.routers.qvalue.service=qvalue"
+      - "traefik.http.services.qvalue.loadbalancer.server.port=80"
+
+  sequencing-layout:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-sequencing_layout.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-sequencing-layout:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sequencing-layout.entrypoints=web-secure"
+      - "traefik.http.routers.sequencing-layout.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/sequencing_layout`) || PathPrefix(`/static/pld*`))"
+      - "traefik.http.routers.sequencing-layout.tls=true"
+      - "traefik.http.routers.sequencing-layout.service=sequencing-layout"
+      - "traefik.http.services.sequencing-layout.loadbalancer.server.port=80"
+
+  tcr-distance:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-tcr_distance.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-tcr-distance:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tcr-distance.entrypoints=web-secure"
+      - "traefik.http.routers.tcr-distance.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/tcr_distance`) || PathPrefix(`/static/tcr_d*`))"
+      - "traefik.http.routers.tcr-distance.tls=true"
+      - "traefik.http.routers.tcr-distance.service=tcr-distance"
+      - "traefik.http.services.tcr-distance.loadbalancer.server.port=80"
+
+  tcr-visualizer:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-tcr_visualizer.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-tcr-visualizer:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tcr-visualizer.entrypoints=web-secure"
+      - "traefik.http.routers.tcr-visualizer.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/tcr_visualizer`) || PathPrefix(`/static/tcr_v*`))"
+      - "traefik.http.routers.tcr-visualizer.tls=true"
+      - "traefik.http.routers.tcr-visualizer.service=tcr-visualizer"
+      - "traefik.http.services.tcr-visualizer.loadbalancer.server.port=80"
+
+  text-to-columns:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-text_to_columns.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-text-to-columns:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.text-to-columns.entrypoints=web-secure"
+      - "traefik.http.routers.text-to-columns.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/text_to_columns`) || PathPrefix(`/static/ttc*`))"
+      - "traefik.http.routers.text-to-columns.tls=true"
+      - "traefik.http.routers.text-to-columns.service=text-to-columns"
+      - "traefik.http.services.text-to-columns.loadbalancer.server.port=80"
+
+  translate-dna:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-translate_dna.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-translate-dna:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.translate-dna.entrypoints=web-secure"
+      - "traefik.http.routers.translate-dna.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/translate_DNA`) || PathPrefix(`/static/dna*`))"
+      - "traefik.http.routers.translate-dna.tls=true"
+      - "traefik.http.routers.translate-dna.service=translate-dna"
+      - "traefik.http.services.translate-dna.loadbalancer.server.port=80"
+
+  unique-sequence:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-unique_sequence.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-unique-sequence:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.unique-sequence.entrypoints=web-secure"
+      - "traefik.http.routers.unique-sequence.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/unique_sequence`) || PathPrefix(`/static/usc*`))"
+      - "traefik.http.routers.unique-sequence.tls=true"
+      - "traefik.http.routers.unique-sequence.service=unique-sequence"
+      - "traefik.http.services.unique-sequence.loadbalancer.server.port=80"
+
+  variable-function:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-variable_function.dockerfile
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-lab
+    image: cfe-lab/bbtool-variable-function:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.variable-function.entrypoints=web-secure"
+      - "traefik.http.routers.variable-function.rule=Host(`bbtools-test.bccfe.ca`) && (PathPrefix(`/django/tools/variable_function`) || PathPrefix(`/static/vfa*`))"
+      - "traefik.http.routers.variable-function.tls=true"
+      - "traefik.http.routers.variable-function.service=variable-function"
+      - "traefik.http.services.variable-function.loadbalancer.server.port=80"
+
+  db:
+    image: mariadb:10.4
+    restart: unless-stopped
+    # command: ["sh", "-c", "'exec mysql -uroot -p${MYSQL_ROOT_PASSWORD:?no password set}'", "<", "db_dump/all-databases.sql"]
+    # ports:
+    #   - "3306:3306"
+    networks:
+      - bb-lab
+    labels:
+      - traefik.enable=false
+#    env_file: bb-db.env
+    environment:
+      #${VAR:-default} the ':-' says if VAR is unset or blank use 'default'
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-mariadb}
+      - MYSQL_USER=${MYSQL_USER:-mariadb}
+      # ${VAR:?no value set} the ':?' says that if VAR is unset or blank, raise an error.
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?no password set}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?no password set}
+      - MYSQL_INITDB_SKIP_TZINFO=1
+    volumes:
+      - ./db_data:/var/lib/mysql
+      - ./db_dump:/docker-entrypoint-initdb.d
+
+
+#  traefik:
+#    image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
+#    restart: unless-stopped
+#    command:
+#      - --api.insecure=true
+#      - --entrypoints.web.address=:80
+#      - --entrypoints.web-secure.address=:443
+#      - --providers.docker=true
+#      - --providers.docker.exposedByDefault=false
+#      - --providers.file.directory=/etc/traefik
+#      - --providers.file.watch=true
+#      - --log.level=DEBUG
+#    networks:
+#      - bb-lab
+#    ports:
+#      - "80:80/tcp"
+#      - "443:443/tcp"
+#      - "8088:8080/tcp"
+#    healthcheck:
+#      test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
+#      interval: 1m30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
+#    volumes:
+#      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+#      - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"

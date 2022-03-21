@@ -1,0 +1,66 @@
+# Checked for 3.7?
+
+import cgi
+import re
+import sys
+import collections
+import pickle as cp
+
+form = cgi.FieldStorage()
+userinput = form.getvalue("userinput")
+runtranslate = form.getvalue("runtranslate")
+dltranslate = form.getvalue("dltranslate")
+
+pattern = re.compile(r'(\[.*?\])')
+
+def printHtmlHeaders():
+    print("Content-Type: text/html")
+    print()
+    print("""<!DOCTYPE html><html><head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../cgi-bin/script.js"></script>
+    <link rel="stylesheet" href="../css/style.css"></head><body>""")
+
+def parseData(text):
+    text = [_f for _f in text.replace('\r','').split('\n') if _f]
+    lines = []
+    for line in text:
+        values = []
+        line = [_f for _f in re.split(pattern, line) if _f]
+        for i in range(len(line)):
+            if (line[i][0] != '['):
+                line[i] = [x for x in line[i]]
+                values += line[i]
+            else:
+                values.append(line[i])
+        lines.append(values)
+    return lines
+
+def printFileHeaders(filename):
+    print("Content-Disposition: attachment; filename=\""+filename+"\"")
+    print("Content-Type:application/octet-stream; name=\""+filename+"\"")
+    print()
+        
+if (runtranslate is not None):
+    printHtmlHeaders()
+    results = parseData(userinput)
+    print('<div class="container">')
+    print('<table>')
+    for line in results:
+        print('<tr>')
+        for char in line:
+            print('<td>{}</td>'.format(char))
+        print('</tr>')
+    print('<tr>')
+    for column in range(len(results[0])):
+        print('<td>{}</td>'.format(collections.Counter([x[column] for x in results])))
+    print('<tr>')
+    print('</table>')
+    print('</div>')
+
+elif (dltranslate is not None):
+    printFileHeaders('columns.csv')
+    parsed = parseData(userinput)
+    cp.dump(parsed, open('data','wb'))
+    print(("\n").join([(",").join(line) for line in parsed]))
+    print((',').join([(' ').join(['{}:{}'.format(k,v) for k,v in list(collections.Counter([y[i] if i < len(y) else 'NAN' for y in parsed]).items())]) for i in range(len(parsed[0]))]))

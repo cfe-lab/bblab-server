@@ -1,0 +1,183 @@
+@import "bootstrap";
+
+$theme: #33CC33;
+
+@mixin placeholder {
+	&::-webkit-input-placeholder {@content}
+	&:-moz-placeholder {@content}
+	&::-moz-placeholder {@content}
+	&:-ms-input-placeholder {@content}
+}
+
+@mixin border-radius($values) {
+	-moz-border-radius: $values;
+	-webkit-border-radius: $values;
+	border-radius: $values;
+}
+
+@mixin appearance($value) {
+	-webkit-appearance: $value;
+	-moz-appearance: $value;
+	appearance: $value;
+}
+
+.spacer {
+	margin: 10px 0 0 0;
+}
+
+.word-wrap {
+	word-break: break-all;
+}
+
+.italic {
+	font-style: italic;
+}
+
+textarea {
+	padding: 20px;
+	display: block;
+	margin: 0 auto;
+	border: none;
+	width: 100%;
+	@include border-radius(50px 0 50px 0);
+	min-height: 200px;
+	background-color: #E9E9E9;
+	@include transition(all ease-out 0.1s);
+	&:focus {
+		outline: none;
+		background-color: lighten($theme,20%);
+		@include placeholder {
+			color: #FFF;
+			opacity: 1;
+		}
+		@include transition(all ease-out 0.1s);
+	}
+}
+
+@mixin btn($name,$colour) {
+	.btn-#{$name} {
+		background-color: $colour;
+		color: #FFF;
+		&:hover {
+			background-color: lighten($colour, 10%);
+		}
+		&:active {
+			background-color: $colour;
+			outline: none;
+		}
+	}
+}
+
+@include btn('red', #FF6666);
+@include btn('green', #BADA55);
+@include btn('blue', #33B5E5);
+
+.round-sm {
+	@include border-radius(2px);
+}
+
+.btn-large {
+	padding: 10px 20px;
+	&:active {
+		padding: 8px 18px;
+		margin: 2px 0 0 2px;
+	}
+}
+
+.btn-blank {
+	@include appearance(none);
+	border: none;
+}
+
+.title {
+	h1, p {
+		display: inline-block;
+	}
+	p {
+		margin-left: 30px;
+		font-style: italic;
+	}
+}
+
+#clearbutton {
+	$color: #ff4c4c;
+	background-color: $color;
+	text-align: center;
+	color: white;
+	height: 20px;
+	max-width: 50%;
+	@include transition(height ease-out 0.2s);
+	&:active {
+		background-color: darken($color,30%);
+	}
+	&.hide {
+		display: block !important;
+		@include transition(height ease-out 0.2s);
+		font-size: 0;
+		height: 0;
+	}
+}
+
+span {
+	&.highlight {
+		background-color: yellow;
+	}
+	&.bold {
+		font-weight: bold;	
+	}
+}
+
+table {
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.gene {
+	word-break: break-all;
+	min-height: 41px;
+	float: left;
+	position: relative;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	padding: 10px 2px 10px 2px;
+	text-align: center;
+	&:before, &:after {
+		position: absolute;
+		font-size: 10px;
+		font-style: italic;
+		top: -14px;
+	}
+}
+
+@mixin gene($name, $start, $end, $startlabel: 1, $endlabel: 1, $leftborder: 1px solid black, $rightborder: 1px solid black, $bg: #FFF) {
+	##{$name} {
+		$startlen: str-length(inspect($start));
+		$endlen: str-length(inspect($end));
+		width: round(($end - $start) / 3) + px;
+		@if $startlabel != 0 {
+			&:before {
+				left: ($startlen * -3) + px;
+				content: quote(inspect($start));
+			}
+		}
+		@if $endlabel != 0 {
+			&:after {
+				right: ($endlen * -3) + px;
+				content: quote(inspect($end));
+			}
+		}
+		border-left: $leftborder;
+		border-right: $rightborder;
+		background-color: $bg;
+	}
+}
+
+.ruler_block {
+	border: 1px solid black;
+}
+
+@include gene("pol_start", 2085, 2253, $rightborder: 1px dashed black, $bg: #33B5E5);
+@include gene("prot", 2253, 2550, 0, $rightborder: 1px dashed black, $leftborder: none, $bg: #AA66CC);
+@include gene("p51_RT", 2550, 3870, 0, $leftborder: none, $rightborder: 1px dashed black, $bg: #99cc00);
+@include gene("p15_RNase", 3870, 4230, 0, $leftborder: none, $rightborder: 1px dashed black, $bg: #FFBB33);
+@include gene("p31_int", 4230, 5096, 0, $leftborder: none, $bg: #FF4444);

@@ -3,12 +3,12 @@ import sys, os
 
 from scipy import stats  # For the p value calculation function.
 
-sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') ) 
-import sequence_utils
-import math_utils
+# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') ) 
+from depend.util_scripts import sequence_utils, math_utils
+# import math_utils
 
-sys.path.append( os.environ.get('BBLAB_OP_PATH', 'fail') )
-import op_qvalue
+# sys.path.append( os.environ.get('BBLAB_OP_PATH', 'fail') )
+from depend.operations import op_qvalue
 
 def get_output_matrix( protein_sequences, min_count):
 	"""

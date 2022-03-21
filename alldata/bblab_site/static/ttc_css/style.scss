@@ -1,0 +1,190 @@
+@import "bootstrap";
+
+$theme: #33CC33;
+
+@mixin placeholder {
+	&::-webkit-input-placeholder {@content}
+	&:-moz-placeholder {@content}
+	&::-moz-placeholder {@content}
+	&:-ms-input-placeholder {@content}
+}
+
+@mixin border-radius($values) {
+	-moz-border-radius: $values;
+	-webkit-border-radius: $values;
+	border-radius: $values;
+}
+
+@mixin appearance($value) {
+	-webkit-appearance: $value;
+	-moz-appearance: $value;
+	appearance: $value;
+}
+
+.spacer {
+	margin: 10px 0 0 0;
+}
+
+.word-wrap {
+	word-break: break-all;
+}
+
+.italic {
+	font-style: italic;
+}
+
+textarea {
+	padding: 20px;
+	display: block;
+	margin: 0 auto;
+	border: none;
+	width: 100%;
+	@include border-radius(50px 0 50px 0);
+	min-height: 200px;
+	background-color: #E9E9E9;
+	@include transition(all ease-out 0.1s);
+	&:focus {
+		outline: none;
+		background-color: lighten($theme,20%);
+		@include placeholder {
+			color: #FFF;
+			opacity: 1;
+		}
+		@include transition(all ease-out 0.1s);
+	}
+}
+
+@mixin btn($name,$colour) {
+	.btn-#{$name} {
+		background-color: $colour;
+		color: #FFF;
+		&:hover {
+			background-color: lighten($colour, 10%);
+		}
+		&:active {
+			background-color: $colour;
+			outline: none;
+		}
+	}
+}
+
+@include btn('red', #FF6666);
+@include btn('green', #BADA55);
+@include btn('blue', #33B5E5);
+
+.round-sm {
+	@include border-radius(2px);
+}
+
+.btn-large {
+	padding: 10px 20px;
+	&:active {
+		padding: 8px 18px;
+		margin: 2px 0 0 2px;
+	}
+}
+
+.btn-blank {
+	@include appearance(none);
+	border: none;
+}
+
+.title {
+	h1, p {
+		display: inline-block;
+	}
+	p {
+		margin-left: 30px;
+		font-style: italic;
+	}
+}
+
+#clearbutton {
+	$color: #ff4c4c;
+	background-color: $color;
+	text-align: center;
+	color: white;
+	height: 20px;
+	max-width: 50%;
+	@include transition(height ease-out 0.2s);
+	&:active {
+		background-color: darken($color,30%);
+	}
+	&.hide {
+		display: block !important;
+		@include transition(height ease-out 0.2s);
+		font-size: 0;
+		height: 0;
+	}
+}
+
+span {
+	&.highlight {
+		background-color: yellow;
+	}
+	&.bold {
+		font-weight: bold;	
+	}
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+td {
+	width: 50px;
+	text-align: center;
+}
+
+table, td {
+	border: 1px solid black;
+}
+
+#validate {
+	padding: 10px;
+	font-family: monospace;
+	background-color: #e9e9e9;
+	min-height: 200px;
+	&:focus {
+		outline: none;
+	}
+}
+
+#copy {
+	font-size: 20px;
+	font-family: monospace;
+	word-break: break-all;
+	margin-bottom: 20px;
+}
+
+.codon_wrapper {
+	display:inline-block;
+	float: left;
+	margin: 0 2px;
+}
+
+.numberfloat {
+	text-align: center;
+	font-size: 10px;
+	margin: 0 2px;
+	border-top: 1px solid grey;
+}
+
+#copy:after {
+	content:"";
+	display:table;
+	clear:both;
+}
+
+.good {
+	background-color: lightgreen;
+}
+
+.bad {
+	background-color: #FF8080;
+}
+
+.mix {
+	background-color: yellow;
+}

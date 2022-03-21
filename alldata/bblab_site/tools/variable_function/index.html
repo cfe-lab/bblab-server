@@ -1,0 +1,74 @@
+{% extends "tool_base.html" %}
+{% load static %}
+
+{% block head %}
+	<title>VFA</title>
+	<link rel="stylesheet" href="{% static "/vfa_css/style.css" %}">
+{% endblock %}
+
+{% block content %}
+<div id="body-div">
+
+<div class="container">
+<div class="info">
+	<h1>Instructions</h1>
+	<h2>Description</h2>
+	<p>The variable function analysis performs a statistical test (Mann-Whitney U) on a given set of data.</p>
+	<h2>Data Input</h2>
+		<p>It is easiest to copy and paste data directly from excel, as it will input the tab characters for you</p>
+		<p>The data must be in the form "VAR1 VAR2 VAR3 VALUE", where the gaps are TABS and each line ends in a value &gt; 0 but &lt; 1. 
+			Each VAR can be anything, it could be single base pairs of a gene, e.g. "A C T G 0.4". 
+			The VARs could also be amino acids, allele variants, etc. The VALUE must be the last thing on each line, and must be between 0 and 1. It is a measure
+			of the function of that sequence of VARs as a whole.
+		</p>
+	<h2>Example</h2>
+		<p>Say you are trying to determine which HLA types attribute to higher CD4 counts. The variables you record per individual are:</p>
+		<ol>
+			<li>A1</li>
+			<li>A2</li>
+			<li>B1</li>
+			<li>B2</li>
+			<li>C1</li>
+			<li>C2</li>
+		</ol>
+		<p>
+		For each individual set of these variables A1-C2 you also have a function which measures the ratio of CD4 as compared to a normal healthy cell. 
+		Wherethese individuals are infected with HIV.
+		</p>
+		<table id="example_table">
+		<th>A1</th>
+		<th>A2</th>
+		<th>B1</th>
+		<th>B2</th>
+		<th>C1</th>
+		<th>C2</th>
+		<th>% CD4</th>
+		<tr><td>A02:26</td><td>A03:01:01G</td><td>B07:02:01G</td><td>B40:01:01G</td><td>C03:04:01G</td><td>C07:02:01G</td><td>0.3</td>
+		<tr><td>A01:01:01G</td><td>A02:01:01G</td><td>B08:01:01G</td><td>B15:01:01G</td><td>C03:04:01G</td><td>C07:01:01G</td><td>0.7</td>
+		<tr><td>A01:01:01G</td><td>A02:01:01G</td><td>B08:01:01G</td><td>B57:01:01G</td><td>C06:02:01G</td><td>C07:01:01G</td><td>0.8</td>
+		<tr><td>A02:01:01G</td><td>A03:01:01G</td><td>B14:02:01</td><td>B15:34</td><td>C03:04:01G</td><td>C08:02:01</td><td>0.3</td>
+		<tr><td>A02:01:01G</td><td>A24:03:01G</td><td>B38:01:01</td><td>B51:01:01G</td><td>C12:03:01G</td><td>C14:02:01</td><td>0.45</td>
+		<tr><td>A02:01:01G</td><td>A02:01:01G</td><td>B14:02:01</td><td>B40:01:01G</td><td>C03:04:01G</td><td>C08:02:01</td><td>0.3</td>
+		<tr><td>A01:01:01G</td><td>A01:01:01G</td><td>B08:01:01G</td><td>B57:01:01G</td><td>C06:02:01G</td><td>C07:01:01G</td><td>0.75</td>
+		<tr><td>A11:01:01G</td><td>A23:01:01G</td><td>B07:02:01G</td><td>B51:01:01G</td><td>C04:01:01G</td><td>C15:02:01G</td><td>0.2</td>
+		<tr><td>A01:01:01G</td><td>A03:01:01G</td><td>B27:05:02G</td><td>B57:01:01G</td><td>C01:02:01G</td><td>C06:02:01G</td><td>0.8</td>
+		<tr><td>A01:01:01G</td><td>A02:01:01G</td><td>B08:01:01G</td><td>B44:02:01G</td><td>C02:02:02G</td><td>C07:01:01G</td><td>0.7</td>
+		<tr><td>A01:01:01G</td><td>A11:01:01G</td><td>B08:01:01G</td><td>B35:01:01G</td><td>C04:01:01G</td><td>C07:64</td><td>0.9</td>
+		<tr><td>A02:01:01G</td><td>A24:02:01G</td><td>B15:01:01G</td><td>B15:07:01G</td><td>C01:02:01G</td><td>C03:03:01G</td><td>0.4</td>
+		<tr><td>A01:01:01G</td><td>A25:01:01G</td><td>B08:01:01G</td><td>B39:01:01G</td><td>C07:01:01G</td><td>C12:03:01G</td><td>0.6</td>
+		</table>
+		<p>You can copy and paste the table (not including the headers) into the text area and click submit to get medians, counts, and p-values that will 
+			list each category and assign it a p-value based on whether or not the presence or absense of that variable makes a significant difference on the function
+		</p>
+</div>
+
+<form action="results/" method="post" id="form">
+	{% csrf_token %}
+	<textarea placeholder="Enter data here" name="textinput" form="form" required></textarea>
+	<!-- <input type="file" name="datafile" size="40"> -->
+	<input class="button orange" id="submit_button" type="submit" name="run">
+	<input class="button blue" id="submit_button" type="submit" name="csv" value="Download CSV">
+</form>
+</div>
+</div>
+{% endblock %}
