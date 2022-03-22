@@ -70,7 +70,7 @@ COPY urls/urls_empty.py /alldata/bblab_site/tools/urls.py
 
 # load configuration for Apache server
 COPY conf/apache2.conf /etc/apache2/
-COPY django_wsgi_conf.py /etc/django/
+# COPY django_wsgi_conf.py /etc/django/
 RUN ln -sf /var/log/apache2/access.log /dev/stdout && \
     ln -sf /var/log/apache2/error.log /dev/stderr 
 RUN chmod 766 -R /var/log/apache2/
@@ -109,7 +109,7 @@ COPY alldata/bblab_site/static/auth_style.css /alldata/bblab_site/static/
 
 # load configuration for Apache server
 COPY conf/apache2.conf /etc/apache2/
-COPY django_wsgi_conf.py /etc/django/
+# COPY django_wsgi_conf.py /etc/django/
 RUN ln -sf /var/log/apache2/access.log /dev/stdout && \
     ln -sf /var/log/apache2/error.log /dev/stderr 
 RUN a2dissite 000-default.conf && a2dissite default-ssl.conf
