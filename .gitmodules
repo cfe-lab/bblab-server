@@ -1,0 +1,9 @@
+[submodule "alldata/bblab_site/tools/phylodating"]
+	path = alldata/bblab_site/tools/phylodating
+	url = git@github.com:cfe-lab/phylodating.git
+[submodule "alldata/bblab_site/tools/translate_DNA"]
+	path = alldata/bblab_site/tools/translate_DNA
+	url = git@github.com:cfe-lab/translate-DNA.git
+[submodule "alldata/bblab_site/depend/apps/tcr-dist"]
+	path = alldata/bblab_site/depend/apps/tcr-dist
+	url = git@github.com:phbradley/tcr-dist.git
