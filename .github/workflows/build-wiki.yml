@@ -1,6 +1,10 @@
 name: Build Wiki Image
 on:
-  push:
+  workflow_run:
+      workflows: [Build Base Image]
+      types:
+        - completed
+#   push:
 #     paths:
 #       - 'alldata/bblab_site/account/'
 #       - 'alldata/bblab_site/bblab_site/'
@@ -8,9 +12,9 @@ on:
 #       - 'alldata/bblab_site/templates/'
 #       - 'alldata/bblab_site/requirements.txt'
 #       - 'dockerfiles/bbtools.dockerfile'
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
     
 env:
   REGISTRY: ghcr.io
