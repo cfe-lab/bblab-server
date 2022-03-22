@@ -1,13 +1,13 @@
 name: Build Base Image
 on:
   push:
-    paths:
-      - 'alldata/bblab_site/account/'
-      - 'alldata/bblab_site/bblab_site/'
-      - 'alldata/bblab_site/depend/'
-      - 'alldata/bblab_site/templates/'
-      - 'alldata/bblab_site/requirements.txt'
-      - 'dockerfiles/bbtools.dockerfile'
+#     paths:
+#       - 'alldata/bblab_site/account/'
+#       - 'alldata/bblab_site/bblab_site/'
+#       - 'alldata/bblab_site/depend/'
+#       - 'alldata/bblab_site/templates/'
+#       - 'alldata/bblab_site/requirements.txt'
+#       - 'dockerfiles/bbtools.dockerfile'
     branches: [ main ]
   pull_request:
     branches: [ main ]
