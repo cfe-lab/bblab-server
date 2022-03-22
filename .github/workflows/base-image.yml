@@ -1,5 +1,9 @@
 name: Build Base Image
 on:
+  workflow_run:
+      workflows: [Build Wiki Image]
+      types:
+        - completed
   push:
 #     paths:
 #       - 'alldata/bblab_site/account/'
@@ -33,4 +37,5 @@ jobs:
         context: .
         file: 'dockerfiles/bbtools.dockerfile'
         push: true
+        target: bblab-base
         tags: ghcr.io/${{ github.repository }}:base
