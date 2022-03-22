@@ -1,13 +1,13 @@
 name: Build Base Image
 on:
   push:
-    paths:
-      - 'alldata/bblab_site/account/'
-      - 'alldata/bblab_site/bblab_site/'
-      - 'alldata/bblab_site/depend/'
-      - 'alldata/bblab_site/templates/'
-      - 'alldata/bblab_site/requirements.txt'
-      - 'dockerfiles/bbtools.dockerfile'
+#     paths:
+#       - 'alldata/bblab_site/account/'
+#       - 'alldata/bblab_site/bblab_site/'
+#       - 'alldata/bblab_site/depend/'
+#       - 'alldata/bblab_site/templates/'
+#       - 'alldata/bblab_site/requirements.txt'
+#       - 'dockerfiles/bbtools.dockerfile'
     branches: [ main ]
   pull_request:
     branches: [ main ]
@@ -31,5 +31,6 @@ jobs:
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
       with:
         context: .
+        file: 'dockerfiles/bbtools.dockerfile'
         push: true
-        tags: base
+        tags: ghcr.io/${{ github.repository }}:base
