@@ -1,9 +1,5 @@
 name: Build Base Image
 on:
-  workflow_run:
-      workflows: [Build Wiki Image]
-      types:
-        - completed
   push:
 #     paths:
 #       - 'alldata/bblab_site/account/'
