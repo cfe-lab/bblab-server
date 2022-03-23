@@ -18,11 +18,6 @@ SITE_ID = 1
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# This script sets the environment variables for the wsgi application,
-# not for all of apache
-DJANGO_ENV_CONFIG = '/etc/django/django_wsgi_conf.py'
-exec(open(DJANGO_ENV_CONFIG).read())
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
@@ -36,7 +31,8 @@ if IS_RANDOM_KEY:
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'bbtools-test.bccfe.ca'
+    'bbtools-test.bccfe.ca',
+    'bblab-hivresearchtools.ca'
 ]
 
 
@@ -68,7 +64,7 @@ INSTALLED_APPS = [
     # Brute force attack protection
     'axes',
     # 'tools.blind_dating',
-    'tools.phylodating',
+    # 'tools.phylodating',
     # 'tools.phylodating.apps.PhylodatingConfig'
 ]
 

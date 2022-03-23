@@ -1,7 +1,7 @@
 *.code-workspace
 __pycache__
 *.pyd
-db_dump/all-databases.sql
+db_dump/*.sql
 db_data/
 *.env
 *jango_wsgi_conf.py
