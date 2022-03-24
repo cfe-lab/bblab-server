@@ -1,0 +1,37 @@
+<html>
+<head>
+	<link href='css/style.css' rel='stylesheet' type='text/css' />
+	<title>False discovery rate calculator</title>
+</head>
+
+<body>
+<div class="top_header"></div>
+
+<div class="middle_content">
+	<h1>q-value calculator (<a href="https://bblab-hivresearchtools.ca/wiki/">Return to main menu</a>)</h1>
+
+	<p><b>Instructions:</b> Copy and paste your p-values into the text field. A file will then be generated with q-values using methods described by Storey (2003). You can then directly open this file, select all, and copy/paste into excel (As the results are returned in the same order) - or you can just import the file.</p>
+
+<p><i>Tips for getting q-values into excel fast: to select all + copy/paste in mac, open the q-value file, enter CMD-A (Both keys at once) to select all, CMD-C to copy, open Excel, and press CMD-V to paste. For windows, control-A, control-C, control-V.</i></p>
+
+	<form name="myForm" method="post" action="../../cgi-bin/qvalue_generate_file.py">
+		<textarea class="queryField" id="pValues" name="pValues">0.51
+0.01
+0.12
+0.16
+0.92
+0.16
+0.01
+0.51
+0.62</textarea>
+		<input type="submit" name="submitButton" value="Submit">
+	</form>
+
+</div>
+
+<p>Storey JD. (2003) The positive false discovery rate: A Bayesian interpretation and the q-value. Annals of Statistics, 31: 2013-2035.</p>
+<p style="color: grey; font-size: 0.6em;">Written in python.</p>
+
+<div class="bottom_footer"></div>
+</body>
+</html>

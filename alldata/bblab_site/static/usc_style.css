@@ -1,0 +1,131 @@
+body {
+    font-style: normal;
+    font-variant: normal;
+    /*font-weight: 100;*/
+
+    /*auto colours*/
+    color: #222;
+    background-color: #eee;
+
+    margin: 0;
+}
+
+input {
+   -webkit-appearance: none;
+
+	background: #fff;
+
+	border: 2px solid #ccc;
+    border-radius: 4px;	 
+}
+
+input[type=submit]:active {
+	background: #ccc;
+
+	border: 2px solid #ccc;
+    border-radius: 4px;	 
+}
+
+textarea {
+    resize: vertical;
+	border: 2px solid #ccc;
+    border-radius: 4px;	
+	
+	-webkit-appearance: none;
+}
+
+#header {
+    width: 100%;
+    height: 3.25em;  /*A*/
+    
+    display: block;
+}
+
+#title {
+	display: inline;
+	
+    margin: 0.25em auto 0.25em auto;   
+	padding: 0.25em;
+	
+    background-color: #fcc;
+    border-radius: 16px;
+
+	box-shadow: 0 0 0.5px 0.5px #fcc;
+
+	z-index: 1000;
+
+	text-align: center;
+}
+
+#line {
+    margin: 0;
+	margin-top: 0.725em;  /* Sort of a magic number */
+
+    height: 1.8em;
+
+    background-color: #8df;
+	
+	z-index: -1000;
+	display: block;
+	text-align: center;
+}
+
+#content {
+    width: 100%;
+}
+
+#mainForm {
+    margin: 0 1em 0 1em
+}
+
+.formitem {
+    margin: 0.5em 0 0.5em 0
+}
+
+#fastaInputArea {
+    width: 100%;  height: 12em;
+}
+
+#formSubmit {
+    width: 60%; height: 4em;
+	margin-left: 20%;
+}
+
+/* f stands for faded */
+f {
+	color: #888;
+	font-size: 0.8em;	
+}
+
+/* Centered on the x and y axis */
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Centered on the x axis */
+.centeredhorizontal {
+    position: fixed;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+/* Text doesn't wrap */
+.nowrap {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Text cannot be selected */
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+             -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* Internet Explorer/Edge */
+                        user-select: none; /* Non-prefixed version, currently
+                                                supported by Chrome and Opera */
+
+}

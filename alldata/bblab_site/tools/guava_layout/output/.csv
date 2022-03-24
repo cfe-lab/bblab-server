@@ -1,0 +1,11 @@
+ Sample ID, Sample well, Sample volume (ml), Dilution factor, Events to Acquire, Time Limit, Replicates, Autosave FCS 2.0 files, Mix Time (sec), Mix Speed (rpm),, General settings,
+, T1, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Assay Type, InCyte
+, T2, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Acquisition Order, by Column
+, T3, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Do Clean,Every 24 samples
+, T4, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Wash only capillary,Yes
+, T5, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Wash both capillary and mixer,Yes
+, T6, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Mixing,Yes
+, T7, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Cleaning Option,Clean and Rinse
+, T8, 10.000000, 1.000000, 5000, 600, No, No, 3, High,,Limit for high concentration warning (cells/uL),500
+, T9, 10.000000, 1.000000, 5000, 600, No, No, 3, High
+, T10, 10.000000, 1.000000, 5000, 600, No, No, 3, High

@@ -1,0 +1,36 @@
+Document file for the "unique_sequence_checker" tool.
+--------------------------------
+
+Languages & Versions:
+	- Python : 3.6
+	- html, css.
+
+Dependencies:
+	Modules:
+		- Built in to python -> sys, cgi, smtplib, re, email.mime.text.
+
+		- openpyxl -> "/cgi-bin/python_dependencies/libraries/openpyxl"
+		openpyxl dependencies:
+			- et_xmlfile
+			- jdcal
+			- lxml
+		Note: I had problems installing openpyxl so I had to manually install its dependencies.
+
+		- sequence_utils -> "/cgi-bin/python_dependencies/util_scripts/sequence_utils.py"
+		- mailer -> "/cgi-bin/python_dependencies/util_scripts/mailer.py"
+
+Directories:
+	- "cgi-bin" holds all the python scripts and dependencies. ( These dependencies are intended to be shared between all programs. )
+	- "unique_sequence" contains the html and css scripts for the website.
+	
+Algorithm:
+	This tool consists of five main procedures:
+		- 1.) Get website input from the form. (email, sequence data, etc...)
+		- 2.) Iterate through all given sequences and fill a dictionary with data about each sequence that has not already been iterated over. ( Including saving the id of all identical sequences. )
+		- 3.) Do the same as step 2 but convert the sequences to amino acid first.
+		- 4.) Create an xlsx file using the "openpyxl" lib.
+		- 5.) Email that file using the "mailer" util.
+
+Access:
+	- This tool is intended for anyone to use.
+

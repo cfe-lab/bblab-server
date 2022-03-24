@@ -1,0 +1,49 @@
+This log shows certain software which has been installed on this machine, (besides the defaults,) and has to be maintained.
+
+My goal is to keep this list as small as possible.
+
+Programs Installed:
+- Anaconda v5.3, 3.7 version - 2018-10-20
+- R v3.5.2 - 2019-03-26
+
+- Needed to install a newer version of gcc to run a connection utility (mysqlclient) to a newer version of mariadb.
+(2019-08-04)
+
+# (Uninstalling this should be fine)
+gcc Install Commands:
+sudo yum install centos-release-scl
+sudo yum install devtoolset-7-gcc*
+scl enable devtoolset-7 bash
+which gcc
+gcc --version
+
+# (THIS WAS THE PROBLEM!)
+Fix mariadb-devel (name-error):
+sudo ln -s /usr/lib64/libmariadbclient.a /usr/lib64/libmariadb.a
+
+# (THIS IS A CORRUPTED INSTALLATION BECAUSE OF LAST COMMAND)
+Reinstalling mysqlclient:
+sudo /usr/local/bin/python3.7 -m pip install --upgrade --force-reinstall mysqlclient
+
+### REAL MYSQLCLIENT FIX
+
+# undo maraidb-devel fix
+sudo mv /usr/lib64/libmariadb.a /usr/lib64/pause-libmariadb.a
+
+### uninstall maraidb devel
+sudo yum erase MariaDB-devel.x86_64
+
+### install mysql devel
+wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
+sudo rpm -Uvh mysql80-community-release-el7-3.noarch.rpm
+sudo yum install mysql-community-devel.x86_64
+
+# Reinstall mysqlclient (This time it works!)
+sudo $(which python3.7) -m pip install mysqlclient --force-reinstall --no-cache
+
+- There is a version of python (2.7.5) pre-installed onto the webserver and it is being used to run https://github.com/phbradley/tcr-dist (which has been installed onto this version of python.) TODO: look into this tool in the future for when it upgrades to python 3
+
+-
+
+
+

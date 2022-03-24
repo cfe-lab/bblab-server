@@ -1,0 +1,20 @@
+HLA_CLASS:
+
+The hla_class tool is written in ruby and php, not python.
+I decided that it would be better to keep serving it through apache directly instead of converting it to work with django, having to use python to keep it working as well.
+In addition the tool doesn't need password protection.
+
+To do this I copied the hla_class directory to "/alldata/hla_class" and made an Alias in the apache config to 'hijack' django wsgi control from the directory.
+This is why the directory seems out of place.
+
+
+ENV-VAR FILE:
+
+All the environment variables are defined in a file under the directory "/etc/django/"
+
+
+Operations Files: (op_*)
+
+These files contain code that is the analysis a tool runs. The purpose of these files is for other tools to borrow that same analysis. (codon by codon using qvalue)
+Only tools that will be reused in a bunch of analisys need to use them.
+

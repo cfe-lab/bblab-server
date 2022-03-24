@@ -1,0 +1,88 @@
+br {	clear:left; 	}
+
+label {	float:left;
+	display:block;
+	margin: 2px 4px 4px 4px;
+	text-align: right;
+	width:150px;	}
+
+h1 {
+	margin-bottom:10px;
+	font-size:180%;
+	font-weight:normal;
+	color:#222222;
+	}
+
+form {
+	margin-left:10px;
+	}
+
+div.menuSystem {	background-color: #DDFFDD;
+			padding-top:20px;
+			padding-left:20px;
+			padding-bottom:20px;
+			width:1079px;
+			margin-left:20px;	}
+
+tr.layoutRow td input  {
+	border-top: 2px solid #AAA;
+        border-left: 2px solid #AAA;
+        border-right: 2px solid #F4F4F4;
+        border-bottom: 2px solid #F4F4F4;
+	background-color: #FFDAFF;
+	width:84px;
+	}
+
+textarea.guavaSamples {         width:243px;    height:150px;   }
+textarea.manualFields {         width:502px;    height:150px;   }
+textarea.controls {             width:243px;    height:150px;   }
+
+div.col1 {
+	width:1050px;
+	}
+
+div.col2 {
+	margin-top:20px;
+	margin-left:60px;
+	margin-right:130px;
+	margin-bottom:10px;
+	float:left;
+	width:350px;
+	height:110px;
+	}
+
+div.col2 input {
+	margin-left:10px;
+	}
+
+div.col3 {
+	margin-top:20px;
+	margin-bottom:10px;
+	float:left;
+	width:400px;
+	height:110px;
+	}
+
+div.col3 select {
+	margin-left:10px;
+	}
+
+div.col3 input {
+	margin-left:10px;
+	}
+
+textarea {
+	border: 2px solid #BBBBBB;
+	padding: 5px;
+	}
+
+select.speed {  width:155px; }
+select.rowColumn {	width:155px; }
+button.b1 {     width:257px;}
+button.b2 {     width:257px;}
+input.b3 {      width:257px;    font-weight:bold;}
+
+a {
+	color:rgb(22,135,232);
+	text-decoration:none;
+	}

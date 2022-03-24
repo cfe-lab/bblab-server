@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<title>Unique Sequence Finder</title>
+	</head>
+	
+	<body>
+		<h2>Unique Sequence Finder</h2>
+		<p>This is the incomplete Unique Sequence Finder. <br>This will identify unique and identical sequences.</p>
+		<p>Please insert data in the <b>fasta</b> format.</p>
+		
+		<form name="mainForm" method="post" action="../cgi-bin/python/unique_sequence.py">
+
+			<textarea id="fastaInputArea" wrap="off"></textarea>
+			<br>
+
+			<label for="repetitions">Include repetition count</label>
+			<input type="checkbox" name="repetitions" id="repetitions">
+			<br>
+	
+			<label for="emailAddress">Email address</label>
+			<input type="text" name="emailAddress" id="emailAddress">
+			<br>
+
+			<input type="submit" name="submitBtn" value="Submit">
+			<br>
+	
+		</form>
+	</body>
+</html>

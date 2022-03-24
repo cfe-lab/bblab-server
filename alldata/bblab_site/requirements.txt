@@ -1,0 +1,27 @@
+bleach==3.1.5  
+Django==2.2    
+django-appconf==1.0.4  
+django-axes==5.4.1  
+django-classy-tags==1.0.0  
+django-ipware==3.0.0  
+django-js-asset==1.2.2  
+django-mptt==0.11.0 
+django-nyt==1.1.5  
+django-sekizai==1.1.0  
+Markdown==3.2.2  
+mysqlclient==2.0.1  
+packaging==20.4   
+Pillow==7.2.0  
+pip==19.2.3 
+pyparsing==2.4.7  
+pytz==2020.1 
+setuptools==41.2.0 
+six==1.15.0 
+sorl-thumbnail==12.6.3 
+sqlparse==0.3.1  
+webencodings==0.5.1  
+wiki==0.6 
+#--API service
+# fastapi>=0.68.1, <0.69.0
+fastapi>=0.70.0
+uvicorn[standard]>=0.13

@@ -1,0 +1,84 @@
+{% extends "tool_base.html" %}
+{% load static %}
+
+{% block head %}
+<head>
+        <link rel="stylesheet" href="{% static "tcr_vis_style.css" %}?v0.4">
+	<title>TCR Visualizer</title>
+</head>
+{% endblock %}
+
+{% block content %}
+        <div id="sidebar">
+            <h2 id="title">TCR Visualizer</h2>
+            <p class="formitem">This tool takes as input the A, B, and AB distance files as outputted by the tcr_distance tool and generates a network diagram visualization of them.</p>
+            <p class="formitem">Given that visualizations can become extremely large, please sample the visualization size with the <b>Sample Data Size</b> button. For reference, edge counts greater than <em>5,000</em> or node counts greater than <em>1000</em> may run poorly.</p>
+            
+            <div id="procedureBox" class="formitem proc-box">
+                <h4 class="formitem">Pre Visualize - Options:</h4>
+		<div class="formitem">
+                    <label for="file">clones__*.dist : </label>
+	            <input id="filein" class="formitem" name="file" type="file" style="width: 18em;">  <!-- Uploads zipped file -->
+	
+                    <div class="slidecontainer">
+                        <label id="distanceLimitLabel" for="distanceLimit">Edge distance limit <= 150</label>
+	                <input type="text" min="1" max="400" value="50" class="slider" id="distanceLimit">
+	            </div>
+                    
+                    <p style="margin:0;">&nbsp;</p>
+                    <input class="customCheckbox" type="checkbox" id="hideNoConnects" name="hideNoConnects" value="hideNoConnects" checked="checked">
+	            <label for="hideNoConnects">: Hide nodes with no connections</label>
+                    <p style="margin:0;">&nbsp;</p>
+
+                    <input id="sampleBtn" type="submit" name="sampleBtn" value="Sample Data Size">
+                    <input id="visualizeBtn" type="submit" name="visualizeBtn" value="Visualize Data">
+
+		</div>
+	    </div>	
+            
+            <div class="proc-box formitem" id="reportBox">
+                <h4 class="formitem">Sample Report:</h4>
+                <p id="sampleInfo"></p>
+            </div>
+            
+            <div id="procedureBox" class="formitem proc-box">
+                <h4 class="formitem">Post Visualize - Options:</h4>
+		<div class="formitem">
+                    <input class="customCheckbox" type="checkbox" id="centerForce" name="centerForce" value="centerForce">
+	            <label for="centerForce">: Apply a centering force to all nodes</label>
+                    <br>
+                    <input class="customCheckbox" type="checkbox" id="nodeForce" name="nodeForce">
+	            <label for="nodeForce">: Disable node repulsive force (n-body force)</label>
+                    <br>
+                    <input class="customCheckbox" type="checkbox" id="pauseSim" name="pauseSim">
+	            <label for="pauseSim">: Pause simulation</label>
+                    <p style="margin:0;">&nbsp;</p>
+
+                    <input id="heatBtn" type="submit" name="heatBtn" value="Heat up Simulation (speed up)">
+                    <input id="coolBtn" type="submit" name="coolBtn" value="Cool Simulation (slow down)">
+                    <p style="margin:0;">&nbsp;</p>
+
+                    <input id="svgDownload" type="submit" name="svgDownload" value="Download Graph as SVG Image">
+		    <br>
+		</div>
+	    </div>	
+            <br>
+
+            <div class="slidecontainer">
+                <label id="modelScale" for="scaleSlider">Model scale is 500 units</label>
+	        <input type="range" min="150" max="3500" value="400" class="slider" id="scaleSlider">
+	    </div>
+            <br>
+
+            <p class="formitem">This tool implements a modified version of <a href="https://observablehq.com/@d3/force-directed-graph">this</a> force directed graph. (Note that visualized distances are approximate, but the edge distance limit will be.)</p>
+        </div>
+
+        <div id="content">
+		<svg id="svgCanvas" width="200" height="200">
+		</svg>
+        </div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<script src="{% static "tcr_vis.js" %}?v0.4"></script>		
+{% endblock %}

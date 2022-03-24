@@ -1,0 +1,195 @@
+@import "bootstrap/mixins";
+@import "bootstrap/variables"; 
+@import "bootstrap/grid"; 
+
+$theme: orange;
+
+body * {
+	font-size: 14px;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   	font-weight: 300;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+h1 {
+	font-size: 24px;
+}
+
+h2 {
+	font-size: 20px;
+}
+
+h3 {
+	font-size: 18px;
+}
+
+ol {
+	margin-left: 20px;
+}
+
+#example_table {
+	margin: 10px auto;
+	border-collapse: collapse;
+	th {
+		padding: 2px 5px;
+		border: 1px solid black;
+	}
+	tr {
+		td {
+			padding: 2px 10px;
+			border: 1px solid black;
+		}
+	}
+}
+
+li {
+	list-style-position: inside;
+}
+
+.tred {
+	color: red;
+}
+
+.container {
+        max-width: 1050px;
+        margin: 0 auto;
+}
+
+textarea {
+        display: block;
+		border: none;
+		@include box-shadow(0 0 7px grey inset);
+		//@include box-shadow(0 15px 5px -10px grey);
+        width: 100%;
+        min-height: 250px;
+        margin: 0 auto;
+		font-size: 14px;
+		margin-bottom: 10px;
+		border-radius: 10px;
+		padding: 10px;
+		outline: none;
+		@include transition(background-color 0.2s);
+		&:focus {
+			@include transition(background-color 0.2s);
+			background-color: #dbffb7;
+		}
+}
+
+@mixin appearance($value) {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+}
+
+@mixin button($name, $color) {
+	.button.#{$name} {
+		color: white;
+		text-shadow: 1px 1px 1px black;
+		@include gradient-vertical(lighten($color,10%), darken($color, 10%));
+		&:active {
+			@include gradient-vertical(darken($color, 10%), lighten($color,10%));
+			@include box-shadow(0 8px 6px -6px black inset);
+			outline: none;
+		}
+	}
+}
+
+@include button(green, #8fc31f);
+@include button(red, #e60012);
+@include button(orange, #FF994C);
+@include button(blue, #1E5799);
+
+.button {
+        -webkit-border-radius: 10px;
+        -webkit-appearance: none;
+        padding: 10px 0;
+        border: none;
+        display: block;
+        width: 100%;
+		font-size: 20px;
+}
+
+.nowrap {
+	white-space: nowrap;
+}
+
+.textoverflow {
+	word-break: break-all;
+}
+
+.multibutton {
+	display: inline-block;
+	width: auto;
+	&.dual {
+		&:not(:first-of-type):not(:nth-of-type(2)) {
+			margin-top: 10px;
+		}
+		width: 50%;
+	}
+	&.left {
+		border-right: 1px solid white;
+		@include border-right-radius(0);
+	}
+	&.right {
+		border-left: 1px solid white;
+		@include border-left-radius(0);
+	}
+}
+
+.spacer {
+	min-height: 20px;
+}
+
+.info-box {
+	$br: 10px;
+	$bg: #f8f8f8;
+	@include border-top-radius($br);
+	padding: 0 10px 10px 10px;
+	background: $bg;
+	border: 1px solid darken($bg,10%);
+	h2 {
+		padding: 10px;
+		margin: 0 -10px 0 -10px;
+		background: darken($bg,10%);
+		@include border-top-radius($br);
+	}
+	&.important {
+		$bg: #ffb7b7;
+		border: 1px solid darken($bg,10%);
+		background: $bg;
+		h2 {
+			background: darken($bg,10%);
+		}
+	}
+}
+
+.example {
+	margin: 5px 0;
+	padding: 5px;
+	background: #dcf4ff;
+}
+
+#fasta-convert-table {
+	width: 100%;
+}
+
+.row.checkbox {
+	padding: 2.5px;
+	margin: 2.5px;
+	background-color: lighten(red,45%);
+}
+
+div[class*='col-'].description {
+	font-style: italic;
+}
+
+input[type=checkbox] {
+	~ label {
+		//background-color: red;
+	}
+	&:checked ~ label {
+		//background-color: green;
+	}
+}

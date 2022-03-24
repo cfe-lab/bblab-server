@@ -1,0 +1,11 @@
+tcr-dist is cloned from here -> https://github.com/phbradley/tcr-dist
+tcr-dist uses python 2.7
+
+Implementation Details:
+
+initial ajax call -> assign_directory // generates a random unique directory for the analysis. 
+secondary ajax call -> start_command_pipeline( directory )  // does the main anaylsis
+periodic ajax call -> get_status( directory )  // reads the directories status file if directory and file exists and translates it to human readable language
+special ajax call -> terminate( directory )  // terminates any running processes and destroys the assigned directory
+
+

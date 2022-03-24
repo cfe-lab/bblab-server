@@ -1,0 +1,4 @@
+The environment variables that hold the database connections are currently only accessable to me (user=gabe), and apache when accessed through wsgi. There is a special script that creates all the environment variables for the wsgi instance. This means that only these two users can run commands that access the database (like: "python3.7 manage.py migrate"). If you need to be able to be able to run this command, please use root access to retrieve the env-vars' information, then set the env-vars in your own .bash_profile file.
+
+location: ~/.bash_profile
+
