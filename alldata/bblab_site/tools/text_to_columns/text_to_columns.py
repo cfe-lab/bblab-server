@@ -21,6 +21,10 @@ def run(userinput, button):
 			  <script src="{% static "ttc_script.js" %}"></script>
 			  <link rel="stylesheet" href="{% static "ttc_css/style.css" %}"></head><body>'''
 
+	def padLines(textmat):
+		maxLen = len(max(textmat, key=len))
+		textmat[:] = [row + ['']*(maxLen-len(row)) for row in textmat]
+
 	def parseData(text):
 		text = [_f for _f in text.replace('\r','').split('\n') if _f]
 		lines = []
@@ -34,6 +38,7 @@ def run(userinput, button):
 				else:
 					values.append(line[i])
 			lines.append(values)
+		padLines(lines)
 		return lines
     
 
@@ -55,18 +60,27 @@ def run(userinput, button):
 			output_str += ('<tr>\n')
 			for column in range(len(results[0])):
 				inner = collections.Counter([x[column] for x in results])
-				output_str += ('<td>{}</td>\n'.format( inner ))
+				collec_counts = ['{}:{}'.format(k,v) if k!='' else '' 
+                 				for k,v in list(inner.items())]
+				output_str += ('<td>{}</td>\n').format(' '.join(collec_counts))
 			output_str += ('<tr>\n')
 			output_str += ('</table>\n')
 			output_str += ('</div>\n')
 			return (False, output_str)	
 		
 		elif button == "dl":
-			parsed = parseData(userinput)
-			#cp.dump(parsed, open('data','wb'))  # Is this a backup file?  TODO: will this get too big? it's 1.6MB already...
+			results = parseData(userinput)
+			#cp.dump(parsed, open('data','wb'))  # Is this a backup file?  
+			# TODO: will this get too big? it's 1.6MB already...
 			# We don't want any data to be stored on the webserver.
-			output_str += (("\n").join([(",").join(line) for line in parsed])) + "\r\n"
-			output_str += ((',').join([(' ').join(['{}:{}'.format(k,v) for k,v in list(collections.Counter([y[i] if i < len(y) else 'NAN' for y in parsed]).items())]) for i in range(len(parsed[0]))])) + "\r\n"
+			output_str += (("\n").join([(",").join(line) for line in results])) + "\r\n"
+			column_counts = []
+			for column in range(len(results[0])):
+				inner = collections.Counter([x[column] for x in results])
+				collec_counts = ['{}:{}'.format(k,v) if k!='' else '' 
+								for k,v in list(inner.items())]
+				column_counts += [' '.join([s for s in collec_counts if s is not ''])]
+			output_str += ','.join(column_counts) + "\r\n"
 			return (True, output_str, 'columns.csv')
 	#except Exception:
 		#return "<b>Error running analysis,</b> is your data formatted properly?"
