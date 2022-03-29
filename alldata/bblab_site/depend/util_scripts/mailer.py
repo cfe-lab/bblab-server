@@ -29,8 +29,8 @@ def send_sfu_email(sender_name, reciever_email, subject_text, body_text, attachm
 		attachment_list is a list of the attachment class.  -1 means no attachments. attachment_list must be a list.'''
 	
 	### construct the message and sending information.
-	#sender = "{}@bccfe.ca".format(sender_name)
-	sender = "{}@sfu.ca".format(sender_name)
+	sender = "{}@bccfe.ca".format(sender_name)
+	#sender = "{}@sfu.ca".format(sender_name)
 	reciever = reciever_email
 
 	msg = MIMEMultipart()
@@ -58,8 +58,8 @@ def send_sfu_email(sender_name, reciever_email, subject_text, body_text, attachm
 		### so we have to use the old smtp server. -> if emails stop working this is 
 		### very likely the case.
 		#smtpobj = smtplib.smtp("mailgate.sfu.ca", 0)
-		smtpobj = smtplib.SMTP("smtpserver.sfu.ca", 25)
-		#smtpobj = smtplib.SMTP("mail.bccfe.ca",25)
+		#smtpobj = smtplib.SMTP("smtpserver.sfu.ca", 25)
+		smtpobj = smtplib.SMTP("mail.bccfe.ca",25)
 		smtpobj.sendmail(sender, send_to, msg.as_string())
 		return 0
 	except Exception as e:
