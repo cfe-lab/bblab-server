@@ -172,9 +172,8 @@ def run(input_string, username, plate_id, email_address_string, machine):
 	# Add the body to the message and send it.
 	end_message = "This is an automatically generated email, please do not respond."
 	msg_body = "The included files ({} and {}) contain the requested formatting data. \n\n{}".format(plt_filename, html_filename, end_message)
-	cc_address = "zbrumme@sfu.ca"
 	
-	if mailer.send_sfu_email("plate_layout_designer", email_address_string, "PLATE LAYOUT: {}".format(plate_id), msg_body, [plt_file, html_file], [cc_address]) == 0:
+	if mailer.send_sfu_email("plate_layout_designer", email_address_string, "PLATE LAYOUT: {}".format(plate_id), msg_body, [plt_file, html_file]) == 0:
 		website.send( "An email has been sent to <b>{}</b> with a full table of results. <br>Make sure <b>{}</b> is spelled correctly.".format(email_address_string, email_address_string) )
 	
 	# Check if email is formatted correctly.

@@ -167,9 +167,8 @@ def run(input_string, session_id, row_column, email_address_string):
 	end_end = "Note: all guava layout files can be found at https://bblab-hivresearchtools.ca/django/tools/guava_layout/output/"
 	end_message = "This is an automatically generated email, please do not respond.\n\n" + end_end
 	msg_body = "Session ID: {}\nThe included files ({} and {}) contain the requested formatting data. \n\n{}".format(session_id, csv_filename, html_filename, end_message)
-	cc_address = "zbrumme@sfu.ca"
 	
-	if mailer.send_sfu_email("guava_layout", email_address_string, "GUAVA LAYOUT: {}".format(session_id), msg_body, [csv_file, html_file], [cc_address]) == 0:
+	if mailer.send_sfu_email("guava_layout", email_address_string, "GUAVA LAYOUT: {}".format(session_id), msg_body, [csv_file, html_file]) == 0:
 		website.send( "An email has been sent to <b>{}</b> with a full table of results. <br>Make sure <b>{}</b> is spelled correctly.".format(email_address_string, email_address_string) )
 	
 	# Check if email is formatted correctly.  (Could be a slightly better check.)

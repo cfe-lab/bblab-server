@@ -131,9 +131,8 @@ def run(protein_in, min_count, desc_string, email_address_string):
 	end_message = "This is an automatically generated email, please do not respond."
 	msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
 		     "Analysis description: {} \n\n{}".format(XLSX_FILENAME, "codon analysis data", desc_string, end_message) )
-	cc_address = "zbrumme@sfu.ca"  # Does not need to be an env var
 	
-	if mailer.send_sfu_email("codon_analysis", email_address_string, "Codon by codon analysis: {}".format( desc_string ), msg_body, [xlsx_file], [cc_address]) == 0:
+	if mailer.send_sfu_email("codon_analysis", email_address_string, "Codon by codon analysis: {}".format( desc_string ), msg_body, [xlsx_file]) == 0:
 		site.send ( "An email has been sent to <b>{}</b> with a full table of results. <br>Make sure <b>{}</b> is spelled correctly.".format(email_address_string, email_address_string) )
 	
 	return site.generate_site()
