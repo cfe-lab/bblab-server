@@ -2,23 +2,10 @@
 
 import re, sys, os
 
-# sys.path.append( os.environ.get('BBLAB_LIB_PATH', 'fail') )  # Add the path to openpyxl, (excel files.)
-# from openpyxl import Workbook
-# import openpyxl
 from depend.libraries.openpyxl import Workbook
 from depend.libraries import openpyxl
 from depend.libraries.openpyxl.writer.excel import save_virtual_workbook
-
-# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') ) 
-# import sequence_utils
-# import math_utils
-# import mailer
-# import web_output
-# import test_utils
 from depend.util_scripts import sequence_utils, math_utils, mailer, web_output, test_utils
-
-# sys.path.append( os.environ.get('BBLAB_OP_PATH', 'fail') )
-# import op_codon_by_codon
 from depend.operations import op_codon_by_codon
 
 def run(protein_in, min_count, desc_string, email_address_string):
@@ -120,7 +107,7 @@ def run(protein_in, min_count, desc_string, email_address_string):
 		ws.append( item.get_formatted_row() )
 	
 	# Save a string version of the excel workbook and send it to the file builder.
-	file_text = save_virtual_workbook(wb) #openpyxl.writer.excel.save_virtual_workbook(wb)
+	file_text = save_virtual_workbook(wb)
 	xlsx_file = mailer.create_file( XLSX_FILENAME, 'xlsx', file_text )
 	
 	

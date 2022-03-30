@@ -2,15 +2,9 @@
 
 import sys, re, os
 
-# # Add the path to util scripts. 
-# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') )
-# import sequence_utils
-# import mailer
 from depend.util_scripts import sequence_utils, mailer
-
-# # Add the path to openpyxl.
-# sys.path.append( os.environ.get('BBLAB_LIB_PATH', 'fail') )
 from depend.libraries.openpyxl import Workbook
+from depend.libraries.openpyxl.writer.excel import save_virtual_workbook
 from depend.libraries import openpyxl
 from depend.util_scripts import web_output
 
@@ -176,7 +170,7 @@ def run(fasta_data, email_address_string):
 		ws2.append( [sequence_id, repetitions, amino_acid_sequence, sequence_length] + identical_sequence_list )
 	
 	# Save a string version of the excel workbook and send it to the file builder.
-	file_text = openpyxl.writer.excel.save_virtual_workbook(wb)
+	file_text = save_virtual_workbook(wb)
 	xlsx_file = mailer.create_file( XLSX_FILENAME, 'xlsx', file_text )
 
 	

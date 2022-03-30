@@ -7,8 +7,7 @@ A01\tA02\tB07\tB15\tC07\tC08\t0.1
 A02\tA02\tB07\tB51\tC02\tC05\t0.2
 A01\tA03\tB07\tB30\tC05\tC08\t0.3
 """
-# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') )
-# from math_utils import round_sf
+
 from depend.util_scripts.math_utils import round_sf
 
 def run(forminput, isCsv):

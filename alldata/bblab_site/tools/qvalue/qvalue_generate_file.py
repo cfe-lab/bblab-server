@@ -3,9 +3,9 @@
 import re, sys, os
 from django.http import HttpResponse
 
-# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') ) 
-# import math_utils 
 from depend.util_scripts import math_utils
+from depend.libraries.openpyxl import Workbook
+from depend.libraries.openpyxl.writer.excel import save_virtual_workbook
 
 def run(pvalue_string):
 	##### Make sure data is acceptable (validate input) and process data.
@@ -31,20 +31,12 @@ def run(pvalue_string):
 			
 	##### Convert p-values into q-values using R script
 	
-	
-	# sys.path.append( os.environ.get('BBLAB_OP_PATH', 'fail') )  # Add the path to this tool's operations module.
 	from depend.operations import op_qvalue
 	
 	qvalues = op_qvalue.get_qvalues( pvalue_list )
 	
 	
 	##### Create an excel file to hold qvalue data
-	
-	
-	# sys.path.append( os.environ.get('BBLAB_LIB_PATH', 'fail') )  # Add the path to openpyxl, (excel files.)
-	from depend.libraries.openpyxl import Workbook
-	from depend.libraries.openpyxl.writer.excel import save_virtual_workbook
-	# from depend.libraries import openpyxl
 	
 	XLSX_FILENAME = "q-values"
 	
@@ -57,7 +49,7 @@ def run(pvalue_string):
 	for i in range(len(qvalues)):
 		ws.append( [pvalue_list[i], qvalues[i]] )
 	
-	file_text = save_virtual_workbook(wb) #openpyxl.writer.excel.save_virtual_workbook(wb)
+	file_text = save_virtual_workbook(wb)
 	
 	
 	##### Push file to the browser.

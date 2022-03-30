@@ -1,6 +1,8 @@
 *.code-workspace
 __pycache__
+*.vscode
 *.pyd
+*.pyc
 db_dump/*.sql
 db_data/
 .env*

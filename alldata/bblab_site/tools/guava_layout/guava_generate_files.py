@@ -7,12 +7,6 @@
 import re, cgi, os, sys
 import datetime
 
-# # Add the path to util scripts.
-# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') ) 
-# import mailer
-# import math_utils
-# import web_output
-# from web_output import clean_html
 from depend.util_scripts import mailer, math_utils, web_output
 from depend.util_scripts.web_output import clean_html
 

@@ -2,9 +2,6 @@
 
 import sys, re, os, time, subprocess, shlex, shutil
 
-# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') )
-# import format_utils
-# import mailer
 from depend.util_scripts import format_utils, mailer
 
 # todo: fix this path -> turn it into an env var

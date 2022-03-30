@@ -6,9 +6,6 @@ import os, sys
 
 from django.contrib.auth.decorators import login_required
 
-# UTIL_PATH = "/alldata/bblab_site/depend/util_scripts"
-# sys.path.append(UTIL_PATH)
-# import django_utils
 from depend.util_scripts import django_utils
 
 def index(request):

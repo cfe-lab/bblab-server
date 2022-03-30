@@ -2,19 +2,11 @@
 
 import sys, re, os
 
-# sys.path.append( os.environ.get('BBLAB_LIB_PATH', 'fail') )
 from depend.libraries.openpyxl import Workbook
 from depend.libraries import openpyxl
 from depend.libraries.openpyxl.styles import colors
 from depend.libraries.openpyxl.styles import Font, Color
 from depend.libraries.openpyxl.writer.excel import save_virtual_workbook
-
-# sys.path.append( os.environ.get('BBLAB_UTIL_PATH', 'fail') )
-# import sequence_utils
-# import format_utils
-# import mailer
-# import web_output
-# from web_output import clean_html
 from depend.util_scripts import sequence_utils, format_utils, mailer, web_output
 from depend.util_scripts.web_output import clean_html
 
