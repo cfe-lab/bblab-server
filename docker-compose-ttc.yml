@@ -1,0 +1,53 @@
+version: "3.2"
+
+volumes:
+  db_data:
+networks:
+  bb-external:
+    external: true
+    name: ${DEFAULT_TRAEFIK_NETWORK?error default network undefined}
+  bb-internal:
+    external: false
+
+services:
+  text-to-columns:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfiles/bbtools-text_to_columns.dockerfile
+    env_file: .env-bbtools  
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    depends_on:
+      - db
+    networks:
+      - bb-external
+      - bb-internal
+    expose: [80]
+    image: cfe-lab/bbtool-text-to-columns:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${DEFAULT_TRAEFIK_NETWORK?error default network undefined}"
+      - "traefik.http.routers.text-to-columns.entrypoints=web-secure"
+      - "traefik.http.routers.text-to-columns.rule=Host(`bblab-hivresearchtools.ca`) && (PathPrefix(`/django/tools/text_to_columns`) || PathPrefix(`/static/ttc*`))"
+      - "traefik.http.routers.text-to-columns.tls=true"
+      - "traefik.http.routers.text-to-columns.service=text-to-columns"
+      - "traefik.http.routers.text-to-columns.priority=100"
+      - "traefik.http.services.text-to-columns.loadbalancer.server.port=80"
+
+  db:
+    image: mariadb:10.4
+    restart: unless-stopped
+    networks:
+      - bb-internal
+    labels:
+      - "traefik.enable=false"
+    env_file: .env-bbtools
+    environment:
+      - MYSQL_DATABASE=${BBLAB_DB_NAME?no db set}
+      - MYSQL_USER=${BBLAB_DB_USER?no db user set}
+      - MYSQL_ROOT_PASSWORD=${BBLAB_DB_ROOT_PASSWORD:?no root password set}
+      - MYSQL_PASSWORD=${BBLAB_DB_PASSWORD:?no password set}
+      - MYSQL_INITDB_SKIP_TZINFO=1
+    volumes:
+      - db_data:/var/lib/mysql
+      - /srv/bbtools_db:/docker-entrypoint-initdb.d
