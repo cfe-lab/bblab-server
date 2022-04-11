@@ -45,7 +45,6 @@ A list of avaliable tools. Several tools exist in their own repos (and are inclu
 ## HLA interpretation and analyses
 
 - __HLA class I sequence-based typing interpretation tool__
-- __Best Probability Get the best probabilities only from HLA Imputation__ 
 - __PHAGE-I-expanded__: should be tracking [`cfe-lab/PHAGE-I-expanded`], needs some repo cleanup on the server.
 
 [`cfe-lab/PHAGE-I-expanded`]: https://github.com/cfe-lab/PHAGE-I-expanded
@@ -61,6 +60,7 @@ A list of avaliable tools. Several tools exist in their own repos (and are inclu
 
 # List of unavailable tools
 These tools will not be hosted on the server. They exist in the BBLab-Wiki backup (MDF) but have not been ported to Python 3/Django. They are all under source control from deleted repos, dating from 2014-2017.
+- __Best Probability (BPHI)__ - Get the best probabilities only from HLA Imputation 
 - __HAPC__ - HLA Associated Polymorphism Counter HAPC
 - __HAPA__ - HLA Associated Polymorphism Analyzer HAPA
 - __PHAGE-I__ - Proportion of HLA Associated Genomic Escape (individual) 
@@ -107,8 +107,6 @@ Under the `Other useful resources` section of the Wiki
     - Link is working.
 - ['Papers'] about HIV virology, epidemiology, immunology
     - Link is working.
-- Microsoft collaborator tools: http://research.microsoft.com/en-us/um/redmond/projects/MSCompBio
-    - __Link redirects to landing page: ['Microsoft Research Lab - Redmond']__ Needs an update. 
 - Stanford Drug Resistance Database: https://hivdb.stanford.edu/
     - Link is working.
 - LANL HIV Sequence database: https://www.hiv.lanl.gov/content/sequence/HIV/mainpage.html/
@@ -118,11 +116,4 @@ Under the `Other useful resources` section of the Wiki
 
 ['Primer tables']: https://bblab-hivresearchtools.ca/django/wiki/misc/primer-list/
 ['Papers']: https://bblab-hivresearchtools.ca/django/wiki/misc/papers/
-['Microsoft Research Lab - Redmond']: https://www.microsoft.com/en-us/research/lab/microsoft-research-redmond/
-
-## Legacy Resources
-
-- Old Webserver: http://brockman-srv.mbb.sfu.ca/~B_Team_iMac/wiki/index.php
-    - __This page is down, probably should remove this link.__ Or should direct somewhere else.
-
 

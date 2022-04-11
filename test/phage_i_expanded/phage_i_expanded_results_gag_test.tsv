@@ -1,0 +1,2 @@
+patient_id	hiv_protein	hla_allele	hiv_codon	patient_aa	state	ctl_epitope	hla_restriction	epitope_coordinates	epitope_source	expanded_hla_definition	epitope_position
+001	Gag	B0801	2	C	adapted	NA	NA	NA	NA	NA	NA
