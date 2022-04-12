@@ -1,5 +1,10 @@
 # Testing Instructions
 
+The following outlines testing protocols for each active tool in the wiki.
+These tests are not comprehensive, but represent the typical input/output
+done by most of the researchers which use these tools. Test data supplied 
+by the CfE research team.
+
 ## Sequencing layout designer
 
 See `sequencing_layout/Sequencing_Layout_template.xlsx` for an example of data
@@ -160,8 +165,16 @@ The output TSV (tab separated values) file should match `phage_i_expanded/phage_
 
 ## TCR Distance
 
-TBD - test data pending
+There are two formats of input data, one is a "clones" file in TSV (tab separated values) format.
+The other is a pair of "annotations" files: consensus annotations, and filtered contig annotations.
+Both types are contained in subdirectories of `tcr_distance/`.  Make sure to select `human`, not `mouse`.
+
+These inputs should produce `.dist` files which match the output files in the corresponding subdirectories.
 
 ## TCR Visualizer
 
-TBD - test data pending
+The `.dist` files from the TCR Distance tool should be loadable in the TCR visualizer, and produce
+a network diagram. The number of edges can be altered by the `Edge distance limit` field, and the
+`Sample report` will tell you how many connected nodes are in the diagram.
+
+There is no rigorous output file for testing, since this is a visualization sandbox tool.
