@@ -1,0 +1,52 @@
+#body-div {
+	margin: 8px;
+}
+
+body {
+	font-family: "Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+	margin: 0;
+}
+
+#header-tl {
+	height: 48px;
+	background-color: #417690;
+	color: #ffe;
+
+	display: flex;
+	flex-direction: row;
+
+	padding-left: 4px;
+	
+	font-family: "Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+}
+
+.user-tool {
+	display: inline-flex;
+	margin: auto 8px;
+	font-size: 16px;
+	line-height: 1;
+}
+
+.user-tool > * {
+	font-family: "Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+	font-weight: 400;
+	font-size: 16px;
+	text-decoration: none;
+}
+
+.user-tool > div > b {
+	font-family: "Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+	font-weight: 700;	
+	font-size: 16px;
+}
+
+.header-link {
+	color: #fda;
+}
+
+#content-tl {
+	margin: 0;
+	top: 0;
+	width: 100%;
+	height: calc(100% - 48px);
+}
