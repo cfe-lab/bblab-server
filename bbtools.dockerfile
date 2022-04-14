@@ -115,7 +115,7 @@ RUN groupadd varwwwusers && \
     chgrp -R varwwwusers /alldata/bblab_site/tools/sequencing_layout/output && \
     chgrp -R varwwwusers /alldata/bblab_site/tools/tcr_distance/tmp_dirs && \
     chgrp -R varwwwusers /alldata/hla_class/tmp && \
-    chmod 766 -R varwwwusers /alldata/bblab_site/media && \
+    chmod 766 -R /alldata/bblab_site/media && \
     chown -R www-data:varwwwusers /alldata/bblab_site/media && \
     chmod 766 -R /alldata/bblab_site/static && \
     chown -R www-data:varwwwusers /alldata/bblab_site/static && \
