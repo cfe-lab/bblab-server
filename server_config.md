@@ -30,6 +30,18 @@ with `sudo apachectl configtest` before restarting.
 
 ## Dockerized deployment - test server
 
+In the `dockerize-main` branch of this repo, you will find the resources needed to deploy 
+this server in a Docker container. The main image is based on the official `python:3.7-slim-buster`
+image, and the `docker-compose.yml` file will set up a MariaDB container for Django, as well as 
+Traefik as a reverse proxy for directing traffic within the Docker network.
+
+[April 13, 2022]: This is a work-in-progress, and is pending updates to Python libraries in order
+to fix Javascript library version issues in django-wiki. See [`Issue #4`].
+
+[`Issue #4`]: https://github.com/cfe-lab/bblab-server/issues/4
+
+## Dockerized deployment - individual containers
+
 In the `test` branch of this repo, you will find the resources needed to deploy this
 server in a set of Docker containers -- one container for the Django-wiki, and a 
 container housing each individual tool. We use Traefik to direct HTML requests to the
