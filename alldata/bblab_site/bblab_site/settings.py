@@ -19,11 +19,6 @@ SITE_ID = 1
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# This script sets the environment variables for the wsgi application,
-# not for all of apache
-DJANGO_ENV_CONFIG = '/path/to/config/file' # file location redacted
-exec(open(DJANGO_ENV_CONFIG).read())
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', 'fail')
 IS_RANDOM_KEY = SECRET_KEY is 'fail'
@@ -33,7 +28,10 @@ if IS_RANDOM_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['bblab-hivresearchtools.ca']
+ALLOWED_HOSTS = [
+    'bbtools-test.bccfe.ca',
+    'bblab-hivresearchtools.ca'
+]
 
 
 # Application definition

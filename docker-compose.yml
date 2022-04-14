@@ -1,0 +1,94 @@
+version: "3.2"
+
+volumes:
+  db_data:
+networks:
+  bb-external:
+    external: true
+    name: ${DEFAULT_TRAEFIK_NETWORK?error default network undefined}
+  bb-internal:
+    external: false
+
+services:
+  bblab-server:
+    build:
+      context: .
+      dockerfile: bbtools.dockerfile
+      target: bblab-server
+    image: cfe-lab/bblab-server:latest
+    environment:
+      - BBLAB_DB_USER=${BBLAB_DB_USER:?no db user set}
+      - BBLAB_DB_PASSWORD=${BBLAB_DB_PASSWORD:?no db password set}
+      - BBLAB_DB_ROOT_PASSWORD=${BBLAB_DB_ROOT_PASSWORD:?no db root password set}
+      - BBLAB_DB_NAME=${BBLAB_DB_NAME:?no db name set}
+      - BBLAB_DB_HOST=${BBLAB_DB_HOST:?no db host set}
+      - BBLAB_SECRET_KEY=${BBLAB_SECRET_KEY:?no secret key set}
+      - BBLAB_STATIC_ROOT=${BBLAB_STATIC_ROOT:?no static root dirset}
+      - BBLAB_MEDIA_ROOT=${BBLAB_MEDIA_ROOT:?no media root dir set}
+      - BBLAB_LOG_FILE=${BBLAB_LOG_FILE:?no log file set}
+      - BBLAB_UTIL_PATH=${BBLAB_UTIL_PATH:?no util path set}
+      - BBLAB_LIB_PATH=${BBLAB_LIB_PATH:?no lib path set}
+      - BBLAB_R_PATH=${BBLAB_R_PATH:?no R path set}
+      - BBLAB_OP_PATH=${BBLAB_OP_PATH:?no op path set}
+      - BBLAB_TOOL_ROOT=${BBLAB_TOOL_ROOT:?no tool root dir set}
+      - BBLAB_TEMPLATE_ROOT=${BBLAB_TEMPLATE_ROOT:?no template root dir set}
+    depends_on:
+      - db
+    networks:
+      - bb-external
+      - bb-internal
+    expose: [80]
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${DEFAULT_TRAEFIK_NETWORK?error default network undefined}"
+      - "traefik.http.routers.bblab-server.entrypoints=web-secure"
+      - "traefik.http.routers.bblab-server.rule=Host(`bbtools-test.bccfe.ca`)"
+      - "traefik.http.routers.bblab-server.tls=true"
+      - "traefik.http.routers.bblab-server.service=bblab-server"
+      - "traefik.http.services.bblab-server.loadbalancer.server.port=80"
+
+  db:
+    image: mariadb:10.4
+    restart: unless-stopped
+    networks:
+      - bb-internal
+    labels:
+      - traefik.enable=false
+    environment:
+      - MYSQL_DATABASE=${BBLAB_DB_NAME?no db set}
+      - MYSQL_USER=${BBLAB_DB_USER?no db user set}
+      - MYSQL_ROOT_PASSWORD=${BBLAB_DB_ROOT_PASSWORD:?no root password set}
+      - MYSQL_PASSWORD=${BBLAB_DB_PASSWORD:?no password set}
+      - MYSQL_INITDB_SKIP_TZINFO=1
+    volumes:
+      - ./db_data:/var/lib/mysql
+      - ./db_dump:/docker-entrypoint-initdb.d
+
+  traefik:
+    image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
+    restart: unless-stopped
+    command:
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.web-secure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.file.directory=/etc/traefik
+      - --providers.file.watch=true
+      - --log.level=DEBUG
+    networks:
+      - bb-external
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "8088:8080/tcp"
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"
