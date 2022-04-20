@@ -20,10 +20,7 @@ SITE_ID = 1
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', 'fail')
-IS_RANDOM_KEY = SECRET_KEY is 'fail'
-if IS_RANDOM_KEY:
-    SECRET_KEY = get_random_secret_key()
+SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

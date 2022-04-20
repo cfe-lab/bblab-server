@@ -17,6 +17,8 @@ services:
       target: bblab-server
     image: cfe-lab/bblab-server:latest
     environment:
+      - SMTP_MAIL_SERVER=${SMTP_MAIL_SERVER:?no smtp server set}
+      - SMTP_MAIL_PORT=${SMTP_MAIL_PORT:?no smtp port set}
       - BBLAB_DB_USER=${BBLAB_DB_USER:?no db user set}
       - BBLAB_DB_PASSWORD=${BBLAB_DB_PASSWORD:?no db password set}
       - BBLAB_DB_ROOT_PASSWORD=${BBLAB_DB_ROOT_PASSWORD:?no db root password set}
