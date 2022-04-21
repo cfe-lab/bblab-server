@@ -103,9 +103,12 @@ RUN groupadd varwwwusers && \
     mkdir /alldata/hla_class/tmp && \
     mkdir /alldata/bblab_site/media && \
     mkdir /alldata/bblab_site/logs && \
-    chgrp -R varwwwusers /alldata/bblab_site/tools/guava_layout/output && \
-    chgrp -R varwwwusers /alldata/bblab_site/tools/sequencing_layout/output && \
-    chgrp -R varwwwusers /alldata/bblab_site/tools/tcr_distance/tmp_dirs && \
+    chmod 766 -R /alldata/bblab_site/tools/guava_layout/output && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/tools/guava_layout/output && \
+    chmod 766 -R /alldata/bblab_site/tools/sequencing_layout/output && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/tools/sequencing_layout/output && \
+    chmod 766 -R /alldata/bblab_site/tools/tcr_distance/tmp_dirs && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/tools/tcr_distance/tmp_dirs && \
     chmod 766 -R /alldata/hla_class/tmp && \
     chown -R www-data:varwwwusers /alldata/hla_class/tmp && \
     chmod 766 -R /alldata/bblab_site/media && \
