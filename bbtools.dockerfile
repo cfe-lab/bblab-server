@@ -79,11 +79,24 @@ COPY hla_class_setup/Gemfile ./
 RUN gem install bundler:1.17.2
 RUN bundle install
 
+
 # Install Python dependencies:
 COPY alldata/bblab_site/requirements.txt .
 COPY alldata/bblab_site/requirements27.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip2 install --no-cache-dir -r requirements27.txt
+
+
+# Run setup for tcr-dist
+RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/blast-2.2.16-x64-linux.tar.gz && \
+    wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/tcrdist_extras_v2.tgz && \
+    tar -xzf blast-2.2.16-x64-linux.tar.gz && \
+    tar -xzf tcrdist_extras_v2.tgz && \
+    mv ./tcrdist_extras_v2/external/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
+    mv ./blast-2.2.16/ /alldata/bblab_site/depend/apps/tcr-dist/external/ && \
+    mv ./tcrdist_extras_v2/datasets/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
+    mv ./tcrdist_extras_v2/db/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
+    mv ./tcrdist_extras_v2/testing_ref/ /alldata/bblab_site/depend/apps/tcr-dist/
 
 
 # load configuration for Apache server
