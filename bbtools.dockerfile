@@ -9,14 +9,16 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update -qq --fix-missing && \
   apt-get install -qq --no-install-recommends apt-utils && \
-  apt-get install -qq unzip wget vim && \
-  apt-get install -qq python3-dev \
+  apt-get install -qq unzip wget vim curl && \
+  apt-get install -qq python3-dev python \
     default-libmysqlclient-dev \
     build-essential \
     apache2 apache2-dev \
     libapache2-mod-wsgi-py3 \
     php libapache2-mod-php \
-    ruby-full
+    ruby-full && \
+  curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py && \
+  python2 get-pip.py
 
 
 # Install R with Bioconductor and libs for Phylodating
@@ -79,7 +81,9 @@ RUN bundle install
 
 # Install Python dependencies:
 COPY alldata/bblab_site/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY alldata/bblab_site/requirements27.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip2 install --no-cache-dir -r requirements27.txt
 
 
 # load configuration for Apache server
