@@ -16,3 +16,6 @@
 [submodule "alldata/bblab_site/tools/blind_dating"]
 	path = alldata/bblab_site/tools/blind_dating
 	url = git@github.com:cfe-lab/blind-dating.git
+[submodule "alldata/bblab_site/depend/apps/tcr_dist"]
+	path = alldata/bblab_site/depend/apps/tcr_dist
+	url = git@github.com:phbradley/tcr-dist.git
