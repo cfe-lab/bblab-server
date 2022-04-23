@@ -96,8 +96,18 @@ RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/
     mv ./blast-2.2.16/ /alldata/bblab_site/depend/apps/tcr-dist/external/ && \
     mv ./tcrdist_extras_v2/datasets/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
     mv ./tcrdist_extras_v2/db/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
-    mv ./tcrdist_extras_v2/testing_ref/ /alldata/bblab_site/depend/apps/tcr-dist/
-
+    mv ./tcrdist_extras_v2/testing_ref/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
+    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/external && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/external && \
+    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/datasets && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/datasets && \
+    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/db && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/db && \
+    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/testing_ref && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/testing_ref && \
+    rm blast-2.2.16-x64-linux.tar.gz && \
+    rm tcrdist_extras_v2.tgz && \
+    rm -r tcrdist_extras_v2
 
 # load configuration for Apache server
 COPY conf/apache2.conf /etc/apache2/
