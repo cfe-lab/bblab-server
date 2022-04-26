@@ -86,6 +86,9 @@ COPY alldata/bblab_site/requirements27.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip2 install --no-cache-dir -r requirements27.txt
 
+# Set user/group for Apache/Django execution
+RUN groupadd varwwwusers && \
+    usermod -a -G varwwwusers www-data
 
 # Run setup for tcr-dist
 RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/blast-2.2.16-x64-linux.tar.gz && \
@@ -124,9 +127,7 @@ RUN ln -sf /etc/apache2/mods-available/tools-gld.conf /etc/apache2/mods-enabled/
 
 
 # Set permissions and ownership for WSGI user/group (www-data:varwwwusers)
-RUN groupadd varwwwusers && \
-    usermod -a -G varwwwusers www-data && \
-    mkdir /alldata/bblab_site/tools/sequencing_layout/output && \
+RUN mkdir /alldata/bblab_site/tools/sequencing_layout/output && \
     mkdir /alldata/hla_class/tmp && \
     mkdir /alldata/bblab_site/media && \
     mkdir /alldata/bblab_site/logs && \
