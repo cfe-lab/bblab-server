@@ -128,6 +128,10 @@ RUN ln -sf /etc/apache2/mods-available/tools-gld.conf /etc/apache2/mods-enabled/
 
 # Set permissions and ownership for WSGI user/group (www-data:varwwwusers)
 RUN mkdir /alldata/bblab_site/tools/sequencing_layout/output && \
+    mkdir /alldata/bblab_site/tools/sequencing_layout/output/archived_layouts && \
+    mkdir /alldata/bblab_site/tools/sequencing_layout/output/archived_layouts/old_archived_layouts && \
+    mkdir /alldata/bblab_site/tools/guava_layout/output/archived_layouts && \
+    mkdir /alldata/bblab_site/tools/guava_layout/output/archived_layouts/old_archived_layouts && \
     mkdir /alldata/hla_class/tmp && \
     mkdir /alldata/bblab_site/media && \
     mkdir /alldata/bblab_site/logs && \
