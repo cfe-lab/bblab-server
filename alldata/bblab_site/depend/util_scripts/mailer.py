@@ -57,6 +57,9 @@ def send_sfu_email(sender_name, reciever_email, subject_text, body_text, attachm
 		### so we have to use the old smtp server. -> if emails stop working this is 
 		### very likely the case.
 		smtpobj = smtplib.SMTP(os.environ['SMTP_MAIL_SERVER'], os.environ['SMTP_MAIL_PORT'])
+		smtpobj.starttls()
+		smtplib.ehlo()
+		smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
 		smtpobj.sendmail(sender, send_to, msg.as_string())
 		return 0
 	except Exception as e:
