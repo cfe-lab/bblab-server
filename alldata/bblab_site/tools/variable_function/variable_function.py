@@ -30,6 +30,14 @@ def run(forminput, isCsv):
 	def normalizeNewlines(string):
 		return re.sub(r'(\r\n|\r|\n)', '\n', string)
 
+	# Sort categories alphanumerically, with non-alphanumerics as delimeters
+	# tailored for HLA types (i.e., "A02:01" < "A12:01:15G" < "A12:03:01")
+	# adapted from https://nedbatchelder.com/blog/200712/human_sorting.html
+	def alphanum_sort(categories):
+		convert = lambda text: int(text) if text.isdigit() else text.lower()
+		alphanum_key = lambda k: [ convert(c) for c in re.split('([0-9]+)', k) ]
+		return sorted(categories, key=alphanum_key)
+
 	
 	##### Process Data
 
@@ -38,6 +46,7 @@ def run(forminput, isCsv):
 	result = [x.split("\t") for x in normalized_data.split("\n") if x]
 	unique_categories = set([inner for outer in result for inner in outer[:-1]])
 	unique_categories = set([x for x in unique_categories if x])
+	unique_categories = alphanum_sort(unique_categories)
 	
 	# Make sure all function values can be converted to float.
 	try:
