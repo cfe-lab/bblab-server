@@ -111,3 +111,19 @@ services:
 ```
 
 The Traefik configuration needed to move the DNS from the old to the new server is still under investigation.
+
+## SMTP authorization
+
+In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
+
+The login information for this account is stored in environmental variables which are passed in to the container by `docker-compose.yml`.
+
+Using `smptlib` the SMTP connection is put into TLS mode, using EHLO, before logging in to the server. See here: [`mailer.py#L60-L62`]:
+```
+smtpobj = smtplib.SMTP(os.environ['SMTP_MAIL_SERVER'], os.environ['SMTP_MAIL_PORT'])
+smtpobj.starttls()
+smtplib.ehlo()
+smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
+```
+
+[`mailer.py#L60-L62`]: https://github.com/cfe-lab/bblab-server/blob/dockerize-main/alldata/bblab_site/depend/util_scripts/mailer.py#L60-L62
