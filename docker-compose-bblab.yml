@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.9"
 
 volumes:
   db_data:
@@ -10,12 +10,14 @@ networks:
     external: false
 
 services:
-  bblab-server:
+  bblab-site:
+    restart: unless-stopped
     build:
       context: .
-      dockerfile: bbtools.dockerfile
-      target: bblab-server
-    image: cfe-lab/bblab-server:latest
+      dockerfile: bblab.dockerfile
+      target: bblab-site
+    image: cfe-lab/bblab-site:latest
+    env_file: .env-bblab
     environment:
       - SMTP_MAIL_SERVER=${SMTP_MAIL_SERVER:?no smtp server set}
       - SMTP_MAIL_PORT=${SMTP_MAIL_PORT:?no smtp port set}
@@ -27,6 +29,8 @@ services:
       - BBLAB_DB_NAME=${BBLAB_DB_NAME:?no db name set}
       - BBLAB_DB_HOST=${BBLAB_DB_HOST:?no db host set}
       - BBLAB_SECRET_KEY=${BBLAB_SECRET_KEY:?no secret key set}
+      - BBLAB_CSRF_COOKIE_SECURE=${BBLAB_CSRF_COOKIE_SECURE:-True}
+      - BBLAB_SESSION_COOKIE_SECURE=${BBLAB_SESSION_COOKIE_SECURE:-True}
       - BBLAB_STATIC_ROOT=${BBLAB_STATIC_ROOT:?no static root dirset}
       - BBLAB_MEDIA_ROOT=${BBLAB_MEDIA_ROOT:?no media root dir set}
       - BBLAB_LOG_FILE=${BBLAB_LOG_FILE:?no log file set}
@@ -46,11 +50,16 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${DEFAULT_TRAEFIK_NETWORK?error default network undefined}"
-      - "traefik.http.routers.bblab-server.entrypoints=web-secure"
-      - "traefik.http.routers.bblab-server.rule=Host(`bbtools-test.bccfe.ca`)"
-      - "traefik.http.routers.bblab-server.tls=true"
-      - "traefik.http.routers.bblab-server.service=bblab-server"
-      - "traefik.http.services.bblab-server.loadbalancer.server.port=80"
+      - "traefik.http.routers.bblab-site.entrypoints=web-secure"
+      - "traefik.http.routers.bblab-site.rule=Host(`hivresearchtools.bccfe.ca`)"
+      - "traefik.http.routers.bblab-site.tls=true"
+      - "traefik.http.routers.bblab-site.service=bblab-site"
+      - "traefik.http.services.bblab-site.loadbalancer.server.port=80"
+    volumes:
+      - /srv/bblab_site/logs:/alldata/bblab_site/logs
+      - /srv/bblab_site/media:/alldata/bblab_site/media
+      - /srv/bblab_site/tools/guava_layout/output:/alldata/bblab_site/tools/guava_layout/output
+      - /srv/bblab_site/tools/sequencing_layout/output:/alldata/bblab_site/tools/sequencing_layout/output
 
   db:
     image: mariadb:10.4
@@ -66,33 +75,33 @@ services:
       - MYSQL_PASSWORD=${BBLAB_DB_PASSWORD:?no password set}
       - MYSQL_INITDB_SKIP_TZINFO=1
     volumes:
-      - ./db_data:/var/lib/mysql
-      - ./db_dump:/docker-entrypoint-initdb.d
+      - /srv/bblab_site/mysql:/var/lib/mysql
+      - /srv/bblab_site/db_dump:/docker-entrypoint-initdb.d
 
-  traefik:
-    image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
-    restart: unless-stopped
-    command:
-      - --api.insecure=true
-      - --entrypoints.web.address=:80
-      - --entrypoints.web-secure.address=:443
-      - --providers.docker=true
-      - --providers.docker.exposedByDefault=false
-      - --providers.file.directory=/etc/traefik
-      - --providers.file.watch=true
-      - --log.level=DEBUG
-    networks:
-      - bb-external
-    ports:
-      - "80:80/tcp"
-      - "443:443/tcp"
-      - "8088:8080/tcp"
-    healthcheck:
-      test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"
+  # traefik:
+  #   image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
+  #   restart: unless-stopped
+  #   command:
+  #     - --api.insecure=true
+  #     - --entrypoints.web.address=:80
+  #     - --entrypoints.web-secure.address=:443
+  #     - --providers.docker=true
+  #     - --providers.docker.exposedByDefault=false
+  #     - --providers.file.directory=/etc/traefik
+  #     - --providers.file.watch=true
+  #     - --log.level=DEBUG
+  #   networks:
+  #     - bb-external
+  #   ports:
+  #     - "80:80/tcp"
+  #     - "443:443/tcp"
+  #     - "8088:8080/tcp"
+  #   healthcheck:
+  #     test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
+  #     interval: 1m30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #     - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"

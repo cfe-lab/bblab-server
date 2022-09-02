@@ -16,7 +16,7 @@ ExecStart=/usr/bin/python /opt/crontab_mail.py \
     --smtp-user \"$BBLAB_SMTP_MAIL_USER\" \
     --smtp-pswd \"$BBLAB_SMTP_MAIL_PSWD\" \
     \"$BBLAB_ADMIN_EMAIL\" \
-    /usr/bin/docker exec bbtools_bblab-site_1 /var/www/phylodating/logwatcher.sh
+    /usr/bin/docker exec bblab_bblab-site_1 /var/www/phylodating/logwatcher.sh
 
 [Install]
 WantedBy=timers.target
