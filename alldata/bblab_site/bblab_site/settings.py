@@ -14,7 +14,7 @@ import os
 
 from django.core.management.utils import get_random_secret_key
 
-SITE_ID = 1
+SITE_ID = 9
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,8 +26,9 @@ SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', get_random_secret_key())
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'bbtools-test.bccfe.ca',
-    'bblab-hivresearchtools.ca'
+    # 'hivresearchtools-dev.bccfe.ca',
+    'hivresearchtools.bccfe.ca'
+    # 'bblab-hivresearchtools.ca'
 ]
 
 
@@ -182,8 +183,10 @@ MEDIA_ROOT = os.environ.get('BBLAB_MEDIA_ROOT', 'fail')
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 # Deploy Settings (for extra security, etc...)
 
-CSRF_COOKIE_SECURE = True  # Only https requests must be accepted (yup)
-SESSION_COOKIE_SECURE = True
+# Only https requests must be accepted (yup)
+is_true_string = lambda s : s.lower() in ('true', 't', 'y', 'yes', '1')
+CSRF_COOKIE_SECURE = is_true_string(os.environ.get('BBLAB_CSRF_COOKIE_SECURE', "True"))
+SESSION_COOKIE_SECURE = is_true_string(os.environ.get('BBLAB_SESSION_COOKIE_SECURE', "True"))
 
 # When a database connection is finished it is closed immediately.
 # If n != 0, the connection will be left open for some time.
