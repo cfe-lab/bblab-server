@@ -1,0 +1,10 @@
+[Unit]
+Description=Clean up jobs daily timer
+
+[Timer]
+OnCalendar=daily
+Unit=phylodating.clean.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

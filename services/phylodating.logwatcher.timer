@@ -1,0 +1,10 @@
+[Unit]
+Description=Check logs for new errors and send email when found
+
+[Timer]
+OnCalendar=daily
+Unit=phylodating.logwatcher.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

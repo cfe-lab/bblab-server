@@ -125,6 +125,9 @@ RUN ln -sf /etc/apache2/mods-available/tools-gld.conf /etc/apache2/mods-enabled/
     chmod 766 -R /var/log/apache2/ && \
     a2dissite 000-default.conf && a2dissite default-ssl.conf
 
+# Copy shell scripts for Phylodating
+COPY phylodating_setup/clean.sh /var/www/phylodating/clean.sh
+COPY phylodating_setup/logwatcher.sh /var/www/phylodating/logwatcher.sh
 
 # Set permissions and ownership for WSGI user/group (www-data:varwwwusers)
 RUN mkdir /alldata/bblab_site/tools/sequencing_layout/output && \
