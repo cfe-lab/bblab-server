@@ -104,13 +104,35 @@ files found in `conf/`.
 
 [`docker-compose-bblab.yml#L81-L107`]: docker-compose-bblab.yml#L81-L107
 
+## Dev server setup
+
+[TO-DO: automate steps during the `docker-compose` process using `.env`]
+
+Several URLs are hard-coded and must be changed for the development server.
+
+  * [`conf/apache2.conf`] fields: 
+    - `ServerName`
+    - `WSGIDaemonProcess`
+    - `WSGIProcessGroup`
+    - `WSGIScriptAlias process-group`
+  * [`alldata/bblab_site/bblab_site/settings.py#L28`] (`ALLOWED_HOSTS`)
+  * [`alldata/bblab_site/static/tcr_dist.js#L243`]
+
+[`conf/apache2.conf`]: conf/apache2.conf
+[`alldata/bblab_site/bblab_site/settings.py#L28`]: alldata/bblab_site/bblab_site/settings.py#L28
+[`alldata/bblab_site/static/tcr_dist.js#L243`]: alldata/bblab_site/static/tcr_dist.js#L243
+
+Once the container is running, you can enter a `bash` session with `docker exec -it bblab_bblab-site_1 bash -l`, and edit these files manually.
+
+Then, from within the container, run `service apache2 reload` to reload the server with the code changes.
+
 ## SMTP authorization
 
 In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
 
 The login information for this account is stored in environmental variables which are passed in to the container by `docker-compose-bblab.yml`.
 
-Using `smptlib` the SMTP connection is put into TLS mode, using EHLO, before logging in to the server. See here: [`mailer.py#L60-L62`]:
+Using `smptlib` the SMTP connection is put into TLS mode, using EHLO, before logging in to the server. See here: [`mailer.py#L59-L62`]:
 ```
 smtpobj = smtplib.SMTP(os.environ['SMTP_MAIL_SERVER'], os.environ['SMTP_MAIL_PORT'])
 smtpobj.starttls()
@@ -118,4 +140,4 @@ smtplib.ehlo()
 smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
 ```
 
-[`mailer.py#L60-L62`]: https://github.com/cfe-lab/bblab-server/blob/dockerize-main/alldata/bblab_site/depend/util_scripts/mailer.py#L60-L62
+[`mailer.py#L59-L62`]: alldata/bblab_site/depend/util_scripts/mailer.py#L59-L62
