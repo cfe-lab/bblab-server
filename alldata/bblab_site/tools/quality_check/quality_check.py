@@ -240,7 +240,7 @@ def run(fasta_data, desc_string, email_address_string, div3, start, stop, intern
                 msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
 		     "Description: {} \n\n{}".format(XLSX_FILENAME, "quality check data", desc_string, end_message) )
 
-                if mailer.send_sfu_email("quality_check", email_address_string, "Quality Check Results{}".format( desc_string ), msg_body, [xlsx_file]) == 0:
+                if mailer.send_sfu_email("quality_check", email_address_string, "Quality Check Results {}".format( desc_string ), msg_body, [xlsx_file]) == 0:
                         website.send ( "An email has been sent to <b>{}</b> with a full table of results. <br>Make sure <b>{}</b> is spelled correctly.".format(email_address_string, email_address_string) )
 
                 # Check if email is formatted correctly.
