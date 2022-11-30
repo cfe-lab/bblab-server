@@ -24,7 +24,7 @@ def run(fasta_data, desc_string, email_address_string, div3, start, stop, intern
 
         ##### Get website input.	
 
-	analysis_id = desc_string
+        analysis_id = desc_string
         if fasta_data == None or fasta_data == "":
                 website.send_error("Input field is empty,", " cannot run analysis")
                 return website.generate_site()
@@ -113,7 +113,7 @@ def run(fasta_data, desc_string, email_address_string, div3, start, stop, intern
                 ##### Run the internal test.
                 if flag_list[3] == 1 and output_dict['isvalid'] == True and len(dna_sequence) > 6:
                         output_dict["internal"] = sequence_utils.seq_internal_test(dna_sequence)
-               	elif flag_list[3] == 1 and output_dict['isvalid'] == True and len(dna_sequence) <= 6: 
+                elif flag_list[3] == 1 and output_dict['isvalid'] == True and len(dna_sequence) <= 6: 
                         info_messages += 'The sequence <em>{}</em> is too short to run the test <r style="color:red;">Stops with *</r>'.format(tuple[0])
 		
 		##### Run the mixture test.
@@ -237,7 +237,7 @@ def run(fasta_data, desc_string, email_address_string, div3, start, stop, intern
         else:
                 # Add the body to the message and send it.
                 end_message = "This is an automatically generated email, please do not respond."
-	        msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
+                msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
 		     "Description: {} \n\n{}".format(XLSX_FILENAME, "quality check data", desc_string, end_message) )
 
                 if mailer.send_sfu_email("quality_check", email_address_string, "Quality Check Results{}".format( desc_string ), msg_body, [xlsx_file]) == 0:

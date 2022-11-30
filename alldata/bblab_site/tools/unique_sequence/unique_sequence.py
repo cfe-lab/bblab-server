@@ -68,21 +68,21 @@ def run(fasta_data, desc_string, email_address_string):
 	
 	# Iterate through all dna sequences and find the unique sequences.
 	for tuple in fasta_list:
-	    is_sequence_unique = True
+		is_sequence_unique = True
+
+		# Iterate through all the current unique dna sequences.
+		for key in dna_sequences_dict:
+			if tuple[1] == key:  # Case: current tuple is not unique.
+				dna_sequences_dict[key].append(tuple[0])  # Add the name for the current dna sequence to the list.
 	
-	    # Iterate through all the current unique dna sequences.
-	    for key in dna_sequences_dict:
-	        if tuple[1] == key:  # Case: current tuple is not unique.
-	            dna_sequences_dict[key].append(tuple[0])  # Add the name for the current dna sequence to the list.
-	
-	            # Processing of the current tuple is complete, sequence is not unique.
-	            is_sequence_unique = False
-	            continue
+				# Processing of the current tuple is complete, sequence is not unique.
+				is_sequence_unique = False
+				continue
 	
 	    # Case: current tuple was found to be unique.
-	    if is_sequence_unique == True:
-	        sequence_index = len(dna_sequences_dict) + 1  # Find the sequence's id. (or index)
-	        dna_sequences_dict[ tuple[1] ] = [ tuple[0] ]  # Add a dna sequence to the dict.
+		if is_sequence_unique == True:
+			sequence_index = len(dna_sequences_dict) + 1  # Find the sequence's id. (or index)
+			dna_sequences_dict[ tuple[1] ] = [ tuple[0] ]  # Add a dna sequence to the dict.
 	
 	
 	##### Fill the Amino Acid sequence dictionary.
