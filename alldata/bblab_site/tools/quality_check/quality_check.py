@@ -15,7 +15,7 @@ import mailer
 import web_output
 from web_output import clean_html
 
-def run(fasta_data, email_address_string, div3, start, stop, internal, mixture, quick):  # Make fasta_data be pre-processed.
+def run(fasta_data, desc_string, email_address_string, div3, start, stop, internal, mixture, quick):  # Make fasta_data be pre-processed.
 
         ##### Create an instance of the site class for website creation.	
         website = web_output.Site( "Quality Check - Results", web_output.SITE_BOXED )
@@ -24,6 +24,7 @@ def run(fasta_data, email_address_string, div3, start, stop, internal, mixture, 
 
         ##### Get website input.	
 
+	analysis_id = desc_string
         if fasta_data == None or fasta_data == "":
                 website.send_error("Input field is empty,", " cannot run analysis")
                 return website.generate_site()
@@ -171,7 +172,7 @@ def run(fasta_data, email_address_string, div3, start, stop, internal, mixture, 
         ##### Create an xlsx file.
 
 
-        XLSX_FILENAME = "quality_check_data"
+        XLSX_FILENAME = "{}_quality_check_data".format( analysis_id )
 
         wb = Workbook()  # Create a new workbook.
         ws = wb.active  # Create a new page. (worksheet [ws])
@@ -236,9 +237,10 @@ def run(fasta_data, email_address_string, div3, start, stop, internal, mixture, 
         else:
                 # Add the body to the message and send it.
                 end_message = "This is an automatically generated email, please do not respond."
-                msg_body = "The included .xlsx file ({}.xlsx) contains the requested quality check data. \n\n{}".format(XLSX_FILENAME, end_message)
+	        msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
+		     "Description: {} \n\n{}".format(XLSX_FILENAME, "quality check data", desc_string, end_message) )
 
-                if mailer.send_sfu_email("quality_check", email_address_string, "Quality Check Results", msg_body, [xlsx_file]) == 0:
+                if mailer.send_sfu_email("quality_check", email_address_string, "Quality Check Results{}".format( desc_string ), msg_body, [xlsx_file]) == 0:
                         website.send ( "An email has been sent to <b>{}</b> with a full table of results. <br>Make sure <b>{}</b> is spelled correctly.".format(email_address_string, email_address_string) )
 
                 # Check if email is formatted correctly.

@@ -26,6 +26,7 @@ def results(request):
             fasta_data = fasta_data.decode("utf-8")
 
         email_address = data['emailAddress']
+        desc = data['analysisID']
 
         div3 = (1 if "div3" in data else 0)
         start = (1 if "start" in data else 0)
@@ -36,7 +37,7 @@ def results(request):
 
         # Run actual calulation (by passing data)
         from . import quality_check
-        output_t = quality_check.run(fasta_data, email_address, div3, start, stop, internal, mixture, quick)
+        output_t = quality_check.run(fasta_data, desc, email_address, div3, start, stop, internal, mixture, quick)
         template = Template(output_t)
 
         context = RequestContext(request)

@@ -13,7 +13,7 @@ from openpyxl import Workbook
 import openpyxl
 import web_output
 
-def run(fasta_data, email_address_string):
+def run(fasta_data, desc_string, email_address_string):
 
 	##### Create an instance of the site class for website creation.	
 	website = web_output.Site("Unique Sequence - Results", web_output.SITE_BOXED)	
@@ -22,7 +22,7 @@ def run(fasta_data, email_address_string):
 
 	##### Get website input.
 	
-	
+	analysis_id = desc_string
 	input_field_text = [e+'\n' for e in str( fasta_data ).replace('\r', '\n').replace('\n\n', '\n').split('\n') if e]
 	
 	try:
@@ -135,7 +135,7 @@ def run(fasta_data, email_address_string):
 	##### Create an xlsx file.
 	
 	
-	XLSX_FILENAME = "unique_sequence_data"
+	XLSX_FILENAME = "{}_unique_sequence_data".format( analysis_id )
 	
 	wb = Workbook()  # Create a new workbook.
 	ws = wb.active  # Create a new page. (worksheet [ws])
@@ -184,9 +184,10 @@ def run(fasta_data, email_address_string):
 	
 	# Add the body to the message and send it.
 	end_message = "This is an automatically generated email, please do not respond."
-	msg_body = "The included .xlsx file ({}.xlsx) contains the requested sequence data. \n\n{}".format(XLSX_FILENAME, end_message)
+	msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
+		     "Description: {} \n\n{}".format(XLSX_FILENAME, "unique sequence finder data", desc_string, end_message) )
 	
-	if mailer.send_sfu_email("unique_sequence_finder", email_address_string, "Unique Sequence Finder Results", msg_body, [xlsx_file]) == 0:
+	if mailer.send_sfu_email("unique_sequence_finder", email_address_string, "Unique Sequence Finder Results {}".format( desc_string ), msg_body, [xlsx_file]) == 0:
 		website.send(( "An email has been sent to <b>{}</b> with a full table of results." 
 			       "<br>Make sure <b>{}</b> is spelled correctly." ).format(email_address_string, email_address_string))
 	
