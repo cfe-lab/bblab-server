@@ -95,36 +95,18 @@ Copy `service/crontab_mail.py` to `/opt/`
 Copy `.env-bblab` and `docker-compose-bblab.yml` to `/etc/docker-compose/`
  - The `.env-bblab` file contains secrets. Contact the site admin if you require access to this file.
  - Check the existing docker network which is running Traefik and set `DEFAULT_TRAEFIK_NETWORK` accordingly
+ - Set the site URL (which differs for dev and prod) in the `.env-bblab` file.
  - If using standalone Traefik, uncomment the service in [`docker-compose-bblab.yml#L81-L107`]
  - Running `sudo /usr/local/bin/docker-compose --env-file ./.env-bblab -f docker-compose-bblab.yml up -d`
    will bring up the containers.
 
+Once the container is running, you can enter a `bash` session with `docker exec -it bblab_bblab-site_1 bash -l`, 
+if you need to edit these files manually.
+
 Note that the `bblab-site` container runs the Apache server which serves the Django app, and uses the Apache configuration 
-files found in `conf/`. 
+files found in `conf/`. From within the container, run `service apache2 reload` to reload the server after any manual changes.
 
 [`docker-compose-bblab.yml#L81-L107`]: docker-compose-bblab.yml#L81-L107
-
-## Dev server setup
-
-[TO-DO: automate steps during the `docker-compose` process using `.env`]
-
-Several URLs are hard-coded and must be changed for the development server.
-
-  * [`conf/apache2.conf`] fields: 
-    - `ServerName`
-    - `WSGIDaemonProcess`
-    - `WSGIProcessGroup`
-    - `WSGIScriptAlias process-group`
-  * [`alldata/bblab_site/bblab_site/settings.py#L28`] (`ALLOWED_HOSTS`)
-  * [`alldata/bblab_site/static/tcr_dist.js#L243`]
-
-[`conf/apache2.conf`]: conf/apache2.conf
-[`alldata/bblab_site/bblab_site/settings.py#L28`]: alldata/bblab_site/bblab_site/settings.py#L28
-[`alldata/bblab_site/static/tcr_dist.js#L243`]: alldata/bblab_site/static/tcr_dist.js#L243
-
-Once the container is running, you can enter a `bash` session with `docker exec -it bblab_bblab-site_1 bash -l`, and edit these files manually.
-
-Then, from within the container, run `service apache2 reload` to reload the server with the code changes.
 
 ## SMTP authorization
 

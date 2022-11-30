@@ -26,11 +26,11 @@ SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', get_random_secret_key())
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    # 'hivresearchtools-dev.bccfe.ca',
-    'hivresearchtools.bccfe.ca'
-    # 'bblab-hivresearchtools.ca'
+    os.environ.get('BBLAB_WEB_ADDRESS', 'hivresearchtools.bccfe.ca')
 ]
 
+if os.environ.get('BBLAB_ALT_WEB_ADDRESS') :
+    ALLOWED_HOSTS += [os.environ.get('BBLAB_ALT_WEB_ADDRESS')]
 
 # Application definition
 INSTALLED_APPS = [

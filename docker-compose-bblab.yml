@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: bblab.dockerfile
       target: bblab-site
-    image: cfe-lab/bblab-site:latest
+    image: cfe-lab/bblab-site:${BBLAB_IMAGE_TAG:?no image tag set}
     env_file: .env-bblab
     environment:
       - SMTP_MAIL_SERVER=${SMTP_MAIL_SERVER:?no smtp server set}
@@ -28,6 +28,8 @@ services:
       - BBLAB_DB_ROOT_PASSWORD=${BBLAB_DB_ROOT_PASSWORD:?no db root password set}
       - BBLAB_DB_NAME=${BBLAB_DB_NAME:?no db name set}
       - BBLAB_DB_HOST=${BBLAB_DB_HOST:?no db host set}
+      - BBLAB_WEB_ADDRESS=${BBLAB_WEB_ADDRESS:?no web address set}
+      - BBLAB_ALT_WEB_ADDRESS=${BBLAB_ALT_WEB_ADDRESS}
       - BBLAB_SECRET_KEY=${BBLAB_SECRET_KEY:?no secret key set}
       - BBLAB_CSRF_COOKIE_SECURE=${BBLAB_CSRF_COOKIE_SECURE:-True}
       - BBLAB_SESSION_COOKIE_SECURE=${BBLAB_SESSION_COOKIE_SECURE:-True}
@@ -51,7 +53,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=${DEFAULT_TRAEFIK_NETWORK?error default network undefined}"
       - "traefik.http.routers.bblab-site.entrypoints=web-secure"
-      - "traefik.http.routers.bblab-site.rule=Host(`hivresearchtools.bccfe.ca`)"
+      - "traefik.http.routers.bblab-site.rule=Host(`${BBLAB_WEB_ADDRESS:?no web address set}`)"
       - "traefik.http.routers.bblab-site.tls=true"
       - "traefik.http.routers.bblab-site.service=bblab-site"
       - "traefik.http.services.bblab-site.loadbalancer.server.port=80"
