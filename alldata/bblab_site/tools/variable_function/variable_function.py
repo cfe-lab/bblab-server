@@ -50,56 +50,71 @@ def run(forminput, isCsv):
 	
 	# Make sure all function values can be converted to float.
 	try:
+		samp_vals = set()
 		for row in result:
-			if float(row[-1]) >= 1 or float(row[-1]) <= 0:
-				raise ValueError
-	except ValueError:
-		return(False, "<b><span style=\"color:red;\">Error:</span></b> make sure the VALUE at the end of each line is a decimal number in the range (0, 1)")
+			samp_val = row[-1]
+			try:
+				float(samp_val)
+			except:
+				raise ValueError("make sure the VALUE at the end of each line is a decimal number")
+			samp_vals.add(samp_val)
+		if len(samp_vals) == 1:
+			raise ValueError("the VALUES at the end of each line are identical")
+	except ValueError as e:
+		return(False, f"<b><span style=\"color:red;\">Error:</span></b> {e}.")
 	
 	
 	##### Run Analysis
 
+	def mannwhitneyu_category(result, category, stringify_p):
+		positive = [float(x[-1]) for x in result if category in x[:-1]]
+		pos_median = median(positive)
+		negative = [float(x[-1]) for x in result if category not in x[:-1]]
+		neg_median = median(negative)
+		_, p = stats.mannwhitneyu(positive, negative)
+		if stringify_p:
+			p = "{:.8f}".format(p)
+		return [len(positive), len(negative), pos_median, neg_median, p]
 
-	# If the button clicked was not the "Download CSV" button then output HTML
-	if not isCsv:
-		### Regular Analysis
-		is_download = False
-		out_str += ("""{% load static %}<html><head>
-		<link rel="stylesheet" href="{% static "/jquery/themes/blue/style.css" %}">
-		<link rel="stylesheet" href="{% static "/vfa_css/style.css" %}">
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-		<script src="{% static "/jquery/jquery.tablesorter.js" %}"></script>
-		<script src="{% static "/jquery/myscript.js" %}"></script>
-		</head><body><div class="container">\n""")
+	try:
+		# If the button clicked was not the "Download CSV" button then output HTML
+		if not isCsv:
+			### Regular Analysis
+			is_download = False
+			out_str += ("""{% load static %}<html><head>
+			<link rel="stylesheet" href="{% static "/jquery/themes/blue/style.css" %}">
+			<link rel="stylesheet" href="{% static "/vfa_css/style.css" %}">
+			<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+			<script src="{% static "/jquery/jquery.tablesorter.js" %}"></script>
+			<script src="{% static "/jquery/myscript.js" %}"></script>
+			</head><body><div class="container">\n""")
+			
+			# The following is to print html
+			out_str += ("<table id='myTable' class='tablesorter'>")
+			out_str += ("""<thead><tr class="header"><th>category</th><th>n-with</th>
+			<th>n-without</th><th>median-with</th><th>median-without</th>
+			<th>p-value</th></tr></thead><tbody>""")
+			for category in unique_categories:
+				print(result)
+				print(category)
+				output = mannwhitneyu_category(result, category, True)
+				print(output)
+				out_str += "<tr><td>" + "</td><td>".join(str(v) for v in [category, *output]) + "</td></tr>"
+			out_str += ("</tbody></table></body></div>")
 		
-		# The following is to print html
-		out_str += ("<table id='myTable' class='tablesorter'>")
-		out_str += ("""<thead><tr class="header"><th>category</th><th>n-with</th>
-		<th>n-without</th><th>median-with</th><th>median-without</th>
-		<th>p-value</th></tr></thead><tbody>""")
-		for category in unique_categories:
-			positive = [float(x[-1]) for x in result if category in x[:-1]]
-			pos_median = median(positive)
-			negative = [float(x[-1]) for x in result if category not in x[:-1]]
-			neg_median = median(negative)
-			u, p = stats.mannwhitneyu(positive, negative)
-			out_str += ("""<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td>
-				<td>{:.8f}</td></tr>""".format(category,len(positive),len(negative),pos_median,neg_median,p))
+		# The "Download CSV" button was pressed
+		else:
+			is_download = True	
+			
+			# The following is to print csv style
+			out_str += ("category,n-with,n-without,median-with,median-without,p-value\r\n")
+			for category in unique_categories:
+				output = mannwhitneyu_category(result, category, False)
+				out_str += ",".join(str(v) for v in [category, *output]) + "\r\n"
 		
-		out_str += ("</tbody></table></body></div>")
-	
-	# The "Download CSV" button was pressed
-	else:
-		is_download = True	
-		
-		# The following is to print csv style
-		out_str += ("category,n-with,n-without,median-with,median-without,p-value\r\n")
-		for category in unique_categories:
-			positive = [float(x[-1]) for x in result if category in x[:-1]]
-			pos_median = median(positive)
-			negative = [float(x[-1]) for x in result if category not in x[:-1]]
-			neg_median = median(negative)
-			u, p = stats.mannwhitneyu(positive, negative)
-			out_str += ("{},{},{},{},{},{}\r\n".format(category,len(positive),len(negative), pos_median, neg_median, p))
-	
-	return (is_download, out_str, "variable_function_output.csv")
+		return (is_download, out_str, "variable_function_output.csv")
+	except ValueError as e:
+		return(False, f"""<b><span style=\"color:red;\">Error:</span></b> statistical test encountered an error with the given input. <br/>
+						Common issues are that the input data contains unique categories in each column, <br/>
+						or that not all sample values are identical. <br/>
+						{e}""")

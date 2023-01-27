@@ -42,12 +42,11 @@ def round_sf(num, sf):
 	    0.08894 rounded to 3 significant figures is 0.0889
 
 	This algorithm was the first google result, why couldn't I find it before...
-	
-	Negative numbers will fail b/c log10(x).
 	'''
-	if num < 0: 
-		raise ValueError("This function doesn't accept negative numbers.")
-	return round(num, -int(math.floor(math.log10(num))) + (sf - 1))
+	num_sf = round(abs(num), -int(math.floor(math.log10(abs(num)))) + (sf - 1))
+	if num < 0:
+		num_sf *= -1
+	return num_sf
 
 def fix_line_endings(string):
 	'''
