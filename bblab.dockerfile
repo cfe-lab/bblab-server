@@ -67,9 +67,6 @@ RUN useradd -rm -s /bin/tcsh -u 1000 dockuser00 &&\
     useradd -rm -s /bin/tcsh -u 1003 dockuser03 &&\
     useradd -rm -s /bin/tcsh -u 1004 dockuser04
 
-# copy source code
-COPY alldata /alldata
-
 # Install Ruby dependencies
 # bundler v1.17.2 is needed for older libraries
 COPY hla_class_setup/Gemfile ./
@@ -85,6 +82,9 @@ RUN pip2 install --no-cache-dir -r requirements27.txt
 # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \
     usermod -a -G varwwwusers www-data
+
+# copy source code
+COPY alldata /alldata
 
 # Run setup for tcr-dist
 RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/blast-2.2.16-x64-linux.tar.gz && \
