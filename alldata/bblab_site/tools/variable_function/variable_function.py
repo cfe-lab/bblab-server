@@ -116,5 +116,5 @@ def run(forminput, isCsv):
 	except ValueError as e:
 		return(False, f"""<b><span style=\"color:red;\">Error:</span></b> statistical test encountered an error with the given input. <br/>
 						Common issues are that the input data contains unique categories in each column, <br/>
-						or that not all sample values are identical. <br/>
-						{e}""")
+						or that not all sample values are identical. <br/> <br/>
+						Error message: {e}""")

@@ -43,6 +43,8 @@ def round_sf(num, sf):
 
 	This algorithm was the first google result, why couldn't I find it before...
 	'''
+	if num == 0.0:
+		return num
 	num_sf = round(abs(num), -int(math.floor(math.log10(abs(num)))) + (sf - 1))
 	if num < 0:
 		num_sf *= -1
