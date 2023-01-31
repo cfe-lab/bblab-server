@@ -2,9 +2,10 @@ version: "3.9"
 
 volumes:
   db_data:
+  
 networks:
   bb-external:
-    external: true
+    external: false
     name: ${DEFAULT_TRAEFIK_NETWORK?error default network undefined}
   bb-internal:
     external: false
@@ -31,6 +32,7 @@ services:
       - BBLAB_WEB_ADDRESS=${BBLAB_WEB_ADDRESS:?no web address set}
       - BBLAB_ALT_WEB_ADDRESS=${BBLAB_ALT_WEB_ADDRESS}
       - BBLAB_SECRET_KEY=${BBLAB_SECRET_KEY:?no secret key set}
+      - BBLAB_DEBUG=${BBLAB_DEBUG:-false}
       - BBLAB_CSRF_COOKIE_SECURE=${BBLAB_CSRF_COOKIE_SECURE:-True}
       - BBLAB_SESSION_COOKIE_SECURE=${BBLAB_SESSION_COOKIE_SECURE:-True}
       - BBLAB_STATIC_ROOT=${BBLAB_STATIC_ROOT:?no static root dirset}
@@ -48,6 +50,8 @@ services:
       - bb-external
       - bb-internal
     expose: [80]
+    ports:
+      - "80:80/tcp"
     command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
     labels:
       - "traefik.enable=true"
@@ -58,7 +62,7 @@ services:
       - "traefik.http.routers.bblab-site.service=bblab-site"
       - "traefik.http.services.bblab-site.loadbalancer.server.port=80"
     volumes:
-      - /srv/bblab_site/logs:/alldata/bblab_site/logs
+      - /srv/bblab_site/logs:/alldata/bblab_site/logs:rw
       - /srv/bblab_site/media:/alldata/bblab_site/media
       - /srv/bblab_site/tools/guava_layout/output:/alldata/bblab_site/tools/guava_layout/output
       - /srv/bblab_site/tools/sequencing_layout/output:/alldata/bblab_site/tools/sequencing_layout/output
