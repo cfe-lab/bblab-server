@@ -100,8 +100,7 @@ def run(protein_in, min_count, desc_string, email_address_string):
 	
 	##### Create an xlsx file.
 	
-	
-	XLSX_FILENAME = "{}_codon_by_codon".format( analysis_id )
+	XLSX_FILENAME = "_".join(s for s in ["codon_by_codon_data", analysis_id] if s)
 	
 	wb = Workbook()  # Create a new workbook.
 	ws = wb.active  # Create a new page. (worksheet [ws])
@@ -120,14 +119,18 @@ def run(protein_in, min_count, desc_string, email_address_string):
 	
 	
 	##### Send an email with the xlsx file in it.
-	
+
+	# Create subject line
+	subject_line = "Codon by Codon Analysis Results"
+	if analysis_id: 
+		subject_line += " - {}".format( analysis_id ) 
 	
 	# Add the body to the message and send it.
 	end_message = "This is an automatically generated email, please do not respond."
 	msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
 		     "Analysis description: {} \n\n{}".format(XLSX_FILENAME, "codon analysis data", desc_string, end_message) )
 	
-	if mailer.send_sfu_email("codon_analysis", email_address_string, "Codon by codon analysis: {}".format( desc_string ), msg_body, [xlsx_file]) == 0:
+	if mailer.send_sfu_email("codon_analysis", email_address_string, subject_line, msg_body, [xlsx_file]) == 0:
 		site.send ( "An email has been sent to <b>{}</b> with a full table of results. <br>Make sure <b>{}</b> is spelled correctly.".format(email_address_string, email_address_string) )
 	
 	return site.generate_site()

@@ -172,7 +172,7 @@ def run(fasta_data, desc_string, email_address_string, div3, start, stop, intern
         ##### Create an xlsx file.
 
 
-        XLSX_FILENAME = "{}_quality_check_data".format( analysis_id )
+        XLSX_FILENAME = "_".join(s for s in ["quality_check_data", analysis_id] if s)
 
         wb = Workbook()  # Create a new workbook.
         ws = wb.active  # Create a new page. (worksheet [ws])
@@ -235,12 +235,17 @@ def run(fasta_data, desc_string, email_address_string, div3, start, stop, intern
                 website.send ( "Email address not given; no email has been sent." )
 
         else:
+                # Create subject line
+                subject_line = "Quality Check Results"
+                if analysis_id: 
+                        subject_line += " - {}".format( analysis_id ) 
+
                 # Add the body to the message and send it.
                 end_message = "This is an automatically generated email, please do not respond."
                 msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
 		     "Description: {} \n\n{}".format(XLSX_FILENAME, "quality check data", desc_string, end_message) )
 
-                if mailer.send_sfu_email("quality_check", email_address_string, "Quality Check Results {}".format( desc_string ), msg_body, [xlsx_file]) == 0:
+                if mailer.send_sfu_email("quality_check", email_address_string, subject_line, msg_body, [xlsx_file]) == 0:
                         website.send ( "An email has been sent to <b>{}</b> with a full table of results. <br>Make sure <b>{}</b> is spelled correctly.".format(email_address_string, email_address_string) )
 
                 # Check if email is formatted correctly.

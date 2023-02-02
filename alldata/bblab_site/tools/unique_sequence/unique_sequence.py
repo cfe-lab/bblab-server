@@ -135,7 +135,7 @@ def run(fasta_data, desc_string, email_address_string):
 	##### Create an xlsx file.
 	
 	
-	XLSX_FILENAME = "{}_unique_sequence_data".format( analysis_id )
+	XLSX_FILENAME = "_".join(s for s in ["unique_sequence_data", analysis_id] if s)
 	
 	wb = Workbook()  # Create a new workbook.
 	ws = wb.active  # Create a new page. (worksheet [ws])
@@ -181,13 +181,17 @@ def run(fasta_data, desc_string, email_address_string):
 	
 	##### Send an email with the xlsx file in it.
 	
-	
+	# Create subject line
+	subject_line = "Unique Sequence Finder Results"
+	if analysis_id: 
+		subject_line += " - {}".format( analysis_id ) 
+
 	# Add the body to the message and send it.
 	end_message = "This is an automatically generated email, please do not respond."
 	msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
 		     "Description: {} \n\n{}".format(XLSX_FILENAME, "unique sequence finder data", desc_string, end_message) )
 	
-	if mailer.send_sfu_email("unique_sequence_finder", email_address_string, "Unique Sequence Finder Results {}".format( desc_string ), msg_body, [xlsx_file]) == 0:
+	if mailer.send_sfu_email("unique_sequence_finder", email_address_string, subject_line, msg_body, [xlsx_file]) == 0:
 		website.send(( "An email has been sent to <b>{}</b> with a full table of results." 
 			       "<br>Make sure <b>{}</b> is spelled correctly." ).format(email_address_string, email_address_string))
 	
