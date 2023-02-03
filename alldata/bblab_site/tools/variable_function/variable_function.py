@@ -66,15 +66,32 @@ def run(forminput, isCsv):
 	
 	##### Run Analysis
 
-	def mannwhitneyu_category(result, category, stringify_p):
-		positive = [float(x[-1]) for x in result if category in x[:-1]]
-		pos_median = median(positive)
-		negative = [float(x[-1]) for x in result if category not in x[:-1]]
-		neg_median = median(negative)
-		_, p = stats.mannwhitneyu(positive, negative)
-		if stringify_p:
-			p = "{:.8f}".format(p)
-		return [len(positive), len(negative), pos_median, neg_median, p]
+	# Note: this is our override of SciPy's _mwu_choose_method
+	#
+	# This functions identically to _mwu_choose_method in SciPy 1.7.3, 
+	# although it assumes x,y are (1-D) Python lists, not NumPy arrays.
+	#
+	# We use this to report whether thie MWU test was performed with 
+	# 'asymptotic' or 'exact' p-values, and stabilize our rules
+	# in the event that a newer version of SciPy changes these rules,
+	# or removes this internal method.
+	def mwu_choose_method(x, y):
+		# if both inputs are large, asymptotic is OK
+		if len(x) > 8 and len(y) > 8:
+			return "asymptotic"
+		# if there are any ties, asymptotic is preferred
+		if len(x + y) != len(set(x + y)):
+			return "asymptotic"
+		return "exact"	
+
+	def mannwhitneyu_category(result, category):
+		pos = [float(x[-1]) for x in result if category in x[:-1]]
+		pos_median = median(pos)
+		neg = [float(x[-1]) for x in result if category not in x[:-1]]
+		neg_median = median(neg)
+		mwu_method = mwu_choose_method(pos, neg)
+		_, p = stats.mannwhitneyu(pos, neg, alternative='two-sided', method=mwu_method)
+		return [len(pos), len(neg), pos_median, neg_median, p, mwu_method]
 
 	try:
 		# If the button clicked was not the "Download CSV" button then output HTML
@@ -93,12 +110,9 @@ def run(forminput, isCsv):
 			out_str += ("<table id='myTable' class='tablesorter'>")
 			out_str += ("""<thead><tr class="header"><th>category</th><th>n-with</th>
 			<th>n-without</th><th>median-with</th><th>median-without</th>
-			<th>p-value</th></tr></thead><tbody>""")
+			<th>p-value</th><th>p-value-method</th></tr></thead><tbody>""")
 			for category in unique_categories:
-				print(result)
-				print(category)
-				output = mannwhitneyu_category(result, category, True)
-				print(output)
+				output = mannwhitneyu_category(result, category)
 				out_str += "<tr><td>" + "</td><td>".join(str(v) for v in [category, *output]) + "</td></tr>"
 			out_str += ("</tbody></table></body></div>")
 		
@@ -107,9 +121,9 @@ def run(forminput, isCsv):
 			is_download = True	
 			
 			# The following is to print csv style
-			out_str += ("category,n-with,n-without,median-with,median-without,p-value\r\n")
+			out_str += ("category,n-with,n-without,median-with,median-without,p-value,p-value-method\r\n")
 			for category in unique_categories:
-				output = mannwhitneyu_category(result, category, False)
+				output = mannwhitneyu_category(result, category)
 				out_str += ",".join(str(v) for v in [category, *output]) + "\r\n"
 		
 		return (is_download, out_str, "variable_function_output.csv")
