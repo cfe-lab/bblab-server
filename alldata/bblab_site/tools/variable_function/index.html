@@ -21,6 +21,10 @@
 			The VARs could also be amino acids, allele variants, etc. The VALUE must be the last thing on each line, and must be between 0 and 1. It is a measure
 			of the function of that sequence of VARs as a whole.
 		</p>
+		<p>Note: the Mann-Whitney U test will use approximate p-values for any test where both in-category and out-of-category sample sizes are greater than 8.
+			It will also use approximate p-values if any pair of sample values match exactly (ties). 
+			Whether each test was done with the exact or approximate p-value method is noted in the rightmost column.
+		</p>
 	<h2>Example</h2>
 		<p>Say you are trying to determine which HLA types attribute to higher CD4 counts. The variables you record per individual are:</p>
 		<ol>
