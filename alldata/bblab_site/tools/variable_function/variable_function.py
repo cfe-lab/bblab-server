@@ -84,13 +84,15 @@ def run(forminput, isCsv):
 			return "asymptotic"
 		return "exact"	
 
-	def mannwhitneyu_category(result, category):
+	def mannwhitneyu_category(result, category, stringify_p):
 		pos = [float(x[-1]) for x in result if category in x[:-1]]
 		pos_median = median(pos)
 		neg = [float(x[-1]) for x in result if category not in x[:-1]]
 		neg_median = median(neg)
 		mwu_method = mwu_choose_method(pos, neg)
 		_, p = stats.mannwhitneyu(pos, neg, alternative='two-sided', method=mwu_method)
+		if stringify_p:
+			p = "{:.8f}".format(p)
 		return [len(pos), len(neg), pos_median, neg_median, p, mwu_method]
 
 	try:
@@ -112,7 +114,7 @@ def run(forminput, isCsv):
 			<th>n-without</th><th>median-with</th><th>median-without</th>
 			<th>p-value</th><th>p-value-method</th></tr></thead><tbody>""")
 			for category in unique_categories:
-				output = mannwhitneyu_category(result, category)
+				output = mannwhitneyu_category(result, category, True)
 				out_str += "<tr><td>" + "</td><td>".join(str(v) for v in [category, *output]) + "</td></tr>"
 			out_str += ("</tbody></table></body></div>")
 		
@@ -123,7 +125,7 @@ def run(forminput, isCsv):
 			# The following is to print csv style
 			out_str += ("category,n-with,n-without,median-with,median-without,p-value,p-value-method\r\n")
 			for category in unique_categories:
-				output = mannwhitneyu_category(result, category)
+				output = mannwhitneyu_category(result, category, False)
 				out_str += ",".join(str(v) for v in [category, *output]) + "\r\n"
 		
 		return (is_download, out_str, "variable_function_output.csv")
