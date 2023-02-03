@@ -11,7 +11,7 @@ def run(pvalue_string):
 	
 	
 	def throw_error(string):
-		out_str += ( "<html><head><title>Results</title></head><body>" )
+		out_str = ( "<html><head><title>Results</title></head><body>" )
 		out_str += ( string )
 		out_str += ( "</body></html>" )
 		return out_str
