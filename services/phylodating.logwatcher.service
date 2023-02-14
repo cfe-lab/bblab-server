@@ -1,0 +1,22 @@
+[Unit]
+Description=Check logs for new errors and send email if so
+
+[Service]
+Type=simple
+
+EnvironmentFile=/usr/local/etc/bblab_site.conf
+
+ExecStart=/usr/bin/python /opt/crontab_mail.py \
+    --log /srv/bblab_site/logs/phylodating.log \
+    --level ERROR \
+    --subject \"$BBLAB_SUBJECT_PREFIX\" \
+    --from \"$BBLAB_SERVER_EMAIL\" \
+    --smtp-server \"$BBLAB_SMTP_MAIL_SERVER\" \
+    --smtp-port \"$BBLAB_SMTP_MAIL_PORT\" \
+    --smtp-user \"$BBLAB_SMTP_MAIL_USER\" \
+    --smtp-pswd \"$BBLAB_SMTP_MAIL_PSWD\" \
+    \"$BBLAB_ADMIN_EMAIL\" \
+    /usr/bin/docker exec bblab_bblab-site_1 /var/www/phylodating/logwatcher.sh
+
+[Install]
+WantedBy=timers.target

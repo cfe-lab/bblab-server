@@ -13,7 +13,7 @@ from openpyxl import Workbook
 import openpyxl
 import web_output
 
-def run(fasta_data, email_address_string):
+def run(fasta_data, desc_string, email_address_string):
 
 	##### Create an instance of the site class for website creation.	
 	website = web_output.Site("Unique Sequence - Results", web_output.SITE_BOXED)	
@@ -22,7 +22,7 @@ def run(fasta_data, email_address_string):
 
 	##### Get website input.
 	
-	
+	analysis_id = desc_string
 	input_field_text = [e+'\n' for e in str( fasta_data ).replace('\r', '\n').replace('\n\n', '\n').split('\n') if e]
 	
 	try:
@@ -68,21 +68,21 @@ def run(fasta_data, email_address_string):
 	
 	# Iterate through all dna sequences and find the unique sequences.
 	for tuple in fasta_list:
-	    is_sequence_unique = True
+		is_sequence_unique = True
+
+		# Iterate through all the current unique dna sequences.
+		for key in dna_sequences_dict:
+			if tuple[1] == key:  # Case: current tuple is not unique.
+				dna_sequences_dict[key].append(tuple[0])  # Add the name for the current dna sequence to the list.
 	
-	    # Iterate through all the current unique dna sequences.
-	    for key in dna_sequences_dict:
-	        if tuple[1] == key:  # Case: current tuple is not unique.
-	            dna_sequences_dict[key].append(tuple[0])  # Add the name for the current dna sequence to the list.
-	
-	            # Processing of the current tuple is complete, sequence is not unique.
-	            is_sequence_unique = False
-	            continue
+				# Processing of the current tuple is complete, sequence is not unique.
+				is_sequence_unique = False
+				continue
 	
 	    # Case: current tuple was found to be unique.
-	    if is_sequence_unique == True:
-	        sequence_index = len(dna_sequences_dict) + 1  # Find the sequence's id. (or index)
-	        dna_sequences_dict[ tuple[1] ] = [ tuple[0] ]  # Add a dna sequence to the dict.
+		if is_sequence_unique == True:
+			sequence_index = len(dna_sequences_dict) + 1  # Find the sequence's id. (or index)
+			dna_sequences_dict[ tuple[1] ] = [ tuple[0] ]  # Add a dna sequence to the dict.
 	
 	
 	##### Fill the Amino Acid sequence dictionary.
@@ -135,7 +135,7 @@ def run(fasta_data, email_address_string):
 	##### Create an xlsx file.
 	
 	
-	XLSX_FILENAME = "unique_sequence_data"
+	XLSX_FILENAME = "_".join(s for s in ["unique_sequence_data", analysis_id] if s)
 	
 	wb = Workbook()  # Create a new workbook.
 	ws = wb.active  # Create a new page. (worksheet [ws])
@@ -181,12 +181,17 @@ def run(fasta_data, email_address_string):
 	
 	##### Send an email with the xlsx file in it.
 	
-	
+	# Create subject line
+	subject_line = "Unique Sequence Finder Results"
+	if analysis_id: 
+		subject_line += " - {}".format( analysis_id ) 
+
 	# Add the body to the message and send it.
 	end_message = "This is an automatically generated email, please do not respond."
-	msg_body = "The included .xlsx file ({}.xlsx) contains the requested sequence data. \n\n{}".format(XLSX_FILENAME, end_message)
+	msg_body = ( "The included .xlsx file ({}.xlsx) contains the requested {}. \n\n"
+		     "Description: {} \n\n{}".format(XLSX_FILENAME, "unique sequence finder data", desc_string, end_message) )
 	
-	if mailer.send_sfu_email("unique_sequence_finder", email_address_string, "Unique Sequence Finder Results", msg_body, [xlsx_file]) == 0:
+	if mailer.send_sfu_email("unique_sequence_finder", email_address_string, subject_line, msg_body, [xlsx_file]) == 0:
 		website.send(( "An email has been sent to <b>{}</b> with a full table of results." 
 			       "<br>Make sure <b>{}</b> is spelled correctly." ).format(email_address_string, email_address_string))
 	

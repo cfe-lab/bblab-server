@@ -240,7 +240,7 @@ function getStatus(directoryNumber) {
 function downloadFile(directoryNumber) {
     clearInterval(interval);
     // redirect to "download_file/"
-    var url = "https://bblab-hivresearchtools.ca/django/tools/tcr_distance/download_file/"
+    var url = document.location.origin + "/django/tools/tcr_distance/download_file/"
     var form = $( '<form action="' + url + '" method="post">' +
                   '<input type="hidden" name="csrfmiddlewaretoken" value="' + $( "#mainForm > input" ).val() + '">' + 
                   '<input type="hidden" name="dirNum" value="' + directoryNumber + '" />' + 

@@ -26,10 +26,11 @@ def results(request):
             fasta_data = fasta_data.decode("utf-8")
 
         email_address = data['emailAddress']
+        desc = data['analysisID']
 
         # Run actual calulation (by passing data)
         from . import unique_sequence
-        output_t = unique_sequence.run(fasta_data, email_address)
+        output_t = unique_sequence.run(fasta_data, desc, email_address)
         template = Template(output_t)
 
         context = RequestContext(request)

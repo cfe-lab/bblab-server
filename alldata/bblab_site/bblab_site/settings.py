@@ -14,27 +14,23 @@ import os
 
 from django.core.management.utils import get_random_secret_key
 
-SITE_ID = 1
+SITE_ID = 9
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# This script sets the environment variables for the wsgi application,
-# not for all of apache
-DJANGO_ENV_CONFIG = '/path/to/config/file' # file location redacted
-exec(open(DJANGO_ENV_CONFIG).read())
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', 'fail')
-IS_RANDOM_KEY = SECRET_KEY is 'fail'
-if IS_RANDOM_KEY:
-    SECRET_KEY = get_random_secret_key()
+SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('BBLAB_DEBUG', 'N').lower() in ['y', '1', 'true', 't']
 
-ALLOWED_HOSTS = ['bblab-hivresearchtools.ca']
+ALLOWED_HOSTS = [
+    os.environ.get('BBLAB_WEB_ADDRESS', 'hivresearchtools.bccfe.ca')
+]
 
+if os.environ.get('BBLAB_ALT_WEB_ADDRESS') :
+    ALLOWED_HOSTS += [os.environ.get('BBLAB_ALT_WEB_ADDRESS')]
 
 # Application definition
 INSTALLED_APPS = [
@@ -187,8 +183,10 @@ MEDIA_ROOT = os.environ.get('BBLAB_MEDIA_ROOT', 'fail')
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 # Deploy Settings (for extra security, etc...)
 
-CSRF_COOKIE_SECURE = True  # Only https requests must be accepted (yup)
-SESSION_COOKIE_SECURE = True
+# Only https requests must be accepted (yup)
+is_true_string = lambda s : s.lower() in ('true', 't', 'y', 'yes', '1')
+CSRF_COOKIE_SECURE = is_true_string(os.environ.get('BBLAB_CSRF_COOKIE_SECURE', "True"))
+SESSION_COOKIE_SECURE = is_true_string(os.environ.get('BBLAB_SESSION_COOKIE_SECURE', "True"))
 
 # When a database connection is finished it is closed immediately.
 # If n != 0, the connection will be left open for some time.

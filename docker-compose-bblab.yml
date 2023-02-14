@@ -1,0 +1,113 @@
+version: "3.9"
+
+volumes:
+  db_data:
+  
+networks:
+  bb-external:
+    external: false
+    name: ${DEFAULT_TRAEFIK_NETWORK?error default network undefined}
+  bb-internal:
+    external: false
+
+services:
+  bblab-site:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: bblab.dockerfile
+      target: bblab-site
+    image: cfe-lab/bblab-site:${BBLAB_IMAGE_TAG:?no image tag set}
+    env_file: .env-bblab
+    environment:
+      - SMTP_MAIL_SERVER=${SMTP_MAIL_SERVER:?no smtp server set}
+      - SMTP_MAIL_PORT=${SMTP_MAIL_PORT:?no smtp port set}
+      - SMTP_MAIL_USER=${SMTP_MAIL_USER:?no smtp user set}
+      - SMTP_MAIL_PASSWORD=${SMTP_MAIL_PASSWORD?no smtp password set}
+      - BBLAB_DB_USER=${BBLAB_DB_USER:?no db user set}
+      - BBLAB_DB_PASSWORD=${BBLAB_DB_PASSWORD:?no db password set}
+      - BBLAB_DB_ROOT_PASSWORD=${BBLAB_DB_ROOT_PASSWORD:?no db root password set}
+      - BBLAB_DB_NAME=${BBLAB_DB_NAME:?no db name set}
+      - BBLAB_DB_HOST=${BBLAB_DB_HOST:?no db host set}
+      - BBLAB_WEB_ADDRESS=${BBLAB_WEB_ADDRESS:?no web address set}
+      - BBLAB_ALT_WEB_ADDRESS=${BBLAB_ALT_WEB_ADDRESS}
+      - BBLAB_SECRET_KEY=${BBLAB_SECRET_KEY:?no secret key set}
+      - BBLAB_DEBUG=${BBLAB_DEBUG:-false}
+      - BBLAB_CSRF_COOKIE_SECURE=${BBLAB_CSRF_COOKIE_SECURE:-True}
+      - BBLAB_SESSION_COOKIE_SECURE=${BBLAB_SESSION_COOKIE_SECURE:-True}
+      - BBLAB_STATIC_ROOT=${BBLAB_STATIC_ROOT:?no static root dirset}
+      - BBLAB_MEDIA_ROOT=${BBLAB_MEDIA_ROOT:?no media root dir set}
+      - BBLAB_LOG_FILE=${BBLAB_LOG_FILE:?no log file set}
+      - BBLAB_UTIL_PATH=${BBLAB_UTIL_PATH:?no util path set}
+      - BBLAB_LIB_PATH=${BBLAB_LIB_PATH:?no lib path set}
+      - BBLAB_R_PATH=${BBLAB_R_PATH:?no R path set}
+      - BBLAB_OP_PATH=${BBLAB_OP_PATH:?no op path set}
+      - BBLAB_TOOL_ROOT=${BBLAB_TOOL_ROOT:?no tool root dir set}
+      - BBLAB_TEMPLATE_ROOT=${BBLAB_TEMPLATE_ROOT:?no template root dir set}
+    depends_on:
+      - db
+    networks:
+      - bb-external
+      - bb-internal
+    expose: [80]
+    ports:
+      - "80:80/tcp"
+    command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${DEFAULT_TRAEFIK_NETWORK?error default network undefined}"
+      - "traefik.http.routers.bblab-site.entrypoints=web-secure"
+      - "traefik.http.routers.bblab-site.rule=Host(`${BBLAB_WEB_ADDRESS:?no web address set}`)"
+      - "traefik.http.routers.bblab-site.tls=true"
+      - "traefik.http.routers.bblab-site.service=bblab-site"
+      - "traefik.http.services.bblab-site.loadbalancer.server.port=80"
+    volumes:
+      - /srv/bblab_site/logs:/alldata/bblab_site/logs:rw
+      - /srv/bblab_site/media:/alldata/bblab_site/media
+      - /srv/bblab_site/tools/guava_layout/output:/alldata/bblab_site/tools/guava_layout/output
+      - /srv/bblab_site/tools/sequencing_layout/output:/alldata/bblab_site/tools/sequencing_layout/output
+
+  db:
+    image: mariadb:10.4
+    restart: unless-stopped
+    networks:
+      - bb-internal
+    labels:
+      - traefik.enable=false
+    environment:
+      - MYSQL_DATABASE=${BBLAB_DB_NAME?no db set}
+      - MYSQL_USER=${BBLAB_DB_USER?no db user set}
+      - MYSQL_ROOT_PASSWORD=${BBLAB_DB_ROOT_PASSWORD:?no root password set}
+      - MYSQL_PASSWORD=${BBLAB_DB_PASSWORD:?no password set}
+      - MYSQL_INITDB_SKIP_TZINFO=1
+    volumes:
+      - /srv/bblab_site/mysql:/var/lib/mysql
+      - /srv/bblab_site/db_dump:/docker-entrypoint-initdb.d
+
+  # traefik:
+  #   image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
+  #   restart: unless-stopped
+  #   command:
+  #     - --api.insecure=true
+  #     - --entrypoints.web.address=:80
+  #     - --entrypoints.web-secure.address=:443
+  #     - --providers.docker=true
+  #     - --providers.docker.exposedByDefault=false
+  #     - --providers.file.directory=/etc/traefik
+  #     - --providers.file.watch=true
+  #     - --log.level=DEBUG
+  #   networks:
+  #     - bb-external
+  #   ports:
+  #     - "80:80/tcp"
+  #     - "443:443/tcp"
+  #     - "8088:8080/tcp"
+  #   healthcheck:
+  #     test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
+  #     interval: 1m30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #     - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"

@@ -28,98 +28,113 @@ and then run `sudo git pull`. After making any changes, restart the Apache serve
 `sudo systemctl restart httpd`. You can also check changes to the `httpd.conf` file 
 with `sudo apachectl configtest` before restarting.
 
-## Dockerized deployment - test server
+# Dockerized deployment
 
-In the `dockerize-main` branch of this repo, you will find the resources needed to deploy 
-this server in a Docker container. The main image is based on the official `python:3.7-slim-buster`
-image, and the `docker-compose.yml` file will set up a MariaDB container for Django, as well as 
-Traefik as a reverse proxy for directing traffic within the Docker network.
+In the `dockerize-main` branch of this repo, you will find the resources needed to deploy this
+server in a Docker container, currently `python:3.7-slim-buster` for backwards compatibility. 
+We use an existing Traefik instance to direct HTML requests to the corresponding containers.
 
-[April 13, 2022]: This is a work-in-progress, and is pending updates to Python libraries in order
-to fix Javascript library version issues in django-wiki. See [`Issue #4`].
+To deploy the server, first set up the following:
 
-[`Issue #4`]: https://github.com/cfe-lab/bblab-server/issues/4
+## Create the bind mount directories
 
-## Dockerized deployment - individual containers
-
-In the `test` branch of this repo, you will find the resources needed to deploy this
-server in a set of Docker containers -- one container for the Django-wiki, and a 
-container housing each individual tool. We use Traefik to direct HTML requests to the
-corresponding containers. The config rules for Traefik are in [`docker-compose.yml`].
-
-Running `docker-compose up -d` in the `test` branch of this repo will build the 
-`cfe-lab/bbtool-base` image, and launch the wiki/tool containers, a MariaDB container
-(for Django), and Traefik. This is done by default on an external Docker network: `dock_net`. 
-
-The `.env` file needed to set DB users and configure Django can be found on the test server,
-also note that a SQL dump of the existing Django DB should be placed in `db_dump/`. This can be found
-on the test server, or done manually on the original Apache server using [`django-admin dumpdata`].
-
-Note that each wiki/tool container contains an Apache server, and uses the Apache configuration 
-files found in `conf/`. 
-
-Other files needed to build individual containers are located in `dockerfiles/` and `urls/`.
-Scripts and Django views for individual tools are found in the `alldata/bblab_site/tools/` directory.
-
-Special steps are required for the `hla_class` and `phylodating` tools, as these require access
-to parent directories in the `alldata/` folder.
-
-[`docker-compose.yml`]: docker-compose.yml
-[`django-admin dumpdata`]: https://docs.djangoproject.com/en/2.2/ref/django-admin/#dumpdata
-
-## Migrating from the original Apache server to the Dockerized server
-
-The containerized test server is intended to replace the original server, by migrating individual tools
-to a new CfE server while directing HTML requests for the remainder of the site back to the original
-server.
-
-``` mermaid
-flowchart LR
-    id1(GET bblab-hivresearch.ca/django/tools/some-tool<br/>GET bblab-hivresearch.ca/django/tools/another-tool<br/>etc)-->Traefik
-    Traefik---->another-tool
-    Traefik---->yet-another-tool
-    subgraph New Server
-    Traefik
-    Traefik-->some-tool
-    end
-    subgraph Old Server
-    another-tool
-    yet-another-tool
-    end
+Make the following direcories on the host server:
+```
+/srv
+ |__ bblab_site
+     |
+     |__ db_dump
+     |   |_ db_dump.sql
+     |
+     |__ logs
+     |
+     |__ media
+     |   |_ uploads (note: give group write permissions)
+     |
+     |__ tools
+         |
+         |__ guava_layout (copy existing layouts to output, preserve dates)
+         |   |__ output
+         |       |__ archived_layouts
+         |
+         |__ sequencing_layout (copy existing layouts to output, preseve dates)
+             |__ output
+                 |__ archived_layouts
 ```
 
-An example of partial deployment (used on the `recall-dev.bccfe.ca` server) is here: 
-[`docker-compose-ttc.yml`]. This gives an example of migrating the `text-to-columns` tool to a new server.
-
-[`docker-compose-ttc.yml`]: docker-compose-ttc.yml
-
-In order to direct bblab-server containers to connect to Traefik on the existing Docker network,
-we set the environmental variable
-
+Be sure to copy the `db_dump.sql` into the `/srv/bblab_site/db_dump` directory. Without an existing db, the Django
+app will crash. The two bind mounts in the MariaDB container handle db persistence:
 ```
-DEFAULT_TRAEFIK_NETWORK=dock_default
+volumes:
+  - /srv/bblab_site/mysql:/var/lib/mysql
+  - /srv/bblab_site/db_dump:/docker-entrypoint-initdb.d
+```
+The database files persist in the first `mysql` volume.
+The second volume, mounted to `/docker-entrypoint-initdb.d` will only be loaded in the event that the db does not
+already exist in the persistent directory `/var/lib/mysql`.
+ - The `db_dump.sql` file contains secrets. Contact the site admin if you require access to this file.
+
+Once these folders are created, perform the following permissions operations:
+ - `chown -R lab:lab /srv/bblab_site`,  the webserver/docker will not be able to access directories owned by root
+ - `chmod g+w /srv/bblab_site/media/uploads`, used by Phlyodating, which creates and archives temp folders in this directory
+
+## Set up the systemd services for daily log reporting
+Copy `service/phylodating.*.service` and `service/phylodating.*.timer` files to `/etc/systemd/system/`
+
+Copy `service/bblab_site.conf` to `/usr/local/etc/`, 
+ - This contains mail settings for cron jobs
+ - This file contains secrets. Contact the site admin for access to this file.
+ - Make sure to add `" [dev server]"` in `BBLAB_SUBJECT_PREFIX` if setting up the dev server
+
+Copy `service/crontab_mail.py` to `/opt/`
+ - This script is responsible for executing commands on the host system and sending emails if errors occur
+ - The `phylodating.*.service` scripts will `docker exec` Phylodating shell scripts inside the bblab-site container
+ - More log / daily scripts can be added
+
+## Launch containers using docker-compose
+Copy `.env-bblab` and `docker-compose-bblab.yml` to `/etc/docker-compose/`
+ - The `.env-bblab` file contains secrets. Contact the site admin if you require access to this file.
+ - Check the existing docker network which is running Traefik and set `DEFAULT_TRAEFIK_NETWORK` accordingly
+ - Set the site URL (which differs for dev and prod) in the `.env-bblab` file.
+ - If using standalone Traefik, uncomment the service in [`docker-compose-bblab.yml#L81-L107`]
+ - Running `sudo /usr/local/bin/docker-compose --env-file ./.env-bblab -f docker-compose-bblab.yml up -d`
+   will bring up the containers.
+
+Once the container is running, you can enter a `bash` session with `docker exec -it bblab_bblab-site_1 bash -l`, 
+if you need to edit these files manually.
+
+Note that the `bblab-site` container runs the Apache server which serves the Django app, and uses the Apache configuration 
+files found in `conf/`. From within the container, run `service apache2 reload` to reload the server after any manual changes.
+
+[`docker-compose-bblab.yml#L81-L107`]: docker-compose-bblab.yml#L81-L107
+
+## Django migrations
+
+These should be fairly infrequent - most of the tools are model-free, so the site does not rely heavily on the database.
+
+Django's documentation for writing a migration file is fairly straightforward, once you have a new file in one of 
+the app `migrations` folders, you can run the migrations through `manage.py` as follows:
+
+ - From within the container, navigate to `/alldata/bblab_site`
+ - Run `python3 manage.py showmigrations` to see a list of migrations and their status (applied or not)
+ - Apply all unapplied migrations with `python3 manage.py migrate`
+ - Or, apply a specific migration with `python3 manage.py  migrate [app_label] [migration_name]`
+    - For example `python3 manage.py migrate phylodating 0002`
+    - If needed, you can revert by applying the previous migration, ex. `python3 manage.py migrate phylodating 0001_initial`
+      will undo `0002`
+
+## SMTP authorization
+
+In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
+
+The login information for this account is stored in environmental variables which are passed in to the container by `docker-compose-bblab.yml`.
+
+Using `smptlib` the SMTP connection is put into TLS mode, using EHLO, before logging in to the server. See here: [`mailer.py#L59-L62`]:
+```
+smtpobj = smtplib.SMTP(os.environ['SMTP_MAIL_SERVER'], os.environ['SMTP_MAIL_PORT'])
+smtpobj.starttls()
+smtplib.ehlo()
+smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
 ```
 
-this is used in `docker-compose-ttc.yml` as follows:
-
-```
-networks:
-  bb-external:
-    external: true
-    name: ${DEFAULT_TRAEFIK_NETWORK?error default network undefined}
-  bb-internal:
-    external: false
-
-services:
-  text-to-columns:
-    [...]
-    networks:
-      - bb-external
-      - bb-internal
-    expose: [80]
-    [...]
-    labels:
-      - "traefik.docker.network=${DEFAULT_TRAEFIK_NETWORK?error default network undefined}"
-```
-
-The Traefik configuration needed to move the DNS from the old to the new server is still under investigation.
+[`mailer.py#L59-L62`]: alldata/bblab_site/depend/util_scripts/mailer.py#L59-L62
