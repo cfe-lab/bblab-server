@@ -108,6 +108,21 @@ files found in `conf/`. From within the container, run `service apache2 reload` 
 
 [`docker-compose-bblab.yml#L81-L107`]: docker-compose-bblab.yml#L81-L107
 
+## Django migrations
+
+These should be fairly infrequent - most of the tools are model-free, so the site does not rely heavily on the database.
+
+Django's documentation for writing a migration file is fairly straightforward, once you have a new file in one of 
+the app `migrations` folders, you can run the migrations through `manage.py` as follows:
+
+ - From within the container, navigate to `/alldata/bblab_site`
+ - Run `python3 manage.py showmigrations` to see a list of migrations and their status (applied or not)
+ - Apply all unapplied migrations with `python3 manage.py migrate`
+ - Or, apply a specific migration with `python3 manage.py  migrate [app_label] [migration_name]`
+    - For example `python3 manage.py migrate phylodating 0002`
+    - If needed, you can revert by applying the previous migration, ex. `python3 manage.py migrate phylodating 0001_initial`
+      will undo `0002`
+
 ## SMTP authorization
 
 In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
