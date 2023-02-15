@@ -18,4 +18,4 @@
 	url = git@github.com:cfe-lab/blind-dating.git
 [submodule "alldata/bblab_site/depend/apps/tcr-dist"]
 	path = alldata/bblab_site/depend/apps/tcr-dist
-	url = git@github.com:phbradley/tcr-dist.git
+	url = git@github.com:cfe-lab/tcr-dist.git
