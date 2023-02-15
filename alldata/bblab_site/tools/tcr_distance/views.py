@@ -134,7 +134,7 @@ def download_file(request):
         else:
             return HttpResponse("no dir")
 
-        file_path = os.path.dirname(os.path.realpath(__file__)) + "/tmp_dirs/tmp_{}/matricies.zip".format(dirNum)
+        file_path = os.path.dirname(os.path.realpath(__file__)) + "/tmp_dirs/tmp_{}/matrices.zip".format(dirNum)
         if not (os.path.exists(file_path) and os.path.isfile(file_path)):
             return HttpResponse("no file" + str(dirNum))
 
@@ -147,7 +147,7 @@ def download_file(request):
         terminate_directory(dirNum) # tell self to be destroyed on the next check -> there should only ever be 1 left over.
  
         response = HttpResponse(file_dat, content_type="application/zip")
-        response['Content-Disposition'] = "inline; filename=matricies.zip"
+        response['Content-Disposition'] = "inline; filename=matrices.zip"
         return response
     else:
         return HttpResponse("not allowed")

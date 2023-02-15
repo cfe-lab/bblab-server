@@ -37,7 +37,7 @@ def terminate(dir_num):
         assert (shutil.rmtree.avoids_symlink_attacks == True), "version needs to protect against symlink attacks"
         shutil.rmtree( "{}/tmp_{}".format(tmp_dirs_path, dir_num) )
 
-# this function removes all files except for matricies.zip and status
+# this function removes all files except for matrices.zip and status
 def clear_dir(dir_num):
     #file = open("{}/status".format(wd), "a")
     #file.write("clearing directory! #{}".format(dir_num) + str("\n"))	   
@@ -45,7 +45,7 @@ def clear_dir(dir_num):
 
     assert (shutil.rmtree.avoids_symlink_attacks == True), "version needs to protect against symlink attacks"
     for name in os.listdir( tmp_dirs_path + "/tmp_{}".format(dir_num) ):
-        if name != "matricies.zip" and name != "status" and name != "terminate":
+        if name != "matrices.zip" and name != "status" and name != "terminate":
             file_path = "{}/tmp_{}/{}".format(tmp_dirs_path, dir_num, name)
             if os.path.isfile(file_path):
                 os.remove(file_path)
@@ -203,7 +203,7 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
 
         append_status_file("compressing files")
 
-        command = "cd {}; zip matricies.zip clones__A.dist clones__B.dist clones__AB.dist; cd -".format(wd)
+        command = "cd {}; zip matrices.zip clones__A.dist clones__B.dist clones__AB.dist; cd -".format(wd)
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         # This loop allows for the process to be terminated 
@@ -244,7 +244,7 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
 
        
         # If the output file doesn't exist, then destroy the current directory 
-        if not os.path.exists("{}/matricies.zip".format(wd)):
+        if not os.path.exists("{}/matrices.zip".format(wd)):
                 append_status_file("pipeline failed (output file was not generated). Make sure your input was correct.")
                 append_status_file("done")
                 time.sleep(5)
@@ -255,10 +255,10 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
         ##### Read the compressed file and email it
 
 
-        email_size = os.path.getsize("{}/matricies.zip".format(wd))
+        email_size = os.path.getsize("{}/matrices.zip".format(wd))
         if email_size * 1.37 < 25000000:    
-                with open("{}/matricies.zip".format(wd), "rb") as file:
-                        matricies_data = file.read()
+                with open("{}/matrices.zip".format(wd), "rb") as file:
+                        matrices_data = file.read()
                 
  
         ##### Send an email with the xlsx file in it.
@@ -267,11 +267,11 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
         # 1.37 is the factor around which files tend to be expanded.
         if send_email == 1 and email_size * 1.37 < 25000000:
                 # make the output files into mailable files.
-                mat_file = mailer.create_file( "matricies", 'zip', matricies_data )
+                mat_file = mailer.create_file( "matrices", 'zip', matrices_data )
 
                 # Add the body to the message and send it.
                 end_message = "This is an automatically generated email, please do not respond."
-                msg_body = "The included .zip file ({}.zip) contains the requested tcr_distance matrix data. \n\n{}".format("matricies", end_message)
+                msg_body = "The included .zip file ({}.zip) contains the requested tcr_distance matrix data. \n\n{}".format("matrices", end_message)
 
                 if mailer.send_sfu_email("tcr_dist", email_address, "TCR Distance Results", msg_body, [mat_file]) == 0:
                         pass
