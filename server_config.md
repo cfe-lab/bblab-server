@@ -123,6 +123,32 @@ the app `migrations` folders, you can run the migrations through `manage.py` as 
     - If needed, you can revert by applying the previous migration, ex. `python3 manage.py migrate phylodating 0001_initial`
       will undo `0002`
 
+## MySQL Encoding Migration
+
+Speaking of the above `phylodating 0002`, the most recent migration was to change the column data type to allow for special characters in the `phylodating_jobs` table. Phylodating stderr has some special characters which were causing Django to fail when trying to add its model entries.
+
+Long story short, due to column size limits, it was necessary to manually change each column to `utf8mb3`, which is MySQL's 3-byte UTF-8 encoding format. 4-byte is more of the standard UTF-8 encoding, but not so in MySQL. Three bytes encode most the UTF-8 characters that you'd encounter in Western languages & software uses, so it's probably safe enough for now.
+
+Two useful queries to get the column encoding of a table in MySQL (from [here](https://stackoverflow.com/a/1049958)) are:
+
+For Tables:
+
+```
+SELECT CCSA.character_set_name FROM information_schema.`TABLES` T,
+       information_schema.`COLLATION_CHARACTER_SET_APPLICABILITY` CCSA
+WHERE CCSA.collation_name = T.table_collation
+  AND T.table_schema = "schemaname"
+  AND T.table_name = "tablename";
+```
+
+For Columns:
+```
+SELECT character_set_name FROM information_schema.`COLUMNS` 
+WHERE table_schema = "schemaname"
+  AND table_name = "tablename"
+  AND column_name = "columnname";
+```
+
 ## SMTP authorization
 
 In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
