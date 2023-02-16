@@ -84,7 +84,7 @@ Copy `service/phylodating.*.service` and `service/phylodating.*.timer` files to 
 Copy `service/bblab_site.conf` to `/usr/local/etc/`, 
  - This contains mail settings for cron jobs
  - This file contains secrets. Contact the site admin for access to this file.
- - Make sure to add `" [dev server]"` in `BBLAB_SUBJECT_PREFIX` if setting up the dev server
+ - Make sure to add `"[dev server] "` in `BBLAB_SUBJECT_PREFIX` if setting up the dev server
 
 Copy `service/crontab_mail.py` to `/opt/`
  - This script is responsible for executing commands on the host system and sending emails if errors occur
@@ -105,6 +105,7 @@ if you need to edit these files manually.
 
 Note that the `bblab-site` container runs the Apache server which serves the Django app, and uses the Apache configuration 
 files found in `conf/`. From within the container, run `service apache2 reload` to reload the server after any manual changes.
+Do NOT use `service apache2 restart`, as this will stop PID 1 and the container itself will restart.
 
 [`docker-compose-bblab.yml#L81-L107`]: docker-compose-bblab.yml#L81-L107
 
