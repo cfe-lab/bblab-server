@@ -127,11 +127,20 @@ def create_proviral_plot(input_file, output_svg):
         all_rows_by_sample.sort(key=lambda samp_list: -int(samp_list[0]['ref_end']))
         all_rows_this_defect = [item for sublist in all_rows_by_sample for item in sublist]
         for row in all_rows_this_defect:
-            plot.add_line(row['samp_name'],
-                          int(row['ref_start']),
-                          int(row['ref_end']),
-                          row['defect'],
-                          row['highlighted'])
+            ref_start = int(row['ref_start'])
+            ref_end = int(row['ref_end'])
+            if ref_start > ref_end:
+                plot.add_line(row['samp_name'],
+                              ref_end,
+                              ref_start,
+                              row['defect'],
+                              is_highlighted=True)
+            else:
+                plot.add_line(row['samp_name'],
+                              ref_start,
+                              ref_end,
+                              row['defect'],
+                              row['highlighted'])
     # draw the final line in the plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
