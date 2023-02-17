@@ -1,8 +1,9 @@
 from csv import DictReader
 from argparse import ArgumentParser
-from genetracks import Figure, Track, Multitrack
+from genetracks import Figure, Track, Multitrack, Label
 from itertools import groupby
 from operator import itemgetter
+import drawSvg as draw
 
 DEFECT_TO_COLOR = {'5DEFECT': "#440154",
                    'Hypermut': "#1fa187",
@@ -49,6 +50,37 @@ def make_gene_track(xstart, xend, defect_type, is_highlighted):
     return track
 
 
+class XAxis:
+    def __init__(self, width=END_POS):
+        self.a = START_POS
+        self.b = END_POS
+        self.w = width
+        self.h = 1
+        self.color = 'black'
+        self.ticks = [i for i in range(1000, 10000, 1000)]
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        h = self.h
+        a = self.a * xscale
+        b = self.b * xscale
+        x = x * xscale
+
+        # assert isinstance(x, float) and isinstance(y, float)
+        d = draw.Group(transform="translate({} {})".format(x, y))
+        d.append(draw.Rectangle(a, 0, b - a, h,
+                                fill=self.color, stroke=self.color))
+
+        for tick in self.ticks:
+            label = str(tick)
+            tick = tick * xscale
+            d.append(draw.Lines(tick, 0, tick, -20, stroke=self.color))
+            d.append(Label(0, label, font_size=20, offset=-40).draw(x=tick))
+
+        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-60).draw(x=(b-a)/2))
+
+        return d
+
+
 class ProviralLandscapePlot:
     def __init__(self, figure):
         self.curr_samp_name = ''
@@ -75,6 +107,9 @@ class ProviralLandscapePlot:
         self.figure.add(Multitrack(self.curr_multitrack), gap=0)
         self.curr_multitrack = []
 
+    def add_xaxis(self):
+        self.figure.add(XAxis(), padding=20, gap=80)
+
 
 def create_proviral_plot(input_file, output_svg):
     figure = Figure()
@@ -99,6 +134,7 @@ def create_proviral_plot(input_file, output_svg):
                           row['highlighted'])
     # draw the final line in the plot
     plot.draw_current_multitrack()
+    plot.add_xaxis()
     figure.show(w=900).saveSvg(output_svg)
 
 
