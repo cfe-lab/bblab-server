@@ -12,7 +12,10 @@ DEFECT_TO_COLOR = {'5DEFECT': "#440154",
                    'InternalInversion': "#7f0584",
                    'LargeDeletion': "#365c8d"}
 HIGHLIGHT_COLORS = {'InternalInversion': "#AFAFAF",
-                    'LargeDeletion': "#AFAFAF"}
+                    'LargeDeletion': "#AFAFAF",
+                    'Inversion': "#AFAFAF"}
+HIGHLIGHT_TYPE = {'InternalInversion': 'Inversion',
+                  'LargeDeletion': 'Inversion'}
 DEFECT_ORDER = {'Intact': 10,
                 'Inferred_Intact': 20,
                 'Hypermut': 30,
@@ -51,10 +54,10 @@ def make_gene_track(xstart, xend, defect_type, is_highlighted):
 
 
 class XAxis:
-    def __init__(self, width=END_POS):
+    def __init__(self):
         self.a = START_POS
         self.b = END_POS
-        self.w = width
+        self.w = END_POS + 600
         self.h = 1
         self.color = 'black'
         self.ticks = [i for i in range(1000, 10000, 1000)]
@@ -65,7 +68,6 @@ class XAxis:
         b = self.b * xscale
         x = x * xscale
 
-        # assert isinstance(x, float) and isinstance(y, float)
         d = draw.Group(transform="translate({} {})".format(x, y))
         d.append(draw.Rectangle(a, 0, b - a, h,
                                 fill=self.color, stroke=self.color))
@@ -77,6 +79,59 @@ class XAxis:
             d.append(Label(0, label, font_size=20, offset=-40).draw(x=tick))
 
         d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-60).draw(x=(b-a)/2))
+
+        return d
+
+
+class LegendAndPercentages:
+    def __init__(self, defect_percentages, highlighted, total_samples):
+        self.a = START_POS
+        self.b = END_POS
+        self.w = self.b - self.a
+        self.defect_types = defect_percentages.keys()
+        self.highlighted_types = highlighted
+        self.defect_percentages = defect_percentages
+        self.num_samples = total_samples
+        self.num_lines = (len(self.defect_types) + len(self.highlighted_types))/3
+        self.h = 20 * self.num_lines
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        h = self.h
+        a = self.a * xscale
+        b = self.b * xscale
+        column_space = (b - a) / 3
+        barlen = 300 * xscale
+        barheight = 10
+        x = x * xscale
+
+        sidebar_x = b + 10
+        sidebar_ystart = h + 100 + self.num_samples * 10
+
+        d = draw.Group(transform="translate({} {})".format(x, y))
+        ypos = h + 20
+        for num, defect in enumerate(self.defect_types):
+            try:
+                color = DEFECT_TO_COLOR[defect]
+            except KeyError:
+                print(f"No color defined for defect {defect}")
+                continue
+
+            if num % 3 == 0:
+                xpos = a
+                ypos -= 20
+            elif num % 3 == 1:
+                xpos = a + column_space
+            else:
+                xpos = a + 2 * column_space
+
+            # legend entries
+            d.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
+            d.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen + 30)))
+
+            # percentage sidebar
+            sidebar_height = self.defect_percentages[defect] / 10 * self.num_samples
+            sidebar_ystart -= sidebar_height
+            d.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
 
         return d
 
@@ -110,11 +165,11 @@ class ProviralLandscapePlot:
     def add_xaxis(self):
         self.figure.add(XAxis(), padding=20, gap=80)
 
+    def legends_and_percentages(self, defect_percentages, highlight_types, total_samples):
+        self.figure.add(LegendAndPercentages(defect_percentages, highlight_types, total_samples))
 
-def create_proviral_plot(input_file, output_svg):
-    figure = Figure()
-    plot = ProviralLandscapePlot(figure)
-    lines = list(DictReader(input_file))
+
+def sort_csv_lines(lines):
     lines.sort(key=lambda elem: defect_order(elem['defect']))
     for _, defect_rows in groupby(lines, itemgetter('defect')):
         defect_rows = list(defect_rows)
@@ -126,24 +181,52 @@ def create_proviral_plot(input_file, output_svg):
             all_rows_by_sample.append(samp_rows)
         all_rows_by_sample.sort(key=lambda samp_list: -int(samp_list[0]['ref_end']))
         all_rows_this_defect = [item for sublist in all_rows_by_sample for item in sublist]
+        yield all_rows_this_defect
+
+
+def create_proviral_plot(input_file, output_svg):
+    defect_percentages = {}
+    highlighted_set = set()
+    figure = Figure()
+    plot = ProviralLandscapePlot(figure)
+    lines = list(DictReader(input_file))
+    for all_rows_this_defect in sort_csv_lines(lines):
+        defect = all_rows_this_defect[0]['defect']
         for row in all_rows_this_defect:
-            ref_start = int(row['ref_start'])
-            ref_end = int(row['ref_end'])
-            if ref_start > ref_end:
-                plot.add_line(row['samp_name'],
-                              ref_end,
-                              ref_start,
-                              row['defect'],
-                              is_highlighted=True)
+            if int(row['ref_start']) < int(row['ref_end']):
+                xstart = int(row['ref_start'])
+                xend = int(row['ref_end'])
+                is_highlighted = row['highlighted']
             else:
-                plot.add_line(row['samp_name'],
-                              ref_start,
-                              ref_end,
-                              row['defect'],
-                              row['highlighted'])
+                xstart = int(row['ref_end'])
+                xend = int(row['ref_start'])
+                is_highlighted = True
+            plot.add_line(row['samp_name'],
+                          xstart,
+                          xend,
+                          defect,
+                          is_highlighted)
+            if is_highlighted:
+                try:
+                    highlighted_type = HIGHLIGHT_TYPE[defect]
+                    highlighted_set.add(highlighted_type)
+                except KeyError:
+                    print(f"No highlight type defined for {defect}")
+                    pass
+        num_samples = len(set([row['samp_name'] for row in all_rows_this_defect]))
+        defect_percentages[defect] = num_samples
+
+    total_samples = len(set([row['samp_name'] for row in lines if row['defect'] in DEFECT_TO_COLOR.keys()]))
+    for defect, number in defect_percentages.items():
+        if defect not in DEFECT_TO_COLOR.keys():
+            continue
+        percentage = number / total_samples * 100
+        defect_percentages[defect] = percentage
+
     # draw the final line in the plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
+    plot.legends_and_percentages(defect_percentages, highlighted_set, total_samples)
     figure.show(w=900).saveSvg(output_svg)
 
 
