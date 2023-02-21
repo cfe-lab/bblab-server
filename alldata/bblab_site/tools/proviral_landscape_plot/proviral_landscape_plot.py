@@ -57,7 +57,7 @@ class XAxis:
     def __init__(self):
         self.a = START_POS
         self.b = END_POS
-        self.w = END_POS + 600
+        self.w = END_POS + 1000
         self.h = 1
         self.color = 'black'
         self.ticks = [i for i in range(1000, 10000, 1000)]
@@ -130,8 +130,18 @@ class LegendAndPercentages:
 
             # percentage sidebar
             sidebar_height = self.defect_percentages[defect] / 10 * self.num_samples
+            sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
+            fontsize = 15
             sidebar_ystart -= sidebar_height
+            sidebar_label_y = fontsize / 2 + sidebar_ystart + 0.5 * sidebar_height
             d.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
+            d.append(draw.Text(text=sidebar_label,
+                               fontSize=fontsize,
+                               x=sidebar_x+40,
+                               y=sidebar_label_y,
+                               font_family='monospace',
+                               center=True,
+                               fill=color))
 
         return d
 
