@@ -113,20 +113,22 @@ class LegendAndPercentages:
         d.append(Label(0, f"N={self.num_samples}", font_size=15, offset=sidebar_ystart/2-10).draw(x=(a - 30)))
 
         ypos = h + 20
-        for num, defect in enumerate(self.defect_types):
+        num_defects = 0
+        for defect in self.defect_types:
             try:
                 color = DEFECT_TO_COLOR[defect]
             except KeyError:
                 print(f"No color defined for defect {defect}")
                 continue
 
-            if num % 3 == 0:
+            if num_defects % 3 == 0:
                 xpos = a
                 ypos -= 20
-            elif num % 3 == 1:
+            elif num_defects % 3 == 1:
                 xpos = a + column_space
             else:
                 xpos = a + 2 * column_space
+            num_defects += 1
 
             # legend entries
             d.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
@@ -146,6 +148,26 @@ class LegendAndPercentages:
                                font_family='monospace',
                                center=True,
                                fill=color))
+
+        for defect in self.highlighted_types:
+            try:
+                color = HIGHLIGHT_COLORS[defect]
+            except KeyError:
+                print(f"No color defined for defect {defect}")
+                continue
+
+            if num_defects % 3 == 0:
+                xpos = a
+                ypos -= 20
+            elif num_defects % 3 == 1:
+                xpos = a + column_space
+            else:
+                xpos = a + 2 * column_space
+            num_defects += 1
+
+            # legend entries
+            d.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
+            d.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen + 30)))
 
         return d
 
