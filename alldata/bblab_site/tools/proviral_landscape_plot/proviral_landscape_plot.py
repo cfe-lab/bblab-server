@@ -108,6 +108,10 @@ class LegendAndPercentages:
         sidebar_ystart = h + 120 + self.num_samples * 11
 
         d = draw.Group(transform="translate({} {})".format(x, y))
+
+        d.append(Label(0, "Seq.", font_size=15, offset=sidebar_ystart/2+10).draw(x=(a - 30)))
+        d.append(Label(0, f"N={self.num_samples}", font_size=15, offset=sidebar_ystart/2-10).draw(x=(a - 30)))
+
         ypos = h + 20
         for num, defect in enumerate(self.defect_types):
             try:
