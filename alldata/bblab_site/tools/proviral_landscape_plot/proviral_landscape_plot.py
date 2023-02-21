@@ -78,7 +78,7 @@ class XAxis:
             d.append(draw.Lines(tick, 0, tick, -20, stroke=self.color))
             d.append(Label(0, label, font_size=20, offset=-40).draw(x=tick))
 
-        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-60).draw(x=(b-a)/2))
+        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=(b-a)/2))
 
         return d
 
@@ -105,7 +105,7 @@ class LegendAndPercentages:
         x = x * xscale
 
         sidebar_x = b + 10
-        sidebar_ystart = h + 100 + self.num_samples * 10
+        sidebar_ystart = h + 120 + self.num_samples * 11
 
         d = draw.Group(transform="translate({} {})".format(x, y))
         ypos = h + 20
@@ -129,7 +129,7 @@ class LegendAndPercentages:
             d.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen + 30)))
 
             # percentage sidebar
-            sidebar_height = self.defect_percentages[defect] / 10 * self.num_samples
+            sidebar_height = self.defect_percentages[defect] / 100 * 11 * self.num_samples
             sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
             fontsize = 15
             sidebar_ystart -= sidebar_height
@@ -169,11 +169,11 @@ class ProviralLandscapePlot:
 
     def draw_current_multitrack(self):
         # draw line and reset multitrack
-        self.figure.add(Multitrack(self.curr_multitrack), gap=0)
+        self.figure.add(Multitrack(self.curr_multitrack), gap=1)
         self.curr_multitrack = []
 
     def add_xaxis(self):
-        self.figure.add(XAxis(), padding=20, gap=80)
+        self.figure.add(XAxis(), padding=20, gap=100)
 
     def legends_and_percentages(self, defect_percentages, highlight_types, total_samples):
         self.figure.add(LegendAndPercentages(defect_percentages, highlight_types, total_samples))
