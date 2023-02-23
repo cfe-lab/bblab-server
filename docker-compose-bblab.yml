@@ -57,9 +57,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${DEFAULT_TRAEFIK_NETWORK?error default network undefined}"
-      - "traefik.http.routers.bblab-site.entrypoints=web-secure"
+      - "traefik.http.routers.bblab-site.entrypoints=web"
       - "traefik.http.routers.bblab-site.rule=Host(`${BBLAB_WEB_ADDRESS:?no web address set}`)"
-      - "traefik.http.routers.bblab-site.tls=true"
+      - "traefik.http.routers.bblab-site.tls=false"
       - "traefik.http.routers.bblab-site.service=bblab-site"
       - "traefik.http.services.bblab-site.loadbalancer.server.port=80"
     volumes:
@@ -85,30 +85,30 @@ services:
       - /srv/bblab_site/mysql:/var/lib/mysql
       - /srv/bblab_site/db_dump:/docker-entrypoint-initdb.d
 
-  # traefik:
-  #   image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
-  #   restart: unless-stopped
-  #   command:
-  #     - --api.insecure=true
-  #     - --entrypoints.web.address=:80
-  #     - --entrypoints.web-secure.address=:443
-  #     - --providers.docker=true
-  #     - --providers.docker.exposedByDefault=false
-  #     - --providers.file.directory=/etc/traefik
-  #     - --providers.file.watch=true
-  #     - --log.level=DEBUG
-  #   networks:
-  #     - bb-external
-  #   ports:
-  #     - "80:80/tcp"
-  #     - "443:443/tcp"
-  #     - "8088:8080/tcp"
-  #   healthcheck:
-  #     test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
-  #     interval: 1m30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 40s
-  #   volumes:
-  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
-  #     - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"
+  traefik:
+    image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
+    restart: unless-stopped
+    command:
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.web-secure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.file.directory=/etc/traefik
+      - --providers.file.watch=true
+      - --log.level=DEBUG
+    networks:
+      - bb-external
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "8088:8080/tcp"
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"

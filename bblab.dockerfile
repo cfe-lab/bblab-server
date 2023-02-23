@@ -1,4 +1,4 @@
-FROM python:3.7-slim-buster AS bblab-site
+FROM python:3.11-slim-bullseye AS bblab-site
 
 LABEL maintainer=jkai@bccfe.ca
 
@@ -15,43 +15,43 @@ RUN apt-get update -qq --fix-missing && \
     apache2 apache2-dev \
     libapache2-mod-wsgi-py3 \
     php libapache2-mod-php \
-    ruby-full && \
-  curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py && \
-  python2 get-pip.py
+    ruby-full libffi-dev
 
 # Install R with Bioconductor and libs for Phylodating
-ENV R_BASE_VERSION 3.6.3
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' && \
-    echo "deb http://cloud.r-project.org/bin/linux/debian buster-cran35/" | tee -a /etc/apt/sources.list
-RUN apt-get update \
-	&& apt-get install -qq libxml2-dev libcurl4-openssl-dev libssl-dev \
-	&& apt-get install -qq --no-install-recommends \
-			r-base=${R_BASE_VERSION}-* \
-			r-base-dev=${R_BASE_VERSION}-* \
-			r-base-core=${R_BASE_VERSION}-* \
-			littler r-cran-littler \
-	&& ln -s /usr/lib/R/site-library/littler/examples/install.r /usr/local/bin/install.r \
-	&& ln -s /usr/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
-	&& ln -s /usr/lib/R/site-library/littler/examples/installBioc.r /usr/local/bin/installBioc.r \
-	&& ln -s /usr/lib/R/site-library/littler/examples/installDeps.r /usr/local/bin/installDeps.r \
-	&& ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
-	&& ln -s /usr/lib/R/site-library/littler/examples/testInstalled.r /usr/local/bin/testInstalled.r \
-	&& install.r docopt
-RUN install2.r --error \
-	ape \
-	optparse \
-	ggplot2 \
-	dplyr \
-	chemCal \
-	magrittr \
-	tidytree \
-	lubridate \
-	data.table \
-	BiocManager
-RUN R -e "install.packages(\"https://cran.r-project.org/src/contrib/Archive/rvcheck/rvcheck_0.1.8.tar.gz\", repos = NULL)" \
- && R -e "BiocManager::install(\"ggtree\", force=TRUE)"
-RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
-    rm -rf /var/lib/apt/lists/*
+
+# ENV R_BASE_VERSION 4.2.2
+# ## Now install R and littler, and create a link for littler in /usr/local/bin
+# RUN apt-get update \
+#         && apt-get install -y --no-install-recommends \
+#                 libopenblas0-pthread \
+# 		        littler \
+#                 r-cran-docopt \
+#                 r-cran-littler \
+# 		        r-base=${R_BASE_VERSION}-* \
+# 		        r-base-dev=${R_BASE_VERSION}-* \
+#                 r-base-core=${R_BASE_VERSION}-* \
+# 		        r-recommended=${R_BASE_VERSION}-* \
+# 	&& ln -s /usr/lib/R/site-library/littler/examples/install.r /usr/local/bin/install.r \
+# 	&& ln -s /usr/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
+# 	&& ln -s /usr/lib/R/site-library/littler/examples/installBioc.r /usr/local/bin/installBioc.r \
+# 	&& ln -s /usr/lib/R/site-library/littler/examples/installDeps.r /usr/local/bin/installDeps.r \
+# 	&& ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
+# 	&& ln -s /usr/lib/R/site-library/littler/examples/testInstalled.r /usr/local/bin/testInstalled.r
+# RUN install2.r --error \
+# 	ape \
+# 	optparse \
+# 	ggplot2 \
+# 	dplyr \
+# 	chemCal \
+# 	magrittr \
+# 	tidytree \
+# 	lubridate \
+# 	data.table \
+# 	BiocManager
+# # RUN R -e "install.packages(\"https://cran.r-project.org/src/contrib/Archive/rvcheck/rvcheck_0.1.8.tar.gz\", repos = NULL)" \
+# RUN R -e "BiocManager::install(\"ggtree\", force=TRUE)"
+# RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
+#     rm -rf /var/lib/apt/lists/*
 
 # set the timezone for Vancouver, so that datetime.now() returns our
 # local time, not UTC.
@@ -70,14 +70,12 @@ RUN useradd -rm -s /bin/tcsh -u 1000 dockuser00 &&\
 # Install Ruby dependencies
 # bundler v1.17.2 is needed for older libraries
 COPY hla_class_setup/Gemfile ./
-RUN gem install bundler:1.17.2
+RUN gem install bundler
 RUN bundle install
 
 # Install Python dependencies:
 COPY alldata/bblab_site/requirements.txt .
-COPY alldata/bblab_site/requirements27.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
-RUN pip2 install --no-cache-dir -r requirements27.txt
 
 # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \
@@ -85,28 +83,6 @@ RUN groupadd varwwwusers && \
 
 # copy source code
 COPY alldata /alldata
-
-# Run setup for tcr-dist
-RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/blast-2.2.16-x64-linux.tar.gz && \
-    wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/tcrdist_extras_v2.tgz && \
-    tar -xzf blast-2.2.16-x64-linux.tar.gz && \
-    tar -xzf tcrdist_extras_v2.tgz && \
-    mv ./tcrdist_extras_v2/external/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
-    mv ./blast-2.2.16/ /alldata/bblab_site/depend/apps/tcr-dist/external/ && \
-    mv ./tcrdist_extras_v2/datasets/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
-    mv ./tcrdist_extras_v2/db/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
-    mv ./tcrdist_extras_v2/testing_ref/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
-    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/external && \
-    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/external && \
-    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/datasets && \
-    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/datasets && \
-    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/db && \
-    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/db && \
-    chmod -R 766 /alldata/bblab_site/depend/apps/tcr-dist/testing_ref && \
-    chown -R www-data:varwwwusers /alldata/bblab_site/depend/apps/tcr-dist/testing_ref && \
-    rm blast-2.2.16-x64-linux.tar.gz && \
-    rm tcrdist_extras_v2.tgz && \
-    rm -r tcrdist_extras_v2
 
 # load configuration for Apache server
 COPY conf/apache2.conf /etc/apache2/
