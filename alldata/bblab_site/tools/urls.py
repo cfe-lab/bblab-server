@@ -32,6 +32,7 @@ urlpatterns = [
 
 	path('tcr_distance/', include('tools.tcr_distance.urls')),
 	path('tcr_visualizer/', include('tools.tcr_visualizer.urls')),
+        path('proviral_landscape_plot/', include('tools.proviral_landscape_plot.urls')),
 	path('', tool_redirect),
 ]
 
