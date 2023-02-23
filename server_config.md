@@ -171,6 +171,17 @@ After making file changes, it's usually necessary to run `service apache2 reload
 
 Once you have access to a staff account on the wiki, you can log in to the Django administration page at `<web-address>/django/admin` to create users and change permissions.
 
+If you have root access to the MariaDB container, you can log in with
+```
+docker exec -it bblab_db_1 mysql -u root -p
+```
+and check the existing users with the query
+```
+select * from bblab_django.auth_user;
+```
+
+Note that the database table `bblab_django.auth_user_user_permissions` (and other tables that are nominally related to controlling user authorizations) may seem conspicuously empty. This is because `django-wiki` uses existing Django account statuses (superuser, staff) to determine who has access to the admin pages.
+
 ## Making a db dump in MySQL
 
 If you need to create a new db dump for development or server migration purposes, execute the following command on the server:
