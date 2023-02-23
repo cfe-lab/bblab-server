@@ -3,6 +3,7 @@ import os
 sys.path.append(os.environ.get('BBLAB_UTIL_PATH', 'fail'))
 import web_output
 import mailer
+from . import proviral_landscape_plot
 
 
 def run(csv_data, analysis_id, email_address_string):
@@ -11,6 +12,10 @@ def run(csv_data, analysis_id, email_address_string):
     website.set_footer('go back to <a href="/django/wiki/" >wiki</a>')
 
     # Get website input.
+    with open('output.svg', 'w') as output_svg:
+        proviral_landscape_plot.create_proviral_plot(csv_data, output_svg)
+
+    website.send("<img src = 'output.svg' alt='Output svg'")
 
     # Send email
     # Create subject line
