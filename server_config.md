@@ -1,32 +1,24 @@
 # Server deployment for the BBLab-Wiki
 
-This website is currently migrating from its current server (housed at SFU) to
-`recall-dev.bccfe.ca`, where it will reside until we are ready to host it on
-`sequenceqc.bccfe.ca`.
+This website is currently housed on `recall.bccfe.ca`.
 
 The details needed to access these server can be found on the internal lab Git, 
 under `dev-docs/servers.md`. If you don't already have an account on one of these
 servers, ask the lab director for access.
 
-## Apache deployment of original server
-
-The current server runs on `Apache/2.4.6 (CentOS)`, there are a few customizations 
-in the config file (`/etc/httpd/conf/httpd.conf`) to note:
-
-- Alias for the `hla_class` tool, which is written in Ruby and PHP so does not work with Django:
-```
-Alias "/django/tools/hla_class" "/alldata/hla_class"
-```
-- The original Wiki page is plain HTML and incomplete, we are using the completed one in Django. 
-This line redirects with a 301 response code to `/django/wiki/` (matches only `/` or `/wiki/`):
-```
-RedirectMatch permanent "^\/$|^\/wiki\/$" "/django/wiki/"
-```
-
-To deploy an update to this server (tracking the `main` branch of this repo), change to that directory, 
-and then run `sudo git pull`. After making any changes, restart the Apache server with
-`sudo systemctl restart httpd`. You can also check changes to the `httpd.conf` file 
-with `sudo apachectl configtest` before restarting.
+## Table of contents
+- [Dockerized deployment](#dockerized-deployment)
+  * [Apache server configuration](#apache-server-configuration)
+  * [Create the bind mount directories](#create-the-bind-mount-directories)
+  * [Using an existing db dump in MySQL](#using-an-existing-db-dump-in-mysql)
+  * [Set up the systemd services for daily log reporting](#set-up-the-systemd-services-for-daily-log-reporting)
+  * [Launch containers using docker-compose](#launch-containers-using-docker-compose)
+  * [SMTP authorization](#smtp-authorization)
+- [Miscellaneous useful topics](#miscellaneous-useful-topics)
+  * [Wiki admin](#wiki-admin)
+  * [Making a db dump in MySQL](#making-a-db-dump-in-mysql)
+  * [Django migrations](#django-migrations)
+  * [MySQL Encoding Migration](#mysql-encoding-migration)
 
 # Dockerized deployment
 
@@ -35,6 +27,22 @@ server in a Docker container, currently `python:3.7-slim-buster` for backwards c
 We use an existing Traefik instance to direct HTML requests to the corresponding containers.
 
 To deploy the server, first set up the following:
+
+## Apache server configuration
+
+- Note the use of the environment variable `BBLAB_WEB_ADDRESS` in [`conf/apache2.conf`].
+
+- Alias for the `hla_class` tool, which is written in Ruby and PHP so does not work with Django:
+```
+Alias "/django/tools/hla_class" "/alldata/hla_class"
+```
+- Redirect to the main wiki page in Django. 
+This line redirects with a 301 response code to `/django/wiki/` (matches only `/` or `/wiki/`):
+```
+RedirectMatch permanent "^\/$|^\/wiki\/$" "/django/wiki/"
+```
+
+[`conf/apache2.conf`]: conf/apache2.conf
 
 ## Create the bind mount directories
 
@@ -62,6 +70,15 @@ Make the following direcories on the host server:
                  |__ archived_layouts
 ```
 
+Once these folders are created, perform the following permissions operations:
+ - `chown -R lab:lab /srv/bblab_site` and `chmod -R g+w /srv/bblab_site`,  the webserver/docker will not be able to access directories owned by root.
+ - In particular, `/srv/bblab_site/media/uploads` is used by Phlyodating to create and archive temp folders.
+
+## Using an existing db dump in MySQL
+
+The Django wiki is entirely stored in the database, so for dev setups, it's usually necessary to make a dump of 
+the existing database on your machine to view the main site pages.
+
 Be sure to copy the `db_dump.sql` into the `/srv/bblab_site/db_dump` directory. Without an existing db, the Django
 app will crash. The two bind mounts in the MariaDB container handle db persistence:
 ```
@@ -74,19 +91,16 @@ The second volume, mounted to `/docker-entrypoint-initdb.d` will only be loaded 
 already exist in the persistent directory `/var/lib/mysql`.
  - The `db_dump.sql` file contains secrets. Contact the site admin if you require access to this file.
 
-Once these folders are created, perform the following permissions operations:
- - `chown -R lab:lab /srv/bblab_site`,  the webserver/docker will not be able to access directories owned by root
- - `chmod g+w /srv/bblab_site/media/uploads`, used by Phlyodating, which creates and archives temp folders in this directory
-
 ## Set up the systemd services for daily log reporting
-Copy `service/phylodating.*.service` and `service/phylodating.*.timer` files to `/etc/systemd/system/`
 
-Copy `service/bblab_site.conf` to `/usr/local/etc/`, 
+Copy `services/phylodating.*.service` and `services/phylodating.*.timer` files to `/etc/systemd/system/`
+
+Copy `services/bblab_site.conf` to `/usr/local/etc/`, 
  - This contains mail settings for cron jobs
  - This file contains secrets. Contact the site admin for access to this file.
  - Make sure to add `"[dev server] "` in `BBLAB_SUBJECT_PREFIX` if setting up the dev server
 
-Copy `service/crontab_mail.py` to `/opt/`
+Copy `services/crontab_mail.py` to `/opt/`
  - This script is responsible for executing commands on the host system and sending emails if errors occur
  - The `phylodating.*.service` scripts will `docker exec` Phylodating shell scripts inside the bblab-site container
  - More log / daily scripts can be added
@@ -108,6 +122,52 @@ files found in `conf/`. From within the container, run `service apache2 reload` 
 Do NOT use `service apache2 restart`, as this will stop PID 1 and the container itself will restart.
 
 [`docker-compose-bblab.yml#L81-L107`]: docker-compose-bblab.yml#L81-L107
+
+## SMTP authorization
+
+In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
+
+The login information for this account is stored in environmental variables which are passed in to the container by `docker-compose-bblab.yml`.
+
+Using `smptlib` the SMTP connection is put into TLS mode, using EHLO, before logging in to the server. See here: [`mailer.py#L59-L62`]:
+```
+smtpobj = smtplib.SMTP(os.environ['SMTP_MAIL_SERVER'], os.environ['SMTP_MAIL_PORT'])
+smtpobj.starttls()
+smtplib.ehlo()
+smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
+```
+
+[`mailer.py#L59-L62`]: alldata/bblab_site/depend/util_scripts/mailer.py#L59-L62
+
+# Miscellaneous useful topics
+
+## Mounting local files for development
+
+When doing development, it's easiest to mount your local copy of `alldata` into the container's `/alldata` directory, so that local file changes are reflected on the server immediately.
+
+There is a second Docker compose file for this, called [`docker-compose-bblab-mounts.yml`]. To use this, start the container with the flags
+
+```
+docker-compose [--env-file <your-env-file>] -f docker-compose.bblab.yml -f docker-compose-bblab-mounts.yml up [other-flags]
+```
+
+After making file changes, it's usually necessary to run `service apache2 reload` in the container before the changes are reflected in the browser.
+
+[`docker-compose-bblab-mounts.yml`]: docker-compose-bblab-mounts.yml
+
+## Wiki admin
+
+Once you have access to a staff account on the wiki, you can log in to the Django administration page at `<web-address>/django/admin` to create users and change permissions.
+
+## Making a db dump in MySQL
+
+If you need to create a new db dump for development or server migration purposes, execute the following command on the server:
+```
+docker exec -it <bblab-db-container-name> mysqldump -u root -p --all-databases > <your-db-dump-filename>.sql
+```
+Note that you will need login credentials for the db root user.
+
+See ["Using an existing db dump in MySQL"](#using-an-existing-db-dump-in-mysql) above for more details.
 
 ## Django migrations
 
@@ -149,19 +209,3 @@ WHERE table_schema = "schemaname"
   AND table_name = "tablename"
   AND column_name = "columnname";
 ```
-
-## SMTP authorization
-
-In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
-
-The login information for this account is stored in environmental variables which are passed in to the container by `docker-compose-bblab.yml`.
-
-Using `smptlib` the SMTP connection is put into TLS mode, using EHLO, before logging in to the server. See here: [`mailer.py#L59-L62`]:
-```
-smtpobj = smtplib.SMTP(os.environ['SMTP_MAIL_SERVER'], os.environ['SMTP_MAIL_PORT'])
-smtpobj.starttls()
-smtplib.ehlo()
-smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
-```
-
-[`mailer.py#L59-L62`]: alldata/bblab_site/depend/util_scripts/mailer.py#L59-L62
