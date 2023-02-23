@@ -79,16 +79,28 @@ Once these folders are created, perform the following permissions operations:
 The Django wiki is entirely stored in the database, so for dev setups, it's usually necessary to make a dump of 
 the existing database on your machine to view the main site pages.
 
-Be sure to copy the `db_dump.sql` into the `/srv/bblab_site/db_dump` directory. Without an existing db, the Django
-app will crash. The two bind mounts in the MariaDB container handle db persistence:
+There are two Docker volumes used by the `db` container:
+
+1. The persistent volume is stored on the host at `/srv/bblab_site/mysql`. This contains the database files used
+by the MariaDB container. Without a persistent db in this location, the Django wiki will not be visible.
+
 ```
 volumes:
   - /srv/bblab_site/mysql:/var/lib/mysql
+```
+
+2. An entrypoint volume containing an existing database dump at `/srv/bblab_site/db_dump`. If the db does not 
+already exist in the persistent volume above, then MariaDB will load this file when the container is brought up.
+Be sure to copy the `db_dump.sql` into the `/srv/bblab_site/db_dump` directory. 
+
+```
+volumes:
   - /srv/bblab_site/db_dump:/docker-entrypoint-initdb.d
 ```
-The database files persist in the first `mysql` volume.
-The second volume, mounted to `/docker-entrypoint-initdb.d` will only be loaded in the event that the db does not
-already exist in the persistent directory `/var/lib/mysql`.
+
+ NOTE:
+ - If you change the `db_dump.sql` file, you will need to stop the MariaDB container and delete the contents of
+  `/srv/bblab_site/mysql` on your machine. Then, when starting MariaDB again, it will load the new `.sql` file.
  - The `db_dump.sql` file contains secrets. Contact the site admin if you require access to this file.
 
 ## Set up the systemd services for daily log reporting
