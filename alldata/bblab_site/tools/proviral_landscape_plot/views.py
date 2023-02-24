@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import Context, loader, RequestContext, Template
 from django.contrib.auth.decorators import login_required
+from io import StringIO
 
 
 def index(request):
@@ -18,11 +19,8 @@ def results(request):
         # Process data a bit
         data = request.POST
 
-        # Read file in chunks
-        csv_data = b''  # This is a bytestring
-        for chunk in request.FILES['file'].chunks():
-            csv_data += chunk
-        csv_data = csv_data.decode("utf-8")
+        # Read file
+        csv_data = StringIO(request.FILES['file'].read().decode("utf-8"))
 
         email_address = data['emailAddress']
         desc = data['analysisID']

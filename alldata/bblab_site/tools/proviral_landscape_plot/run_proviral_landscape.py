@@ -12,8 +12,8 @@ def run(csv_data, analysis_id, email_address_string):
     website.set_footer('go back to <a href="/django/wiki/" >wiki</a>')
 
     # Get website input.
-    with open('output.svg', 'w') as output_svg:
-        proviral_landscape_plot.create_proviral_plot(csv_data, output_svg)
+    output_svg = '/alldata/bblab_site/media/output_new.svg'
+    proviral_landscape_plot.create_proviral_plot(csv_data, output_svg)
 
     website.send("<img src = 'output.svg' alt='Output svg'")
 
@@ -27,7 +27,7 @@ def run(csv_data, analysis_id, email_address_string):
     msg_body = (f"Test email for ID {analysis_id}")
 
     if mailer.send_sfu_email("proviral_landscape_plot", email_address_string, subject_line, msg_body) == 0:
-        website.send(("An email has been sent to <b>{}</b> with a full table of results."
+        website.send(("An email has been sent to <b>{}</b> with your image."
                       "<br>Make sure <b>{}</b> is spelled correctly.").format(email_address_string,
                                                                               email_address_string))
 
