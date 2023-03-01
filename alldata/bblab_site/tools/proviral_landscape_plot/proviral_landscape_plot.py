@@ -5,23 +5,40 @@ from itertools import groupby
 from operator import itemgetter
 import drawSvg as draw
 
-DEFECT_TO_COLOR = {'5DEFECT': "#440154",
-                   'Hypermut': "#1fa187",
+DEFECT_TO_COLOR = {"5' Defect": "#440154",
+                   'Hypermutated': "#1fa187",
                    'Intact': "#a0da39",
-                   'Inferred_Intact': "#a0da39",
-                   'InternalInversion': "#7f0584",
-                   'LargeDeletion': "#365c8d"}
-HIGHLIGHT_COLORS = {'InternalInversion': "#AFAFAF",
-                    'LargeDeletion': "#AFAFAF",
-                    'Inversion': "#AFAFAF"}
-HIGHLIGHT_TYPE = {'InternalInversion': 'Inversion',
-                  'LargeDeletion': 'Inversion'}
+                   'Inversion': "#7f0584",
+                   'Large Deletion': "#365c8d",
+                   'Premature Stop': "",
+                   'Chimera': "",
+                   }
+HIGHLIGHT_COLORS = {'DefectRegion': "",
+                    'Inversion': "#AFAFAF",
+                    }
+DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
+               'InternalInversion': 'Inversion',
+               'ScramblePlus': 'Scrambled',
+               'ScrambleMinus': 'Scrambled',
+               'ScrambleCheck': 'Scrambled',
+               'Hypermut': 'Hypermutated',
+               'InferredIntact': 'Intact',
+               'PrematureStop_OR_AAtooLong_OR_AAtooShort': 'Premature Stop',
+               'PrematureStop_OR_AAtooLong_OR_AAtooShort_GagNoATG': 'Premature Stop',
+               'Inferred_PrematureStopORInframeDEL': 'Premature Stop',
+               'Inferred_PrematureStopORInframeDEL_GagNoATGandFailed': 'Premature Stop',
+               'Inferred_PrematureStopORInframeDEL_GagNoATG': 'Premature Stop',
+               '5DEFECT': "5' Defect",
+               '5DFECT_IntoGag': "5' Defect",  # this is a typo in HIVSeqinR
+               '5DEFECT_GagNoATGGagPassed': "5' Defect",
+               '5DEFECT_GagNoATGGagFailed': "5' Defect",
+               'NonHIV': 'Chimera',
+               }
 DEFECT_ORDER = {'Intact': 10,
-                'Inferred_Intact': 20,
-                'Hypermut': 30,
-                '5DEFECT': 40,
-                'LargeDeletion': 50,
-                'InternalInversion': 60}
+                'Hypermutated': 30,
+                "5' Defect": 40,
+                'Large Deletion': 50,
+                'Inversion': 60}
 START_POS = 638
 END_POS = 9632
 
