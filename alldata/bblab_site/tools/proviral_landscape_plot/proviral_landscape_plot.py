@@ -4,17 +4,18 @@ from genetracks import Figure, Track, Multitrack, Label
 from itertools import groupby
 from operator import itemgetter
 import drawSvg as draw
+from collections import defaultdict
 
 DEFECT_TO_COLOR = {"5' Defect": "#440154",
                    'Hypermutated': "#1fa187",
                    'Intact': "#a0da39",
                    'Inversion': "#7f0584",
                    'Large Deletion': "#365c8d",
-                   'Premature Stop': "",
-                   'Chimera': "",
+                   'Premature Stop': "#26818e",
+                   'Chimera': "#e49225",
                    }
-HIGHLIGHT_COLORS = {'DefectRegion': "",
-                    'Inversion': "#AFAFAF",
+HIGHLIGHT_COLORS = {'Defect Region': "black",
+                    'Inverted Region': "#AFAFAF",
                     }
 DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'InternalInversion': 'Inversion',
@@ -22,7 +23,8 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'ScrambleMinus': 'Scrambled',
                'ScrambleCheck': 'Scrambled',
                'Hypermut': 'Hypermutated',
-               'InferredIntact': 'Intact',
+               'Intact': 'Intact',
+               'Inferred_Intact': 'Intact',
                'PrematureStop_OR_AAtooLong_OR_AAtooShort': 'Premature Stop',
                'PrematureStop_OR_AAtooLong_OR_AAtooShort_GagNoATG': 'Premature Stop',
                'Inferred_PrematureStopORInframeDEL': 'Premature Stop',
@@ -32,6 +34,9 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                '5DFECT_IntoGag': "5' Defect",  # this is a typo in HIVSeqinR
                '5DEFECT_GagNoATGGagPassed': "5' Defect",
                '5DEFECT_GagNoATGGagFailed': "5' Defect",
+               'Inferred_Intact_GagNoATG': "5' Defect",
+               'Inferred_Intact_NoGag': "5' Defect",
+               'Intact_GagNoATG': "5' Defect",
                'NonHIV': 'Chimera',
                }
 DEFECT_ORDER = {'Intact': 10,
@@ -45,7 +50,7 @@ END_POS = 9632
 
 def defect_order(defect):
     try:
-        order = DEFECT_ORDER[defect]
+        order = DEFECT_ORDER[DEFECT_TYPE[defect]]
     except KeyError:
         max_order = max(DEFECT_ORDER.values())
         order = max_order + 1
@@ -54,11 +59,11 @@ def defect_order(defect):
     return order
 
 
-def make_gene_track(xstart, xend, defect_type, is_highlighted):
+def make_gene_track(xstart, xend, defect_type, highlight):
     color = DEFECT_TO_COLOR[defect_type]
-    if is_highlighted:
+    if highlight:
         try:
-            color = HIGHLIGHT_COLORS[defect_type]
+            color = HIGHLIGHT_COLORS[highlight]
         except KeyError:
             print(f"No highlighted color defined for {defect_type} defect. Will use regular color.")
             pass
@@ -196,18 +201,16 @@ class ProviralLandscapePlot:
         self.figure = figure
         self.curr_multitrack = []
 
-    def add_line(self, samp_name, xstart, xend, defect_type, is_highlighted):
+    def add_line(self, samp_name, xstart, xend, defect_type, highlight):
         if defect_type not in DEFECT_TO_COLOR.keys():
-            # we can skip non HIV?
-            if defect_type != 'NonHIV':
-                print(f"Unknown defect: {defect_type}")
+            print(f"Unknown defect: {defect_type}")
             return
         if samp_name != self.curr_samp_name:
             if self.curr_samp_name != '':
                 self.draw_current_multitrack()
             self.curr_samp_name = samp_name
         self.defects.add(defect_type)
-        curr_track = make_gene_track(xstart, xend, defect_type, is_highlighted)
+        curr_track = make_gene_track(xstart, xend, defect_type, highlight)
         self.curr_multitrack.append(curr_track)
 
     def draw_current_multitrack(self):
@@ -238,38 +241,41 @@ def sort_csv_lines(lines):
 
 
 def create_proviral_plot(input_file, output_svg):
-    defect_percentages = {}
+    defect_percentages = defaultdict(int)
     highlighted_set = set()
     figure = Figure()
     plot = ProviralLandscapePlot(figure)
     lines = list(DictReader(input_file))
     for all_rows_this_defect in sort_csv_lines(lines):
-        defect = all_rows_this_defect[0]['defect']
+        defect = DEFECT_TYPE[all_rows_this_defect[0]['defect']]
         for row in all_rows_this_defect:
             if int(row['ref_start']) < int(row['ref_end']):
                 xstart = int(row['ref_start'])
                 xend = int(row['ref_end'])
-                is_highlighted = row['highlighted']
+                inverted = row['is_inverted']
             else:
                 xstart = int(row['ref_end'])
                 xend = int(row['ref_start'])
-                is_highlighted = True
+                inverted = True
+            highlighted = False
+            defective_region = row['is_defective']
+            if defective_region:
+                highlighted_set.add('Defect Region')
+                highlighted = 'Defect Region'
+            elif inverted:
+                # if inverted AND defective are possible at the same time, we need to modify this.
+                highlighted_set.add('Inverted Region')
+                highlighted = 'Inverted Region'
             plot.add_line(row['samp_name'],
                           xstart,
                           xend,
                           defect,
-                          is_highlighted)
-            if is_highlighted:
-                try:
-                    highlighted_type = HIGHLIGHT_TYPE[defect]
-                    highlighted_set.add(highlighted_type)
-                except KeyError:
-                    print(f"No highlight type defined for {defect}")
-                    pass
-        num_samples = len(set([row['samp_name'] for row in all_rows_this_defect]))
-        defect_percentages[defect] = num_samples
+                          highlighted)
 
-    total_samples = len(set([row['samp_name'] for row in lines if row['defect'] in DEFECT_TO_COLOR.keys()]))
+        num_samples = len(set([row['samp_name'] for row in all_rows_this_defect]))
+        defect_percentages[defect] += num_samples
+
+    total_samples = len(set([row['samp_name'] for row in lines if row['defect'] in DEFECT_TYPE.keys()]))
     for defect, number in defect_percentages.items():
         if defect not in DEFECT_TO_COLOR.keys():
             continue
