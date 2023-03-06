@@ -13,6 +13,7 @@ DEFECT_TO_COLOR = {"5' Defect": "#440154",
                    'Large Deletion': "#365c8d",
                    'Premature Stop': "#26818e",
                    'Chimera': "#e49225",
+                   'Scrambled': "#4ac16d",
                    }
 HIGHLIGHT_COLORS = {'Defect Region': "black",
                     'Inverted Region': "#AFAFAF",
@@ -39,23 +40,32 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'Intact_GagNoATG': "5' Defect",
                'NonHIV': 'Chimera',
                }
+# There are some defects where we don't care about the alignment and just want to plot lines:
+LINE_DEFECTS = ['Hypermutated', 'Intact', 'Premature Stop']
 DEFECT_ORDER = {'Intact': 10,
-                'Hypermutated': 30,
-                "5' Defect": 40,
-                'Large Deletion': 50,
-                'Inversion': 60}
+                'Hypermutated': 20,
+                "5' Defect": 30,
+                'Large Deletion': 40,
+                'Inversion': 50,
+                'Premature Stop': 60,
+                'Scrambled': 70,
+                'Chimera': 80,
+                }
 START_POS = 638
 END_POS = 9632
+LEFT_PRIMER_END = 666
+RIGHT_PRIMER_START = 9604
 
 
 def defect_order(defect):
+    defect_type = DEFECT_TYPE[defect]
     try:
-        order = DEFECT_ORDER[DEFECT_TYPE[defect]]
+        order = DEFECT_ORDER[defect_type]
     except KeyError:
         max_order = max(DEFECT_ORDER.values())
         order = max_order + 1
         DEFECT_ORDER[defect] = order
-        print(f"The order of defect {defect} was not specified - it will just get appended to the end of the plot.")
+        print(f"The order of defect type {defect_type} was not specified - it will just get appended to the end of the plot.")
     return order
 
 
@@ -202,6 +212,7 @@ class ProviralLandscapePlot:
         self.curr_multitrack = []
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
+        is_first = False
         if defect_type not in DEFECT_TO_COLOR.keys():
             print(f"Unknown defect: {defect_type}")
             return
@@ -209,6 +220,21 @@ class ProviralLandscapePlot:
             if self.curr_samp_name != '':
                 self.draw_current_multitrack()
             self.curr_samp_name = samp_name
+            is_first = True
+        if defect_type in LINE_DEFECTS and highlight != 'Defect Region':
+            # draw the entire line once and skip all others, unless they're highlighted as the defect region
+            if is_first:
+                xstart = LEFT_PRIMER_END
+                xend = RIGHT_PRIMER_START
+                highlight = False
+            else:
+                return
+        if is_first:
+            # add the primers to start and end
+            left_primer = make_gene_track(START_POS, LEFT_PRIMER_END, defect_type, highlight=False)
+            self.curr_multitrack.append(left_primer)
+            right_primer = make_gene_track(RIGHT_PRIMER_START, END_POS, defect_type, highlight=False)
+            self.curr_multitrack.append(right_primer)
         self.defects.add(defect_type)
         curr_track = make_gene_track(xstart, xend, defect_type, highlight)
         self.curr_multitrack.append(curr_track)
