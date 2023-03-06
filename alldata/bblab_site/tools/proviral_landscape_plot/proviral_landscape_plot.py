@@ -249,20 +249,15 @@ def create_proviral_plot(input_file, output_svg):
     for all_rows_this_defect in sort_csv_lines(lines):
         defect = DEFECT_TYPE[all_rows_this_defect[0]['defect']]
         for row in all_rows_this_defect:
-            if int(row['ref_start']) < int(row['ref_end']):
-                xstart = int(row['ref_start'])
-                xend = int(row['ref_end'])
-                inverted = row['is_inverted']
-            else:
-                xstart = int(row['ref_end'])
-                xend = int(row['ref_start'])
-                inverted = True
+            xstart = int(row['ref_start'])
+            xend = int(row['ref_end'])
             highlighted = False
-            defective_region = row['is_defective']
-            if defective_region:
+            is_defective = row['is_defective']
+            is_inverted = row['is_inverted']
+            if is_defective:
                 highlighted_set.add('Defect Region')
                 highlighted = 'Defect Region'
-            elif inverted:
+            elif is_inverted:
                 # if inverted AND defective are possible at the same time, we need to modify this.
                 highlighted_set.add('Inverted Region')
                 highlighted = 'Inverted Region'
