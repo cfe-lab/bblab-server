@@ -55,6 +55,7 @@ START_POS = 638
 END_POS = 9632
 LEFT_PRIMER_END = 666
 RIGHT_PRIMER_START = 9604
+GAG_END = 2292
 
 
 def defect_order(defect):
@@ -65,7 +66,8 @@ def defect_order(defect):
         max_order = max(DEFECT_ORDER.values())
         order = max_order + 1
         DEFECT_ORDER[defect] = order
-        print(f"The order of defect type {defect_type} was not specified - it will just get appended to the end of the plot.")
+        print(f"The order of defect type {defect_type} was not specified -"
+              f" it will just get appended to the end of the plot.")
     return order
 
 
@@ -138,11 +140,12 @@ class LegendAndPercentages:
 
         sidebar_x = b + 10
         sidebar_ystart = h + 120 + self.num_samples * 11
+        yaxis_label_height = h + 120 + (self.num_samples * 11) / 2
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
-        d.append(Label(0, "Seq.", font_size=15, offset=sidebar_ystart/2+10).draw(x=(a - 30)))
-        d.append(Label(0, f"N={self.num_samples}", font_size=15, offset=sidebar_ystart/2-10).draw(x=(a - 30)))
+        d.append(Label(0, "Seq.", font_size=20, offset=yaxis_label_height+10).draw(x=(a - 30)))
+        d.append(Label(0, f"N={self.num_samples}", font_size=15, offset=yaxis_label_height-10).draw(x=(a - 30)))
 
         ypos = h + 20
         num_defects = 0
@@ -235,6 +238,15 @@ class ProviralLandscapePlot:
             self.curr_multitrack.append(left_primer)
             right_primer = make_gene_track(RIGHT_PRIMER_START, END_POS, defect_type, highlight=False)
             self.curr_multitrack.append(right_primer)
+        if defect_type == "5' Defect":
+            if is_first:
+                # draw everything after the end of gag as a line
+                after_gag = make_gene_track(GAG_END, RIGHT_PRIMER_START, defect_type, highlight=False)
+                self.curr_multitrack.append(after_gag)
+            if xstart > GAG_END:
+                return
+            elif xend > GAG_END:
+                xend = GAG_END
         self.defects.add(defect_type)
         curr_track = make_gene_track(xstart, xend, defect_type, highlight)
         self.curr_multitrack.append(curr_track)
