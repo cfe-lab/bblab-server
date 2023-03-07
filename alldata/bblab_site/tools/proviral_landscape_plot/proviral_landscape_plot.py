@@ -56,6 +56,7 @@ END_POS = 9632
 LEFT_PRIMER_END = 666
 RIGHT_PRIMER_START = 9604
 GAG_END = 2292
+XOFFSET = 300
 
 
 def defect_order(defect):
@@ -83,15 +84,15 @@ def make_gene_track(xstart, xend, defect_type, highlight):
         xstart = START_POS
     if xend > END_POS:
         xend = END_POS
-    track = Track(xstart, xend, color=color)
+    track = Track(xstart + XOFFSET, xend + XOFFSET, color=color)
     return track
 
 
 class XAxis:
     def __init__(self):
-        self.a = START_POS
-        self.b = END_POS
-        self.w = END_POS + 1000
+        self.a = START_POS + XOFFSET
+        self.b = END_POS + XOFFSET
+        self.w = END_POS + XOFFSET + 1000
         self.h = 1
         self.color = 'black'
         self.ticks = [i for i in range(1000, 10000, 1000)]
@@ -119,8 +120,8 @@ class XAxis:
 
 class LegendAndPercentages:
     def __init__(self, defect_percentages, highlighted, total_samples):
-        self.a = START_POS
-        self.b = END_POS
+        self.a = START_POS + XOFFSET
+        self.b = END_POS + XOFFSET
         self.w = self.b - self.a
         self.defect_types = defect_percentages.keys()
         self.highlighted_types = highlighted
