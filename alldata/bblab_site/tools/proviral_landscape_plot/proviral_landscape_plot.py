@@ -56,7 +56,7 @@ END_POS = 9632
 LEFT_PRIMER_END = 666
 RIGHT_PRIMER_START = 9604
 GAG_END = 2292
-XOFFSET = 300
+XOFFSET = 400
 
 
 def defect_order(defect):
@@ -109,9 +109,9 @@ class XAxis:
 
         for tick in self.ticks:
             label = str(tick)
-            tick = tick * xscale
-            d.append(draw.Lines(tick, 0, tick, -20, stroke=self.color))
-            d.append(Label(0, label, font_size=20, offset=-40).draw(x=tick))
+            x_tick = (tick + XOFFSET) * xscale
+            d.append(draw.Lines(x_tick, 0, x_tick, -20, stroke=self.color))
+            d.append(Label(0, label, font_size=20, offset=-40).draw(x=x_tick))
 
         d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=(b-a)/2))
 
@@ -145,8 +145,8 @@ class LegendAndPercentages:
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
-        d.append(Label(0, "Seq.", font_size=20, offset=yaxis_label_height+10).draw(x=(a - 30)))
-        d.append(Label(0, f"N={self.num_samples}", font_size=15, offset=yaxis_label_height-10).draw(x=(a - 30)))
+        d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height+12).draw(x=(a - 30)))
+        d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height-12).draw(x=(a - 30)))
 
         ypos = h + 20
         num_defects = 0
