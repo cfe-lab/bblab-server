@@ -72,27 +72,11 @@ def defect_order(defect):
     return order
 
 
-def make_gene_track(xstart, xend, defect_type, highlight):
-    color = DEFECT_TO_COLOR[defect_type]
-    if highlight:
-        try:
-            color = HIGHLIGHT_COLORS[highlight]
-        except KeyError:
-            print(f"No highlighted color defined for {defect_type} defect. Will use regular color.")
-            pass
-    if xstart < START_POS:
-        xstart = START_POS
-    if xend > END_POS:
-        xend = END_POS
-    track = Track(xstart + XOFFSET, xend + XOFFSET, color=color)
-    return track
-
-
 class XAxis:
     def __init__(self):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
-        self.w = END_POS + XOFFSET + 1000
+        self.w = END_POS + XOFFSET + 1500
         self.h = 1
         self.color = 'black'
         self.ticks = [i for i in range(1000, 10000, 1000)]
@@ -113,13 +97,13 @@ class XAxis:
             d.append(draw.Lines(x_tick, 0, x_tick, -20, stroke=self.color))
             d.append(Label(0, label, font_size=20, offset=-40).draw(x=x_tick))
 
-        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=(b-a)/2))
+        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=(b - a) / 2))
 
         return d
 
 
 class LegendAndPercentages:
-    def __init__(self, defect_percentages, highlighted, total_samples):
+    def __init__(self, defect_percentages, highlighted, total_samples, lineheight):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
@@ -127,8 +111,30 @@ class LegendAndPercentages:
         self.highlighted_types = highlighted
         self.defect_percentages = defect_percentages
         self.num_samples = total_samples
-        self.num_lines = (len(self.defect_types) + len(self.highlighted_types))/3
+        self.num_lines = (len(self.defect_types) + len(self.highlighted_types)) / 3
         self.h = 20 * self.num_lines
+        self.lineheight = lineheight
+
+    @staticmethod
+    def draw_pending_percentages(drawing, pending_percentages, fontsize, sidebar_x, sidebar_ystart):
+        total_pending = sum(elem[0] for elem in pending_percentages)
+        pending_height = sum(elem[1] for elem in pending_percentages)
+        pending_label = f'{round(total_pending, 1)}%'
+        pending_label_y = fontsize / 4 + sidebar_ystart + 0.5 * pending_height
+        if len(pending_percentages) > 1:
+            color = 'black'
+            drawing.append(
+                draw.Rectangle(sidebar_x + 10, sidebar_ystart, 5, pending_height, fill="black", stroke=color))
+        else:
+            # if it's just one pending defect, keep the regular color and leave out the black bar
+            color = pending_percentages[0][2]
+        drawing.append(draw.Text(text=pending_label,
+                                 fontSize=fontsize,
+                                 x=sidebar_x + 60,
+                                 y=pending_label_y,
+                                 font_family='monospace',
+                                 center=True,
+                                 fill=color))
 
     def draw(self, x=0, y=0, xscale=1.0):
         h = self.h
@@ -140,16 +146,18 @@ class LegendAndPercentages:
         x = x * xscale
 
         sidebar_x = b + 10
-        sidebar_ystart = h + 120 + self.num_samples * 11
-        yaxis_label_height = h + 120 + (self.num_samples * 11) / 2
+        sidebar_ystart = h + 120 + self.num_samples * (self.lineheight + 1)
+        yaxis_label_height = h + 120 + (self.num_samples * self.lineheight) / 2
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
-        d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height+12).draw(x=(a - 30)))
-        d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height-12).draw(x=(a - 30)))
+        d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height + 12).draw(x=(a - 30)))
+        d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height - 12).draw(x=(a - 30)))
 
         ypos = h + 20
         num_defects = 0
+        pending_percentages = []
+        fontsize = 20
         for defect in self.defect_types:
             try:
                 color = DEFECT_TO_COLOR[defect]
@@ -171,19 +179,28 @@ class LegendAndPercentages:
             d.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen + 30)))
 
             # percentage sidebar
-            sidebar_height = self.defect_percentages[defect] / 100 * 11 * self.num_samples
+            sidebar_height = self.defect_percentages[defect] / 100 * (self.lineheight + 1) * self.num_samples
             sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
-            fontsize = 15
             sidebar_ystart -= sidebar_height
-            sidebar_label_y = fontsize / 2 + sidebar_ystart + 0.5 * sidebar_height
+            sidebar_label_y = fontsize / 4 + sidebar_ystart + 0.5 * sidebar_height
             d.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
-            d.append(draw.Text(text=sidebar_label,
-                               fontSize=fontsize,
-                               x=sidebar_x+40,
-                               y=sidebar_label_y,
-                               font_family='monospace',
-                               center=True,
-                               fill=color))
+            if self.defect_percentages[defect] < 2:
+                # skip very small percentages
+                pending_percentages.append((self.defect_percentages[defect], sidebar_height, color))
+            else:
+                d.append(draw.Text(text=sidebar_label,
+                                   fontSize=fontsize,
+                                   x=sidebar_x + 60,
+                                   y=sidebar_label_y,
+                                   font_family='monospace',
+                                   center=True,
+                                   fill=color))
+                if pending_percentages:
+                    pending_ystart = sidebar_ystart + sidebar_height
+                    self.draw_pending_percentages(d, pending_percentages, fontsize, sidebar_x, pending_ystart)
+                    pending_percentages = []
+        if pending_percentages:
+            self.draw_pending_percentages(d, pending_percentages, fontsize, sidebar_x, sidebar_ystart)
 
         for defect in self.highlighted_types:
             try:
@@ -209,11 +226,13 @@ class LegendAndPercentages:
 
 
 class ProviralLandscapePlot:
-    def __init__(self, figure):
+    def __init__(self, figure, tot_samples):
         self.curr_samp_name = ''
         self.defects = set()
         self.figure = figure
         self.curr_multitrack = []
+        self.tot_samples = tot_samples
+        self.lineheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
         is_first = False
@@ -235,22 +254,41 @@ class ProviralLandscapePlot:
                 return
         if is_first:
             # add the primers to start and end
-            left_primer = make_gene_track(START_POS, LEFT_PRIMER_END, defect_type, highlight=False)
+            left_primer = self.make_gene_track(START_POS, LEFT_PRIMER_END, defect_type)
             self.curr_multitrack.append(left_primer)
-            right_primer = make_gene_track(RIGHT_PRIMER_START, END_POS, defect_type, highlight=False)
+            right_primer = self.make_gene_track(RIGHT_PRIMER_START, END_POS, defect_type)
             self.curr_multitrack.append(right_primer)
         if defect_type == "5' Defect":
             if is_first:
                 # draw everything after the end of gag as a line
-                after_gag = make_gene_track(GAG_END, RIGHT_PRIMER_START, defect_type, highlight=False)
+                after_gag = self.make_gene_track(GAG_END, RIGHT_PRIMER_START, defect_type)
                 self.curr_multitrack.append(after_gag)
             if xstart > GAG_END:
                 return
             elif xend > GAG_END:
                 xend = GAG_END
         self.defects.add(defect_type)
-        curr_track = make_gene_track(xstart, xend, defect_type, highlight)
+        curr_track = self.make_gene_track(xstart, xend, defect_type, highlight=highlight)
         self.curr_multitrack.append(curr_track)
+
+    def make_gene_track(self, xstart, xend, defect_type, highlight=False):
+        color = DEFECT_TO_COLOR[defect_type]
+        if highlight:
+            try:
+                color = HIGHLIGHT_COLORS[highlight]
+            except KeyError:
+                print(f"No highlighted color defined for {defect_type} defect. Will use regular color.")
+                pass
+        if xstart < START_POS:
+            xstart = START_POS
+        if xend > END_POS:
+            xend = END_POS
+        # TODO I think this can be in the init of ProviralPlot itself.
+        self.lineheight = 750 / self.tot_samples
+        if self.lineheight > 20:
+            self.lineheight = 20
+        track = Track(xstart + XOFFSET, xend + XOFFSET, color=color, h=self.lineheight)
+        return track
 
     def draw_current_multitrack(self):
         # draw line and reset multitrack
@@ -260,8 +298,8 @@ class ProviralLandscapePlot:
     def add_xaxis(self):
         self.figure.add(XAxis(), padding=20, gap=100)
 
-    def legends_and_percentages(self, defect_percentages, highlight_types, total_samples):
-        self.figure.add(LegendAndPercentages(defect_percentages, highlight_types, total_samples))
+    def legends_and_percentages(self, defect_percentages, highlight_types):
+        self.figure.add(LegendAndPercentages(defect_percentages, highlight_types, self.tot_samples, self.lineheight))
 
 
 def sort_csv_lines(lines):
@@ -283,8 +321,9 @@ def create_proviral_plot(input_file, output_svg):
     defect_percentages = defaultdict(int)
     highlighted_set = set()
     figure = Figure()
-    plot = ProviralLandscapePlot(figure)
     lines = list(DictReader(input_file))
+    total_samples = len(set([row['samp_name'] for row in lines if row['defect'] in DEFECT_TYPE.keys()]))
+    plot = ProviralLandscapePlot(figure, total_samples)
     for all_rows_this_defect in sort_csv_lines(lines):
         defect = DEFECT_TYPE[all_rows_this_defect[0]['defect']]
         for row in all_rows_this_defect:
@@ -309,7 +348,6 @@ def create_proviral_plot(input_file, output_svg):
         num_samples = len(set([row['samp_name'] for row in all_rows_this_defect]))
         defect_percentages[defect] += num_samples
 
-    total_samples = len(set([row['samp_name'] for row in lines if row['defect'] in DEFECT_TYPE.keys()]))
     for defect, number in defect_percentages.items():
         if defect not in DEFECT_TO_COLOR.keys():
             continue
@@ -319,7 +357,7 @@ def create_proviral_plot(input_file, output_svg):
     # draw the final line in the plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
-    plot.legends_and_percentages(defect_percentages, highlighted_set, total_samples)
+    plot.legends_and_percentages(defect_percentages, highlighted_set)
     figure.show(w=900).saveSvg(output_svg)
 
 
