@@ -303,16 +303,16 @@ class ProviralLandscapePlot:
 
 
 def sort_csv_lines(lines):
-    lines.sort(key=lambda elem: defect_order(elem['defect']))
+    lines.sort(key=lambda elem: defect_order(elem['defect'].strip()))
     for _, defect_rows in groupby(lines, itemgetter('defect')):
         defect_rows = list(defect_rows)
-        defect_rows.sort(key=lambda elem: elem['samp_name'])
+        defect_rows.sort(key=lambda elem: elem['samp_name'].strip())
         all_rows_by_sample = []
         for _, samp_rows in groupby(defect_rows, itemgetter('samp_name')):
             samp_rows = list(samp_rows)
-            samp_rows.sort(key=lambda elem: int(elem['ref_start']))
+            samp_rows.sort(key=lambda elem: int(elem['ref_start'].strip()))
             all_rows_by_sample.append(samp_rows)
-        all_rows_by_sample.sort(key=lambda samp_list: -int(samp_list[0]['ref_end']))
+        all_rows_by_sample.sort(key=lambda samp_list: -int(samp_list[0]['ref_end'].strip()))
         all_rows_this_defect = [item for sublist in all_rows_by_sample for item in sublist]
         yield all_rows_this_defect
 
@@ -322,16 +322,16 @@ def create_proviral_plot(input_file, output_svg):
     highlighted_set = set()
     figure = Figure()
     lines = list(DictReader(input_file))
-    total_samples = len(set([row['samp_name'] for row in lines if row['defect'] in DEFECT_TYPE.keys()]))
+    total_samples = len(set([row['samp_name'].strip() for row in lines if row['defect'].strip() in DEFECT_TYPE.keys()]))
     plot = ProviralLandscapePlot(figure, total_samples)
     for all_rows_this_defect in sort_csv_lines(lines):
-        defect = DEFECT_TYPE[all_rows_this_defect[0]['defect']]
+        defect = DEFECT_TYPE[all_rows_this_defect[0]['defect'].strip()]
         for row in all_rows_this_defect:
-            xstart = int(row['ref_start'])
-            xend = int(row['ref_end'])
+            xstart = int(row['ref_start'].strip())
+            xend = int(row['ref_end'].strip())
             highlighted = False
-            is_defective = row['is_defective']
-            is_inverted = row['is_inverted']
+            is_defective = row['is_defective'].strip()
+            is_inverted = row['is_inverted'].strip()
             if is_defective:
                 highlighted_set.add('Defect Region')
                 highlighted = 'Defect Region'
@@ -339,13 +339,13 @@ def create_proviral_plot(input_file, output_svg):
                 # if inverted AND defective are possible at the same time, we need to modify this.
                 highlighted_set.add('Inverted Region')
                 highlighted = 'Inverted Region'
-            plot.add_line(row['samp_name'],
+            plot.add_line(row['samp_name'].strip(),
                           xstart,
                           xend,
                           defect,
                           highlighted)
 
-        num_samples = len(set([row['samp_name'] for row in all_rows_this_defect]))
+        num_samples = len(set([row['samp_name'].strip() for row in all_rows_this_defect]))
         defect_percentages[defect] += num_samples
 
     for defect, number in defect_percentages.items():
