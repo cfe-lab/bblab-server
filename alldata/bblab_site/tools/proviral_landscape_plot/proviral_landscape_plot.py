@@ -124,11 +124,11 @@ class LegendAndPercentages:
         pending_label_y = fontsize / 4 + sidebar_ystart + 0.5 * pending_height
         if len(pending_percentages) > 1:
             color = 'black'
-            drawing.append(
-                draw.Rectangle(sidebar_x + 10, sidebar_ystart, 5, pending_height, fill="black", stroke=color))
         else:
             # if it's just one pending defect, keep the regular color and leave out the black bar
             color = pending_percentages[0][2]
+        drawing.append(
+            draw.Rectangle(sidebar_x, sidebar_ystart, 10, pending_height, fill=color, stroke=color))
         drawing.append(draw.Text(text=pending_label,
                                  fontSize=fontsize,
                                  x=sidebar_x + 60,
@@ -184,11 +184,11 @@ class LegendAndPercentages:
             sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
             sidebar_ystart -= sidebar_height
             sidebar_label_y = fontsize / 4 + sidebar_ystart + 0.5 * sidebar_height
-            d.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
             if self.defect_percentages[defect] < 2:
                 # skip very small percentages
                 pending_percentages.append((self.defect_percentages[defect], sidebar_height, color))
             else:
+                d.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
                 d.append(draw.Text(text=sidebar_label,
                                    fontSize=fontsize,
                                    x=sidebar_x + 60,
