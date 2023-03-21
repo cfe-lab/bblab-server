@@ -73,11 +73,11 @@ def defect_order(defect):
 
 
 class XAxis:
-    def __init__(self):
+    def __init__(self, h=3):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = END_POS + XOFFSET + 1500
-        self.h = 1
+        self.h = h
         self.color = 'black'
         self.ticks = [i for i in range(1000, 10000, 1000)]
 
@@ -94,16 +94,16 @@ class XAxis:
         for tick in self.ticks:
             label = str(tick)
             x_tick = (tick + XOFFSET) * xscale
-            d.append(draw.Lines(x_tick, 0, x_tick, -20, stroke=self.color))
+            d.append(draw.Lines(x_tick, 0, x_tick, -20, stroke=self.color, stroke_width=h))
             d.append(Label(0, label, font_size=20, offset=-40).draw(x=x_tick))
 
-        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=(b - a) / 2))
+        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=a + (b - a) / 2))
 
         return d
 
 
 class LegendAndPercentages:
-    def __init__(self, defect_percentages, highlighted, total_samples, lineheight):
+    def __init__(self, defect_percentages, highlighted, total_samples, lineheight, xaxisheight):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
@@ -114,6 +114,7 @@ class LegendAndPercentages:
         self.num_lines = (len(self.defect_types) + len(self.highlighted_types)) / 3
         self.h = 20 * self.num_lines
         self.lineheight = lineheight
+        self.xaxisheight = xaxisheight
 
     @staticmethod
     def draw_pending_percentages(drawing, pending_percentages, fontsize, sidebar_x, sidebar_ystart):
@@ -146,8 +147,8 @@ class LegendAndPercentages:
         x = x * xscale
 
         sidebar_x = b + 10
-        sidebar_ystart = h + 120 + self.num_samples * (self.lineheight + 1)
-        yaxis_label_height = h + 120 + self.num_samples * (self.lineheight + 1) / 2
+        sidebar_ystart = h + self.xaxisheight + self.num_samples * (self.lineheight + 1)
+        yaxis_label_height = h + self.xaxisheight + self.num_samples * (self.lineheight + 1) / 2
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
@@ -235,6 +236,7 @@ class ProviralLandscapePlot:
         self.lineheight = 750 / self.tot_samples
         if self.lineheight > 20:
             self.lineheight = 20
+        self.xaxisheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
         is_first = False
@@ -294,10 +296,18 @@ class ProviralLandscapePlot:
         self.curr_multitrack = []
 
     def add_xaxis(self):
-        self.figure.add(XAxis(), padding=20, gap=100)
+        padding = 20
+        gap = 100
+        xaxis_thickness = 3
+        self.figure.add(XAxis(h=xaxis_thickness), padding=padding, gap=gap)
+        self.xaxisheight = padding + gap + xaxis_thickness
 
     def legends_and_percentages(self, defect_percentages, highlight_types):
-        self.figure.add(LegendAndPercentages(defect_percentages, highlight_types, self.tot_samples, self.lineheight))
+        self.figure.add(LegendAndPercentages(defect_percentages,
+                                             highlight_types,
+                                             self.tot_samples,
+                                             self.lineheight,
+                                             self.xaxisheight))
 
 
 def sort_csv_lines(lines):
