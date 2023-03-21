@@ -147,7 +147,7 @@ class LegendAndPercentages:
 
         sidebar_x = b + 10
         sidebar_ystart = h + 120 + self.num_samples * (self.lineheight + 1)
-        yaxis_label_height = h + 120 + (self.num_samples * self.lineheight) / 2
+        yaxis_label_height = h + 120 + self.num_samples * (self.lineheight + 1) / 2
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
@@ -232,7 +232,9 @@ class ProviralLandscapePlot:
         self.figure = figure
         self.curr_multitrack = []
         self.tot_samples = tot_samples
-        self.lineheight = 0
+        self.lineheight = 750 / self.tot_samples
+        if self.lineheight > 20:
+            self.lineheight = 20
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
         is_first = False
@@ -283,10 +285,6 @@ class ProviralLandscapePlot:
             xstart = START_POS
         if xend > END_POS:
             xend = END_POS
-        # TODO I think this can be in the init of ProviralPlot itself.
-        self.lineheight = 750 / self.tot_samples
-        if self.lineheight > 20:
-            self.lineheight = 20
         track = Track(xstart + XOFFSET, xend + XOFFSET, color=color, h=self.lineheight)
         return track
 
