@@ -184,7 +184,7 @@ class LegendAndPercentages:
             sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
             sidebar_ystart -= sidebar_height
             sidebar_label_y = fontsize / 4 + sidebar_ystart + 0.5 * sidebar_height
-            if self.defect_percentages[defect] < 2:
+            if self.defect_percentages[defect] < 3:
                 # skip very small percentages
                 pending_percentages.append((self.defect_percentages[defect], sidebar_height, color))
             else:
@@ -233,9 +233,9 @@ class ProviralLandscapePlot:
         self.figure = figure
         self.curr_multitrack = []
         self.tot_samples = tot_samples
-        self.lineheight = 750 / self.tot_samples
-        if self.lineheight > 20:
-            self.lineheight = 20
+        self.lineheight = 500 / self.tot_samples
+        if self.lineheight > 5:
+            self.lineheight = 5
         self.xaxisheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
