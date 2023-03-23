@@ -75,10 +75,9 @@ def run(forminput, isCsv):
 	# 'asymptotic' or 'exact' p-values, and stabilize our rules
 	# in the event that a newer version of SciPy changes these rules,
 	# or removes this internal method.
+    # Update 2023-03-23: Users have requested the MWU test should always be
+    # "Exact" unless ties are present.
 	def mwu_choose_method(x, y):
-		# if both inputs are large, asymptotic is OK
-		if len(x) > 8 and len(y) > 8:
-			return "asymptotic"
 		# if there are any ties, asymptotic is preferred
 		if len(x + y) != len(set(x + y)):
 			return "asymptotic"
