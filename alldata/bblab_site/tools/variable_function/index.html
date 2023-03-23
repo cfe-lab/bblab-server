@@ -16,13 +16,12 @@
 	<p>The variable function analysis performs a statistical test (Mann-Whitney U) on a given set of data.</p>
 	<h2>Data Input</h2>
 		<p>It is easiest to copy and paste data directly from excel, as it will input the tab characters for you</p>
-		<p>The data must be in the form "VAR1 VAR2 VAR3 VALUE", where the gaps are TABS and each line ends in a value &gt; 0 but &lt; 1. 
+		<p>The data must be in the form "VAR1 VAR2 VAR3 VALUE", where the gaps are TABS and each line ends in a numeric value. 
 			Each VAR can be anything, it could be single base pairs of a gene, e.g. "A C T G 0.4". 
-			The VARs could also be amino acids, allele variants, etc. The VALUE must be the last thing on each line, and must be between 0 and 1. It is a measure
+			The VARs could also be amino acids, allele variants, etc. The VALUE must be the last thing on each line, and must be a number. It is a measure
 			of the function of that sequence of VARs as a whole.
 		</p>
-		<p>Note: the Mann-Whitney U test will use approximate p-values for any test where both in-category and out-of-category sample sizes are greater than 8.
-			It will also use approximate p-values if any pair of sample values match exactly (ties). 
+		<p>Note: the Mann-Whitney U test will use approximate p-values if any pair of sample values match exactly (ties). 
 			Whether each test was done with the exact or approximate p-value method is noted in the rightmost column.
 		</p>
 	<h2>Example</h2>
