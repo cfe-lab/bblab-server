@@ -21,7 +21,11 @@
 			The VARs could also be amino acids, allele variants, etc. The VALUE must be the last thing on each line, and must be a number. It is a measure
 			of the function of that sequence of VARs as a whole.
 		</p>
-		<p>Note: the Mann-Whitney U test will use approximate p-values if any pair of sample values match exactly (ties). 
+		<p>Note: the Mann-Whitney U test will use approximate p-values under the following conditions:
+			<ul>
+				<li>A VALUE exists that is non-unique (ex: multiple lines contain '0')</li>
+				<li>If the smaller of the populations (n-with, n-without) is N=100 or larger.</li>
+			</ul>
 			Whether each test was done with the exact or approximate p-value method is noted in the rightmost column.
 		</p>
 	<h2>Example</h2>

@@ -75,9 +75,12 @@ def run(forminput, isCsv):
 	# 'asymptotic' or 'exact' p-values, and stabilize our rules
 	# in the event that a newer version of SciPy changes these rules,
 	# or removes this internal method.
-    # Update 2023-03-23: Users have requested the MWU test should always be
-    # "Exact" unless ties are present.
+    # Update 2023-03-27: users now request that exact should be used when
+	# the smaller of the two groups is N<100
 	def mwu_choose_method(x, y):
+		# if the smaller of the two groups is > 99, use asymptotic
+		if min(len(x), len(y)) > 99:
+			return "asymptotic"
 		# if there are any ties, asymptotic is preferred
 		if len(x + y) != len(set(x + y)):
 			return "asymptotic"
