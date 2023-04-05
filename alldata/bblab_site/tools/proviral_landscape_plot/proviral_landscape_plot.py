@@ -7,15 +7,17 @@ import drawSvg as draw
 from collections import defaultdict
 from math import ceil
 
-DEFECT_TO_COLOR = {"5' Defect": "#440154",
-                   'Hypermutated': "#1fa187",
-                   'Intact': "#a0da39",
-                   'Inversion': "#7f0584",
-                   'Large Deletion': "#365c8d",
-                   'Premature Stop': "#26818e",
-                   'Chimera': "#e49225",
-                   'Scrambled': "#4ac16d",
+DEFECT_TO_COLOR = {"5' Defect": "#44AA99",
+                   'Hypermutated': "#88CCEE",
+                   'Intact': "#332288",
+                   'Inversion': "#999933",
+                   'Large Deletion': "#117733",
+                   'Premature Stop': "#CC6677",
+                   'Chimera': "#AA4499",
+                   'Scrambled': "#882255",
                    }
+# colors are chosen from Paul Tol's muted color scheme, which is color-blind safe
+# if another defect color is needed, this one is recommended: #DDCC77
 HIGHLIGHT_COLORS = {'Defect Region': "black",
                     'Inverted Region': "#AFAFAF",
                     }
