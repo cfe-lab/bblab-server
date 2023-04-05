@@ -5,6 +5,7 @@ from itertools import groupby
 from operator import itemgetter
 import drawSvg as draw
 from collections import defaultdict
+from math import ceil
 
 DEFECT_TO_COLOR = {"5' Defect": "#440154",
                    'Hypermutated': "#1fa187",
@@ -116,6 +117,69 @@ class LegendAndPercentages:
         self.lineheight = lineheight
         self.xaxisheight = xaxisheight
 
+    def add_legend(self, a, column_space, barlen, barheight, drawing):
+        ypos_first = self.h
+        num_defects = 0
+        num_defects_per_column = ceil((len(self.defect_types) + len(self.highlighted_types)) / 3)
+        all_entries = [defect for defect in self.defect_types] + [highlight for highlight in self.highlighted_types]
+        for defect in all_entries:
+            try:
+                color = DEFECT_TO_COLOR[defect]
+            except KeyError:
+                try:
+                    color = HIGHLIGHT_COLORS[defect]
+                except KeyError:
+                    print(f"No color defined for defect {defect}")
+                    continue
+
+            if num_defects < num_defects_per_column:
+                xpos = a
+            elif num_defects < 2 * num_defects_per_column:
+                xpos = a + column_space
+            else:
+                xpos = a + 2 * column_space
+            if num_defects % num_defects_per_column == 0:
+                ypos = ypos_first
+            else:
+                ypos -= 20
+            num_defects += 1
+
+            # legend entries
+            drawing.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
+            drawing.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen)))
+
+    def add_sidebar(self, sidebar_x, sidebar_ystart, fontsize, drawing):
+        pending_percentages = []
+        for defect in self.defect_types:
+            try:
+                color = DEFECT_TO_COLOR[defect]
+            except KeyError:
+                print(f"No color defined for defect {defect}")
+                continue
+            # percentage sidebar
+            sidebar_height = self.defect_percentages[defect] / 100 * (self.lineheight + 1) * self.num_samples
+            sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
+            sidebar_ystart -= sidebar_height
+            sidebar_label_y = fontsize / 4 + sidebar_ystart + 0.5 * sidebar_height
+            if self.defect_percentages[defect] < 3:
+                # skip very small percentages
+                pending_percentages.append((self.defect_percentages[defect], sidebar_height, color))
+            else:
+                drawing.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
+                drawing.append(draw.Text(text=sidebar_label,
+                                   fontSize=fontsize,
+                                   x=sidebar_x + 60,
+                                   y=sidebar_label_y,
+                                   font_family='monospace',
+                                   center=True,
+                                   fill=color))
+                if pending_percentages:
+                    pending_ystart = sidebar_ystart + sidebar_height
+                    self.draw_pending_percentages(drawing, pending_percentages, fontsize, sidebar_x, pending_ystart)
+                    pending_percentages = []
+        if pending_percentages:
+            self.draw_pending_percentages(drawing, pending_percentages, fontsize, sidebar_x, sidebar_ystart)
+
     @staticmethod
     def draw_pending_percentages(drawing, pending_percentages, fontsize, sidebar_x, sidebar_ystart):
         total_pending = sum(elem[0] for elem in pending_percentages)
@@ -145,83 +209,18 @@ class LegendAndPercentages:
         barlen = 300 * xscale
         barheight = 10
         x = x * xscale
-
         sidebar_x = b + 10
         sidebar_ystart = h + self.xaxisheight + self.num_samples * (self.lineheight + 1)
         yaxis_label_height = h + self.xaxisheight + self.num_samples * (self.lineheight + 1) / 2
+        fontsize = 20
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
         d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height + 12).draw(x=(a - 30)))
         d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height - 12).draw(x=(a - 30)))
 
-        ypos = h + 20
-        num_defects = 0
-        pending_percentages = []
-        fontsize = 20
-        for defect in self.defect_types:
-            try:
-                color = DEFECT_TO_COLOR[defect]
-            except KeyError:
-                print(f"No color defined for defect {defect}")
-                continue
-
-            if num_defects % 3 == 0:
-                xpos = a
-                ypos -= 20
-            elif num_defects % 3 == 1:
-                xpos = a + column_space
-            else:
-                xpos = a + 2 * column_space
-            num_defects += 1
-
-            # legend entries
-            d.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
-            d.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen + 30)))
-
-            # percentage sidebar
-            sidebar_height = self.defect_percentages[defect] / 100 * (self.lineheight + 1) * self.num_samples
-            sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
-            sidebar_ystart -= sidebar_height
-            sidebar_label_y = fontsize / 4 + sidebar_ystart + 0.5 * sidebar_height
-            if self.defect_percentages[defect] < 3:
-                # skip very small percentages
-                pending_percentages.append((self.defect_percentages[defect], sidebar_height, color))
-            else:
-                d.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
-                d.append(draw.Text(text=sidebar_label,
-                                   fontSize=fontsize,
-                                   x=sidebar_x + 60,
-                                   y=sidebar_label_y,
-                                   font_family='monospace',
-                                   center=True,
-                                   fill=color))
-                if pending_percentages:
-                    pending_ystart = sidebar_ystart + sidebar_height
-                    self.draw_pending_percentages(d, pending_percentages, fontsize, sidebar_x, pending_ystart)
-                    pending_percentages = []
-        if pending_percentages:
-            self.draw_pending_percentages(d, pending_percentages, fontsize, sidebar_x, sidebar_ystart)
-
-        for defect in self.highlighted_types:
-            try:
-                color = HIGHLIGHT_COLORS[defect]
-            except KeyError:
-                print(f"No color defined for defect {defect}")
-                continue
-
-            if num_defects % 3 == 0:
-                xpos = a
-                ypos -= 20
-            elif num_defects % 3 == 1:
-                xpos = a + column_space
-            else:
-                xpos = a + 2 * column_space
-            num_defects += 1
-
-            # legend entries
-            d.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
-            d.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen + 30)))
+        self.add_legend(a, column_space, barlen, barheight, d)
+        self.add_sidebar(sidebar_x, sidebar_ystart, fontsize, d)
 
         return d
 
