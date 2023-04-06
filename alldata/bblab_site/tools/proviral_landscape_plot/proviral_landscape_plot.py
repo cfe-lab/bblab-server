@@ -285,6 +285,8 @@ class ProviralLandscapePlot:
             except KeyError:
                 print(f"No highlighted color defined for {defect_type} defect. Will use regular color.")
                 pass
+        if defect_type == 'Scrambled':
+            print("Scrambled!")
         if xstart < START_POS:
             xstart = START_POS
         if xend > END_POS:
@@ -333,7 +335,7 @@ def sort_csv_lines(lines):
                             row['ref_start'] = str(LEFT_PRIMER_END)
                         continue
                     prev_ref_end = int(samp_rows[i - 1]['ref_end'].strip())
-                    if (ref_start - prev_ref_end) < SMALLEST_GAP:
+                    if (ref_start - prev_ref_end) < SMALLEST_GAP and ref_start > prev_ref_end:
                         row['ref_start'] = samp_rows[i-1]['ref_end']
                         samp_rows[i - 1]['ref_end'] = row['ref_end']  # this is for sorting purposes
                 prev_ref_start = int(samp_rows[-1]['ref_start'].strip())
