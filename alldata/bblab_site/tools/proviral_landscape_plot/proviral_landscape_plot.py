@@ -335,6 +335,7 @@ def sort_csv_lines(lines):
                     prev_ref_end = int(samp_rows[i - 1]['ref_end'].strip())
                     if (ref_start - prev_ref_end) < SMALLEST_GAP:
                         row['ref_start'] = samp_rows[i-1]['ref_end']
+                        samp_rows[i - 1]['ref_end'] = row['ref_end']  # this is for sorting purposes
                 prev_ref_start = int(samp_rows[-1]['ref_start'].strip())
                 prev_ref_end = int(samp_rows[-1]['ref_end'].strip())
                 if (RIGHT_PRIMER_START - prev_ref_end) < SMALLEST_GAP and prev_ref_start < RIGHT_PRIMER_START:
