@@ -314,7 +314,7 @@ class ProviralLandscapePlot:
 
 def sort_csv_lines(lines):
     lines.sort(key=lambda elem: defect_order(elem['defect'].strip()))
-    for _, defect_rows in groupby(lines, itemgetter('defect')):
+    for _, defect_rows in groupby(lines, key=lambda elem: DEFECT_TYPE[elem['defect']]):
         defect_rows = list(defect_rows)
         defect_rows.sort(key=lambda elem: elem['samp_name'].strip())
         all_rows_by_sample = []
@@ -340,9 +340,18 @@ def sort_csv_lines(lines):
                 if (RIGHT_PRIMER_START - prev_ref_end) < SMALLEST_GAP and prev_ref_start < RIGHT_PRIMER_START:
                     samp_rows[-1]['ref_end'] = str(RIGHT_PRIMER_START)
             all_rows_by_sample.append(samp_rows)
-        all_rows_by_sample.sort(key=lambda samp_list: -int(samp_list[0]['ref_end'].strip()))
+        all_rows_by_sample.sort(key=sort_defect_rows)
         all_rows_this_defect = [item for sublist in all_rows_by_sample for item in sublist]
         yield all_rows_this_defect
+
+
+def sort_defect_rows(samp_list):
+    first_ref_start = int(samp_list[0]['ref_start'].strip())
+    first_ref_end = int(samp_list[0]['ref_end'].strip())
+    if first_ref_start <= LEFT_PRIMER_END:
+        return -first_ref_end
+    else:
+        return -LEFT_PRIMER_END
 
 
 def create_proviral_plot(input_file, output_svg):
