@@ -285,8 +285,6 @@ class ProviralLandscapePlot:
             except KeyError:
                 print(f"No highlighted color defined for {defect_type} defect. Will use regular color.")
                 pass
-        if defect_type == 'Scrambled':
-            print("Scrambled!")
         if xstart < START_POS:
             xstart = START_POS
         if xend > END_POS:
