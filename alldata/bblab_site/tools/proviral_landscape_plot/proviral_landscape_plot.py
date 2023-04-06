@@ -60,6 +60,7 @@ LEFT_PRIMER_END = 666
 RIGHT_PRIMER_START = 9604
 GAG_END = 2292
 XOFFSET = 400
+SMALLEST_GAP = 50
 
 
 def defect_order(defect):
@@ -320,6 +321,22 @@ def sort_csv_lines(lines):
         for _, samp_rows in groupby(defect_rows, itemgetter('samp_name')):
             samp_rows = list(samp_rows)
             samp_rows.sort(key=lambda elem: int(elem['ref_start'].strip()))
+            for i, row in enumerate(samp_rows):
+                ref_start = int(row['ref_start'].strip())
+                ref_end = int(row['ref_end'].strip())
+                if row['is_inverted'] or row['is_defective']:
+                    continue
+                if i == 0:
+                    if (ref_start - LEFT_PRIMER_END) < SMALLEST_GAP and ref_end > LEFT_PRIMER_END:
+                        row['ref_start'] = str(LEFT_PRIMER_END)
+                    continue
+                prev_ref_end = int(samp_rows[i - 1]['ref_end'].strip())
+                if (ref_start - prev_ref_end) < SMALLEST_GAP:
+                    row['ref_start'] = samp_rows[i-1]['ref_end']
+            prev_ref_start = int(samp_rows[-1]['ref_start'].strip())
+            prev_ref_end = int(samp_rows[-1]['ref_end'].strip())
+            if (RIGHT_PRIMER_START - prev_ref_end) < SMALLEST_GAP and prev_ref_start < RIGHT_PRIMER_START:
+                samp_rows[-1]['ref_end'] = str(RIGHT_PRIMER_START)
             all_rows_by_sample.append(samp_rows)
         all_rows_by_sample.sort(key=lambda samp_list: -int(samp_list[0]['ref_end'].strip()))
         all_rows_this_defect = [item for sublist in all_rows_by_sample for item in sublist]
