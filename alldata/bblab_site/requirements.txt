@@ -9,7 +9,8 @@ django-js-asset==2.0.0
 django-mptt==0.9.1
 django-nyt==1.1.6
 django-sekizai==3.0.1
-git+https://github.com/cfe-lab/genetracks.git@v0.2.dev0
+drawsvg==2.2.0
+git+https://github.com/cfe-lab/genetracks.git@v0.4
 html5lib==1.0.1
 importlib-metadata==1.5.0
 Markdown==3.1.1

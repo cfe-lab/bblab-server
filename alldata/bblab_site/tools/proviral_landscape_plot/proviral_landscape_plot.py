@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from genetracks import Figure, Track, Multitrack, Label
 from itertools import groupby
 from operator import itemgetter
-import drawSvg as draw
+import drawsvg as draw
 from collections import defaultdict
 from math import ceil
 
@@ -170,12 +170,12 @@ class LegendAndPercentages:
             else:
                 drawing.append(draw.Rectangle(sidebar_x, sidebar_ystart, 10, sidebar_height, fill=color, stroke=color))
                 drawing.append(draw.Text(text=sidebar_label,
-                                   fontSize=fontsize,
-                                   x=sidebar_x + 60,
-                                   y=sidebar_label_y,
-                                   font_family='monospace',
-                                   center=True,
-                                   fill=color))
+                                         font_size=fontsize,
+                                         x=sidebar_x + 60,
+                                         y=sidebar_label_y - 10,
+                                         font_family='monospace',
+                                         center=True,
+                                         fill=color))
                 if pending_percentages:
                     pending_ystart = sidebar_ystart + sidebar_height
                     self.draw_pending_percentages(drawing, pending_percentages, fontsize, sidebar_x, pending_ystart)
@@ -197,7 +197,7 @@ class LegendAndPercentages:
         drawing.append(
             draw.Rectangle(sidebar_x, sidebar_ystart, 10, pending_height, fill=color, stroke=color))
         drawing.append(draw.Text(text=pending_label,
-                                 fontSize=fontsize,
+                                 font_size=fontsize,
                                  x=sidebar_x + 60,
                                  y=pending_label_y,
                                  font_family='monospace',
@@ -396,7 +396,7 @@ def create_proviral_plot(input_file, output_svg):
     plot.draw_current_multitrack()
     plot.add_xaxis()
     plot.legends_and_percentages(defect_percentages, highlighted_set)
-    figure.show(w=900).saveSvg(output_svg)
+    figure.show(w=900).save_svg(output_svg)
 
 
 def main():
