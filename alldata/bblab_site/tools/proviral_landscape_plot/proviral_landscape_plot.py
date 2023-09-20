@@ -22,7 +22,7 @@ HIGHLIGHT_COLORS = {'Defect Region': "black",
                     'Inverted Region': "#AFAFAF",
                     }
 DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
-               'LongDeletion': 'Large Deletion'
+               'LongDeletion': 'Large Deletion',
                'InternalInversion': 'Inversion',
                'ScramblePlus': 'Scrambled',
                'ScrambleMinus': 'Scrambled',
