@@ -15,12 +15,16 @@ DEFECT_TO_COLOR = {"5' Defect": "#44AA99",
                    'Premature Stop': "#CC6677",
                    'Chimera': "#AA4499",
                    'Scrambled': "#882255",
+                   'Large Insertion': "#DDCC77",
+                   'Frameshift': "#DDAA77",
                    }
+
 # colors are chosen from Paul Tol's muted color scheme, which is color-blind safe
 # if another defect color is needed, this one is recommended: #DDCC77
 HIGHLIGHT_COLORS = {'Defect Region': "black",
                     'Inverted Region': "#AFAFAF",
                     }
+
 DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'LongDeletion': 'Large Deletion',
                'InternalInversion': 'Inversion',
@@ -39,8 +43,8 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'Inferred_PrematureStopORInframeDEL_GagNoATG': 'Premature Stop',
                'InternalStopInOrf': "Premature Stop",
                'DeletionInOrf': "Premature Stop",
-               'InsertionInOrf': "Premature Stop",
-               'FrameshiftInOrf': "Premature Stop",
+               'InsertionInOrf': "Large Insertion",
+               'FrameshiftInOrf': "Frameshift",
                '5DEFECT': "5' Defect",
                '5DFECT_IntoGag': "5' Defect",  # this is a typo in HIVSeqinR
                '5DEFECT_GagNoATGGagPassed': "5' Defect",
