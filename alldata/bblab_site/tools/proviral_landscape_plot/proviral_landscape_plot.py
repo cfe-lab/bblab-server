@@ -60,6 +60,7 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'AlignmentFailed': 'Chimera',
                'InvalidCodon': 'Chimera',
                }
+
 # There are some defects where we don't care about the alignment and just want to plot lines:
 LINE_DEFECTS = ['Hypermutated', 'Intact', 'Premature Stop']
 DEFECT_ORDER = {'Intact': 10,
@@ -68,9 +69,12 @@ DEFECT_ORDER = {'Intact': 10,
                 'Large Deletion': 40,
                 'Inversion': 50,
                 'Premature Stop': 60,
+                'Large Insertion': 63,
+                'Frameshift': 67,
                 'Scrambled': 70,
                 'Chimera': 80,
                 }
+
 START_POS = 638
 END_POS = 9632
 LEFT_PRIMER_END = 666
