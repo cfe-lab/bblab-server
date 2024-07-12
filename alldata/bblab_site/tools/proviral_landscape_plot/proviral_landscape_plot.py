@@ -176,12 +176,13 @@ class LegendAndPercentages:
             except KeyError:
                 print(f"No color defined for defect {defect}")
                 continue
+
             # percentage sidebar
             sidebar_height = self.defect_percentages[defect] / 100 * (self.lineheight + 1) * self.num_samples
             sidebar_label = f'{round(self.defect_percentages[defect], 1)}%'
             sidebar_ystart -= sidebar_height
             sidebar_label_y = fontsize / 4 + sidebar_ystart + 0.5 * sidebar_height
-            if self.defect_percentages[defect] < 3:
+            if self.defect_percentages[defect] < 0.1:
                 # skip very small percentages
                 pending_percentages.append((self.defect_percentages[defect], sidebar_height, color))
             else:
