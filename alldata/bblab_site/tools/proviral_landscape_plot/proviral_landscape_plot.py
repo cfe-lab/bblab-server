@@ -259,7 +259,7 @@ class ProviralLandscapePlot:
         self.figure = figure
         self.curr_multitrack = []
         self.tot_samples = tot_samples
-        self.lineheight = 500 / self.tot_samples
+        self.lineheight = 500 / self.tot_samples if self.tot_samples > 0 else 0
         if self.lineheight > 5:
             self.lineheight = 5
         self.xaxisheight = 0
@@ -320,7 +320,8 @@ class ProviralLandscapePlot:
 
     def draw_current_multitrack(self):
         # draw line and reset multitrack
-        self.figure.add(Multitrack(self.curr_multitrack), gap=1)
+        if self.curr_multitrack:
+            self.figure.add(Multitrack(self.curr_multitrack), gap=1)
         self.curr_multitrack = []
 
     def add_xaxis(self):
