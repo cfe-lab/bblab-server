@@ -263,6 +263,8 @@ class ProviralLandscapePlot:
         self.xaxisheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
+        highlight = None
+
         is_first = False
         if defect_type not in DEFECT_TO_COLOR.keys():
             print(f"Unknown defect: {defect_type}")
