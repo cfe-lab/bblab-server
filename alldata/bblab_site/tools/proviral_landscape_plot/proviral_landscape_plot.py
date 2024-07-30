@@ -17,6 +17,7 @@ DEFECT_TO_COLOR = {"5' Defect": "#44AA99",
                    'Scrambled': "#882255",
                    'Large Insertion': "#DDCC77",
                    'Frameshift': "#DDAA77",
+                   'Divergence': "#661100",
                    }
 
 # colors are chosen from Paul Tol's muted color scheme, which is color-blind safe
@@ -44,6 +45,7 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'InternalStop': "Premature Stop",
                'MutatedStopCodon': "Premature Stop",
                'MutatedStartCodon': "Premature Stop",
+               'SequenceDivergence': "Divergence",
                'Deletion': "Premature Stop",
                'Insertion': "Large Insertion",
                'Frameshift': "Frameshift",
@@ -60,7 +62,7 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                'RevResponseElementDeletion': "5' Defect",
                'NonHIV': 'Chimera',
                'AlignmentFailed': 'Chimera',
-               'InvalidCodon': 'Chimera',
+               'UnknownNucleotide': 'Chimera',
                }
 
 # There are some defects where we don't care about the alignment and just want to plot lines:
