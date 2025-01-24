@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login, logout
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .form import LoginForm
 
@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 
 # go to next if it is provided
 def redirect_path(request):
-    if request.GET.get('next') != None and is_safe_url(request.GET.get('next'), None):
+    if request.GET.get('next') != None and url_has_allowed_host_and_scheme(request.GET.get('next'), None):
         return request.GET.get('next')
     else:
         return '/django/wiki/'

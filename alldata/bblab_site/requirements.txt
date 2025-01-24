@@ -1,38 +1,60 @@
-attrs==19.3.0
-bleach==2.1.4
-Django==2.2.28
-django-appconf==1.0.5
-django-axes==5.27.0
-django-classy-tags==3.0.1
-django-ipware==4.0.2
-django-js-asset==2.0.0
-django-mptt==0.9.1
-django-nyt==1.1.6
-django-sekizai==3.0.1
-drawsvg==2.2.0
+attrs
+bleach
+blinker
+cryptography
+dbus-python
+distro
+Django
+django-appconf
+django-axes
+django-classy-tags
+django-ipware
+django-js-asset
+django-mptt
+django-nyt
+django-sekizai
+# Django==2.2.28
+# django-appconf==1.0.5
+# django-axes==5.27.0
+# django-classy-tags==3.0.1
+# django-ipware==4.0.2
+# django-js-asset==2.0.0
+# django-mptt==0.9.1
+# django-nyt==1.1.6
+# django-sekizai==3.0.1
+drawsvg
 git+https://github.com/cfe-lab/genetracks.git@v0.4
-html5lib==1.0.1
-importlib-metadata==1.5.0
-Markdown==3.1.1
-mod-wsgi==4.6.7
-more-itertools==8.2.0
-mysqlclient==1.4.3
-numpy==1.17.0
-packaging==20.3
-Pillow==9.2.0
-pip==19.2.1
-pluggy==0.13.1
-py==1.8.1
-pyparsing==2.4.6
-pytest==5.4.1
-pytz==2019.1
-PyYAML==5.3.1
-scipy==1.7.3
-setuptools==40.8.0
-six==1.12.0
-sorl-thumbnail==12.9.0
-sqlparse==0.3.0
-wcwidth==0.1.8
-webencodings==0.5.1
-wiki==0.5
-zipp==3.1.0
+html5lib
+httplib2
+importlib-metadata
+launchpadlib
+lazr.restfulclient
+lazr.uri
+Markdown
+mod-wsgi
+more-itertools
+mysqlclient
+numpy
+oauthlib
+packaging
+Pillow
+pluggy
+py
+PyGObject
+PyJWT
+pyparsing
+pytest
+python-apt
+pytz
+PyYAML
+scipy
+setuptools
+six
+sorl-thumbnail
+sqlparse
+wadllib
+wcwidth
+webencodings
+wheel
+wiki
+zipp
