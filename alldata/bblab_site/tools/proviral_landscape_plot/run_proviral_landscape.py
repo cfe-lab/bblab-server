@@ -12,10 +12,10 @@ def run(csv_data, analysis_id, email_address_string):
     website.set_footer('go back to <a href="/django/wiki/" >wiki</a>')
 
     # Get website input.
-    output_svg = '/alldata/bblab_site/media/output_new.svg'
+    output_svg = '/alldata/bblab_site/media/output.svg'
     proviral_landscape_plot.create_proviral_plot(csv_data, output_svg)
 
-    website.send("<img src = 'output.svg' alt='Output svg'")
+    website.send("<img src = '/media/output.svg' alt='Output svg'")
 
     # Send email
     # Create subject line
