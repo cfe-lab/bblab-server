@@ -15,7 +15,7 @@ def run(csv_data, analysis_id, email_address_string):
     output_svg = '/alldata/bblab_site/media/output.svg'
     proviral_landscape_plot.create_proviral_plot(csv_data, output_svg)
 
-    website.send("<img src = '/media/output.svg' alt='Output svg'")
+    website.send("<img width='100%' src='/media/output.svg' alt='Output svg'")
 
     # Send email
     # Create subject line
