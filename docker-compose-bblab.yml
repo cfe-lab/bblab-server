@@ -51,8 +51,8 @@ services:
     #          in this container. Apache will set the URL from 
     #          BBLAB_WEB_ADDRESS (use "localhost" or your DNS)
     #          and Django will accept requests to that address
-    # ports:
-    #   - "80:80/tcp"
+    ports:
+      - "80:80/tcp"
     command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
     labels:
       - "traefik.enable=true"
@@ -63,13 +63,14 @@ services:
       - "traefik.http.routers.bblab-site.service=bblab-site"
       - "traefik.http.services.bblab-site.loadbalancer.server.port=80"
     volumes:
+      - /home/user1/.local/share/miyka/root/repositories/ahucq1du2f5w45u0/wd/home/my/project/main-repo/alldata/bblab_site:/alldata/bblab_site
       - /srv/bblab_site/logs:/alldata/bblab_site/logs:rw
       - /srv/bblab_site/media:/alldata/bblab_site/media
       - /srv/bblab_site/tools/guava_layout/output:/alldata/bblab_site/tools/guava_layout/output
       - /srv/bblab_site/tools/sequencing_layout/output:/alldata/bblab_site/tools/sequencing_layout/output
 
   db:
-    image: mariadb:10.4
+    image: mariadb:11.6
     restart: unless-stopped
     networks:
       - bb-internal

@@ -26,11 +26,11 @@ SECRET_KEY = os.environ.get('BBLAB_SECRET_KEY', get_random_secret_key())
 DEBUG = os.environ.get('BBLAB_DEBUG', 'N').lower() in ['y', '1', 'true', 't']
 
 ALLOWED_HOSTS = [
-    os.environ.get('BBLAB_WEB_ADDRESS', 'hivresearchtools.bccfe.ca')
+    os.environ['BBLAB_WEB_ADDRESS'],
 ]
 
-if os.environ.get('BBLAB_ALT_WEB_ADDRESS') :
-    ALLOWED_HOSTS += [os.environ.get('BBLAB_ALT_WEB_ADDRESS')]
+if 'BBLAB_ALT_WEB_ADDRESS' in os.environ:
+    ALLOWED_HOSTS.append(os.environ['BBLAB_ALT_WEB_ADDRESS'])
 
 # Application definition
 INSTALLED_APPS = [
@@ -59,8 +59,10 @@ INSTALLED_APPS = [
     # Brute force attack protection
     'axes',
     # 'tools.blind_dating',
-    'tools.phylodating'
-    # 'tools.phylodating.apps.PhylodatingConfig'
+    # 'tools.phylodating',
+    'phylodating',
+    # 'tools.phylodating.models',
+    # 'tools.phylodating.apps.PhylodatingConfig',
 ]
 
 MIDDLEWARE = [
@@ -112,10 +114,10 @@ WSGI_APPLICATION = 'bblab_site.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('BBLAB_DB_NAME', ''),
-        'USER': os.environ.get('BBLAB_DB_USER', ''),
-        'PASSWORD': os.environ.get('BBLAB_DB_PASSWORD', ''),
-        'HOST': os.environ.get('BBLAB_DB_HOST', ''),
+        'NAME': os.environ['BBLAB_DB_NAME'],
+        'USER': os.environ['BBLAB_DB_USER'],
+        'PASSWORD': os.environ['BBLAB_DB_PASSWORD'],
+        'HOST': os.environ['BBLAB_DB_HOST'],
         'PORT': ''
     }
 }
