@@ -58,11 +58,8 @@ INSTALLED_APPS = [
 
     # Brute force attack protection
     'axes',
-    # 'tools.blind_dating',
-    # 'tools.phylodating',
+    # 'blind_dating',
     'phylodating',
-    # 'tools.phylodating.models',
-    # 'tools.phylodating.apps.PhylodatingConfig',
 ]
 
 MIDDLEWARE = [
