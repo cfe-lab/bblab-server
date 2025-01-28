@@ -186,7 +186,7 @@ Note that the database table `bblab_django.auth_user_user_permissions` (and othe
 
 If you need to create a new db dump for development or server migration purposes, execute the following command on the server:
 ```
-docker exec -it <bblab-db-container-name> mysqldump -u root -p <root-password> --all-databases > <your-db-dump-filename>.sql
+docker exec -it <bblab-db-container-name> mysqldump -u root --password=<root-password> --all-databases > <your-db-dump-filename>.sql
 ```
 Note that you will need login credentials for the db root user. Maybe securely bind the root password to an environment var first, otherwise the `"Enter password:"` prompt will appear in the first line of the .sql dump.
 
