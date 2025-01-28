@@ -78,6 +78,10 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',  # Should be last or around last.
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://' + os.environ['BBLAB_WEB_ADDRESS'],
+]
+
 ROOT_URLCONF = 'bblab_site.urls'
 
 TEMPLATES = [
