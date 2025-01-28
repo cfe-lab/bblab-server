@@ -51,8 +51,8 @@ services:
     #          in this container. Apache will set the URL from 
     #          BBLAB_WEB_ADDRESS (use "localhost" or your DNS)
     #          and Django will accept requests to that address
-    ports:
-      - "80:80/tcp"
+    # ports:
+    #   - "80:80/tcp"
     command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
     labels:
       - "traefik.enable=true"
