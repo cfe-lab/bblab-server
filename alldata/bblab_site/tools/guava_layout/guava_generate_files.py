@@ -162,7 +162,7 @@ def run(input_string, session_id, row_column, email_address_string):
 	html_file = mailer.create_file( session_id, 'html', html_text_main )
 	
 	# Add the body to the message and send it.
-	end_end = "Note: all guava layout files can be found at https://bblab-hivresearchtools.ca/django/tools/guava_layout/output/"
+	end_end = "Note: all guava layout files can be found at https://hivresearchtools.bccfe.ca/django/tools/guava_layout/output/"
 	end_message = "This is an automatically generated email, please do not respond.\n\n" + end_end
 	msg_body = "Session ID: {}\nThe included files ({} and {}) contain the requested formatting data. \n\n{}".format(session_id, csv_filename, html_filename, end_message)
 	
