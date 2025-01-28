@@ -23,7 +23,6 @@ urlpatterns = [
 	path('', views.root_redirect),
 	path('account/', include('account.urls')),
 	path('tools/', include('tools.urls')),
-	path('django/wiki/', include('wiki.urls')),
 	path('wiki/', include('wiki.urls')),
 	path('notifications/', include('django_nyt.urls')),
 ]
