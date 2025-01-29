@@ -66,14 +66,6 @@ RUN R -e "install.packages(\"https://cran.r-project.org/src/contrib/Archive/rvch
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
     rm -rf /var/lib/apt/lists/*
 
-# we define these users here so that we can launch an image as a local user
-# see the Makefile in the top directory...
-RUN useradd -rm -s /bin/tcsh -u 1000 dockuser00 ; \
-    useradd -rm -s /bin/tcsh -u 1001 dockuser01 ; \
-    useradd -rm -s /bin/tcsh -u 1002 dockuser02 ; \
-    useradd -rm -s /bin/tcsh -u 1003 dockuser03 ; \
-    useradd -rm -s /bin/tcsh -u 1004 dockuser04 ; true
-
 # Install Ruby dependencies
 # bundler v1.17.2 is needed for older libraries
 RUN curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
