@@ -146,7 +146,7 @@ The output should match the data in `codon_by_codon/test_codon_by_codon.xlsx`.
 
 Testing instructions for this tool are thoroughly described on the [`Phylodating page`].
 
-[`Phylodating page`]: https://bblab-hivresearchtools.ca/django/tools/phylodating/
+[`Phylodating page`]: https://hivresearchtools.bccfe.ca/django/tools/phylodating/
 
 ## HLA Class(ification Tool)
 

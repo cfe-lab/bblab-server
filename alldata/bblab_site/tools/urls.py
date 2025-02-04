@@ -19,7 +19,7 @@ urlpatterns = [
 	path('variable_function/', include('tools.variable_function.urls')),
 	path('best_prob_HLA_imputation/', include('tools.best_prob_HLA_imputation.urls')),
 	path('phage_i_expanded/', include('tools.phage_i_expanded.urls')),
-	path('phylodating/', include('tools.phylodating.urls')),
+	path('phylodating/', include('phylodating.urls')),
 	# path('PHAGE_I_expanded_v2/', include('tools.PHAGE_I_expanded_v2.urls')),
 
 	# BEGIN 2019-11-22 dmacmillan
@@ -32,7 +32,7 @@ urlpatterns = [
 
 	path('tcr_distance/', include('tools.tcr_distance.urls')),
 	path('tcr_visualizer/', include('tools.tcr_visualizer.urls')),
-        path('proviral_landscape_plot/', include('tools.proviral_landscape_plot.urls')),
+	path('proviral_landscape_plot/', include('tools.proviral_landscape_plot.urls')),
 	path('', tool_redirect),
 ]
 

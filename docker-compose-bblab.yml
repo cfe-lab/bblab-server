@@ -69,7 +69,7 @@ services:
       - /srv/bblab_site/tools/sequencing_layout/output:/alldata/bblab_site/tools/sequencing_layout/output
 
   db:
-    image: mariadb:10.4
+    image: mariadb:11.6
     restart: unless-stopped
     networks:
       - bb-internal

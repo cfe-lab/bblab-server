@@ -114,6 +114,6 @@ Under the `Other useful resources` section of the Wiki
 - LANL HIV Immunology Database: https://www.hiv.lanl.gov/content/immunology/index.html/
     - Link is working.
 
-['Primer tables']: https://bblab-hivresearchtools.ca/django/wiki/misc/primer-list/
-['Papers']: https://bblab-hivresearchtools.ca/django/wiki/misc/papers/
+['Primer tables']: https://hivresearchtools.bccfe.ca/django/wiki/misc/primer-list/
+['Papers']: https://hivresearchtools.bccfe.ca/django/wiki/misc/papers/
 
