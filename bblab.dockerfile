@@ -6,6 +6,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 ENV PYTHONUNBUFFERED 1
 
+SHELL ["bash", "-l", "-c"]  # Need -l to make ruby versions available.
+
 # Refresh package repositories.
 RUN apt-get update -qq -y
 
@@ -70,11 +72,11 @@ RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
 # bundler v1.17.2 is needed for older libraries
 RUN curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
 RUN /root/.rbenv/bin/rbenv init - --no-rehash bash > /root/.bashrc
-RUN bash -l -c 'rbenv install 2.5.5'
-RUN bash -l -c 'rbenv global 2.5.5'
+RUN rbenv install 2.5.5
+RUN rbenv global 2.5.5
 COPY hla_class_setup/Gemfile ./
-RUN bash -l -c 'gem install bundler:1.17.2'
-RUN bash -l -c 'bundle install'
+RUN gem install bundler:1.17.2
+RUN bundle install
 
 # Install Python dependencies:
 COPY alldata/bblab_site/requirements.txt .
