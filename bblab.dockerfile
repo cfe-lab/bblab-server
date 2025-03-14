@@ -1,35 +1,49 @@
-FROM python:3.7-slim-buster AS bblab-site
+FROM ubuntu:24.04 AS bblab-site
 
-LABEL maintainer=jkai@bccfe.ca
+LABEL maintainer=vmysak@bccfe.ca
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update -qq --fix-missing && \
-  apt-get install -qq --no-install-recommends apt-utils && \
-  apt-get install -qq unzip wget vim curl && \
-  apt-get install -qq python3-dev python \
-    default-libmysqlclient-dev \
-    build-essential \
-    apache2 apache2-dev \
-    libapache2-mod-wsgi-py3 \
-    php libapache2-mod-php \
-    ruby-full && \
-  curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py && \
-  python2 get-pip.py
+SHELL ["bash", "-l", "-c"]  # Need -l to make ruby versions available.
+
+# Refresh package repositories.
+RUN apt-get update -qq -y
+
+# Install some apt related programs.
+RUN apt-get install -qq --no-install-recommends apt-utils software-properties-common dirmngr
+
+# Install system packages.
+RUN apt-get install -qq unzip wget vim curl \
+        python3-dev python3-pip \
+        default-libmysqlclient-dev \
+        build-essential tzdata \
+        apache2 apache2-dev \
+        libapache2-mod-wsgi-py3 \
+        php libapache2-mod-php \
+        libxml2-dev libcurl4-openssl-dev libssl-dev \
+        gfortran liblapack-dev libblas-dev libopenblas-dev git
+
+# set the timezone for Vancouver, so that datetime.now() returns our
+# local time, not UTC.
+ENV TZ=America/Vancouver
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install R with Bioconductor and libs for Phylodating
-ENV R_BASE_VERSION 3.6.3
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' && \
-    echo "deb http://cloud.r-project.org/bin/linux/debian buster-cran35/" | tee -a /etc/apt/sources.list
-RUN apt-get update \
-	&& apt-get install -qq libxml2-dev libcurl4-openssl-dev libssl-dev \
-	&& apt-get install -qq --no-install-recommends \
-			r-base=${R_BASE_VERSION}-* \
-			r-base-dev=${R_BASE_VERSION}-* \
-			r-base-core=${R_BASE_VERSION}-* \
-			littler r-cran-littler \
+RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
+    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
+    apt-get update -qq
+
+ENV R_BASE_VERSION 4.4.2
+
+RUN apt-get install -q -y --no-install-recommends \
+                    r-base=${R_BASE_VERSION}-* \
+                    r-base-dev=${R_BASE_VERSION}-* \
+                    r-base-core=${R_BASE_VERSION}-* \
+                    littler r-cran-littler
+
+RUN true \
 	&& ln -s /usr/lib/R/site-library/littler/examples/install.r /usr/local/bin/install.r \
 	&& ln -s /usr/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r \
 	&& ln -s /usr/lib/R/site-library/littler/examples/installBioc.r /usr/local/bin/installBioc.r \
@@ -37,6 +51,7 @@ RUN apt-get update \
 	&& ln -s /usr/lib/R/site-library/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
 	&& ln -s /usr/lib/R/site-library/littler/examples/testInstalled.r /usr/local/bin/testInstalled.r \
 	&& install.r docopt
+
 RUN install2.r --error \
 	ape \
 	optparse \
@@ -53,45 +68,40 @@ RUN R -e "install.packages(\"https://cran.r-project.org/src/contrib/Archive/rvch
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
     rm -rf /var/lib/apt/lists/*
 
-# set the timezone for Vancouver, so that datetime.now() returns our
-# local time, not UTC.
-RUN apt-get -y install tzdata
-ENV TZ=America/Vancouver
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# we define these users here so that we can launch an image as a local user
-# see the Makefile in the top directory...
-RUN useradd -rm -s /bin/tcsh -u 1000 dockuser00 &&\
-    useradd -rm -s /bin/tcsh -u 1001 dockuser01 &&\
-    useradd -rm -s /bin/tcsh -u 1002 dockuser02 &&\
-    useradd -rm -s /bin/tcsh -u 1003 dockuser03 &&\
-    useradd -rm -s /bin/tcsh -u 1004 dockuser04
-
 # Install Ruby dependencies
 # bundler v1.17.2 is needed for older libraries
+RUN curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
+RUN /root/.rbenv/bin/rbenv init - --no-rehash bash > /root/.bashrc
+RUN rbenv install 2.5.5
+RUN rbenv global 2.5.5
 COPY hla_class_setup/Gemfile ./
 RUN gem install bundler:1.17.2
 RUN bundle install
 
 # Install Python dependencies:
 COPY alldata/bblab_site/requirements.txt .
-COPY alldata/bblab_site/requirements27.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
-RUN pip2 install --no-cache-dir -r requirements27.txt
+RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
 
-# Set user/group for Apache/Django execution
+# # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \
     usermod -a -G varwwwusers www-data
+
+WORKDIR /tmp/download
+
+RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/blast-2.2.16-x64-linux.tar.gz && \
+    wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/tcrdist_extras_v2.tgz && \
+    tar -xzf blast-2.2.16-x64-linux.tar.gz && \
+    tar -xzf tcrdist_extras_v2.tgz
 
 # copy source code
 COPY alldata /alldata
 
+RUN chown -R www-data:varwwwusers /alldata /tmp/download
+
+USER www-data
+
 # Run setup for tcr-dist
-RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/blast-2.2.16-x64-linux.tar.gz && \
-    wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/tcrdist_extras_v2.tgz && \
-    tar -xzf blast-2.2.16-x64-linux.tar.gz && \
-    tar -xzf tcrdist_extras_v2.tgz && \
-    mv ./tcrdist_extras_v2/external/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
+RUN mv ./tcrdist_extras_v2/external/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
     mv ./blast-2.2.16/ /alldata/bblab_site/depend/apps/tcr-dist/external/ && \
     mv ./tcrdist_extras_v2/datasets/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
     mv ./tcrdist_extras_v2/db/ /alldata/bblab_site/depend/apps/tcr-dist/ && \
@@ -107,6 +117,8 @@ RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/
     rm blast-2.2.16-x64-linux.tar.gz && \
     rm tcrdist_extras_v2.tgz && \
     rm -r tcrdist_extras_v2
+
+USER root
 
 # load configuration for Apache server
 COPY conf/apache2.conf /etc/apache2/
@@ -126,14 +138,14 @@ COPY phylodating_setup/clean.sh /var/www/phylodating/clean.sh
 COPY phylodating_setup/logwatcher.sh /var/www/phylodating/logwatcher.sh
 
 # Set permissions and ownership for WSGI user/group (www-data:varwwwusers)
-RUN mkdir /alldata/bblab_site/tools/sequencing_layout/output && \
+RUN mkdir -p /alldata/bblab_site/tools/sequencing_layout/output && \
     mkdir /alldata/bblab_site/tools/sequencing_layout/output/archived_layouts && \
     mkdir /alldata/bblab_site/tools/sequencing_layout/output/archived_layouts/old_archived_layouts && \
     mkdir /alldata/bblab_site/tools/guava_layout/output/archived_layouts && \
     mkdir /alldata/bblab_site/tools/guava_layout/output/archived_layouts/old_archived_layouts && \
     mkdir /alldata/hla_class/tmp && \
-    mkdir /alldata/bblab_site/media && \
-    mkdir /alldata/bblab_site/logs && \
+    mkdir -p /alldata/bblab_site/media && \
+    mkdir -p /alldata/bblab_site/logs && \
     chmod 766 -R /alldata/bblab_site/tools/guava_layout/output && \
     chown -R www-data:varwwwusers /alldata/bblab_site/tools/guava_layout/output && \
     chmod 766 -R /alldata/bblab_site/tools/sequencing_layout/output && \
@@ -146,8 +158,8 @@ RUN mkdir /alldata/bblab_site/tools/sequencing_layout/output && \
     chown -R www-data:varwwwusers /alldata/bblab_site/media && \
     chmod 766 -R /alldata/bblab_site/static && \
     chown -R www-data:varwwwusers /alldata/bblab_site/static && \
-    chmod 766 /alldata/bblab_site/logs && \
-    chown www-data:varwwwusers /alldata/bblab_site/logs
+    chmod 777 /alldata/bblab_site/logs && \
+    chown -R www-data:varwwwusers /alldata/bblab_site/logs
 
 # ---finish up
 
@@ -166,5 +178,5 @@ LABEL build_date=$CI_BUILD_DATE \
 
 # change default directory when entering container with --build-arg (ex: `--build-arg WORKINGDIR=projects/qual_nimbusprecision`)
 #ignoring this will set it to the standard directory
-ARG WORKINGDIR=alldata
-WORKDIR /$WORKINGDIR
+ARG WORKINGDIR=/alldata
+WORKDIR $WORKINGDIR
