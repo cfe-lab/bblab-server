@@ -384,44 +384,89 @@ def sort_defect_rows(samp_list):
         return -LEFT_PRIMER_END
 
 
+def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
+    """
+    Identify deletion gaps per sequence, sort each sample's gaps by size,
+    then order samples lexicographically by their descending gap-size lists.
+    """
+    # group rows by sample and compute each sample's gaps
+    sample_rows = defaultdict(list)
+    for r in rows:
+        sample_rows[r['samp_name'].strip()].append(r)
+    sample_gaps = {}
+    for samp, segs in sample_rows.items():
+        segs_sorted = sorted(segs, key=lambda x: int(x['ref_start'].strip()))
+        gaps = []
+        prev_end = START_POS
+        for seg in segs_sorted:
+            start = int(seg['ref_start'].strip())
+            if start - prev_end > threshold:
+                gaps.append((prev_end, start))
+            prev_end = max(prev_end, int(seg['ref_end'].strip()))
+        if END_POS - prev_end > threshold:
+            gaps.append((prev_end, END_POS))
+        sample_gaps[samp] = gaps
+    # build gap-size lists sorted descending and pad to equal length
+    size_lists = {}
+    max_len = 0
+    for samp, gaps in sample_gaps.items():
+        sizes = sorted((e - s for s, e in gaps), reverse=True)
+        size_lists[samp] = sizes
+        max_len = max(max_len, len(sizes))
+    for samp, sizes in size_lists.items():
+        if len(sizes) < max_len:
+            sizes.extend([0] * (max_len - len(sizes)))
+        size_lists[samp] = sizes
+    # lexicographically sort by descending sizes
+    sorted_samples = sorted(size_lists,
+                            key=lambda s: tuple(-size for size in size_lists[s]))
+    return sorted_samples
+
+
 def create_proviral_plot(input_file, output_svg):
+    # read all rows, set up figure and counters
+    lines = list(DictReader(input_file))
+    # total unique samples (across all defects)
+    total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
+    figure = Figure()
+    plot = ProviralLandscapePlot(figure, total_samples)
     defect_percentages = defaultdict(int)
     highlighted_set = set()
-    figure = Figure()
-    lines = list(DictReader(input_file))
-    total_samples = len(set([row['samp_name'].strip() for row in lines if row['defect'].strip() in DEFECT_TYPE.keys()]))
-    plot = ProviralLandscapePlot(figure, total_samples)
+    # group and plot by defect category, preserving category order
     for all_rows_this_defect in sort_csv_lines(lines):
         defect = DEFECT_TYPE[all_rows_this_defect[0]['defect'].strip()]
-        for row in all_rows_this_defect:
-            xstart = int(row['ref_start'].strip())
-            xend = int(row['ref_end'].strip())
-            highlighted = False
-            is_defective = row['is_defective'].strip()
-            is_inverted = row['is_inverted'].strip()
-            if is_defective:
-                highlighted_set.add('Defect Region')
-                highlighted = 'Defect Region'
-            elif is_inverted:
-                # if inverted AND defective are possible at the same time, we need to modify this.
-                highlighted_set.add('Inverted Region')
-                highlighted = 'Inverted Region'
-            plot.add_line(row['samp_name'].strip(),
-                          xstart,
-                          xend,
-                          defect,
-                          highlighted)
+        # within this defect, sort samples by their gap patterns
+        # collect rows for this defect
+        rows = all_rows_this_defect
+        sample_rows = defaultdict(list)
+        for r in rows:
+            sample_rows[r['samp_name'].strip()].append(r)
+        # determine order of samples in this defect
+        sample_order = order_samples_by_gaps(rows)
+        # plot each sample in the defect group
+        for samp in sample_order:
+            segs = sample_rows[samp]
+            segs.sort(key=lambda x: int(x['ref_start'].strip()))
+            for row in segs:
+                xstart = int(row['ref_start'].strip())
+                xend = int(row['ref_end'].strip())
+                highlighted = False
+                if row['is_defective'].strip():
+                    highlighted_set.add('Defect Region')
+                    highlighted = 'Defect Region'
+                elif row['is_inverted'].strip():
+                    highlighted_set.add('Inverted Region')
+                    highlighted = 'Inverted Region'
+                plot.add_line(samp, xstart, xend, defect, highlighted)
+        # count samples in this defect for percentages
+        defect_percentages[defect] += len(sample_order)
 
-        num_samples = len(set([row['samp_name'].strip() for row in all_rows_this_defect]))
-        defect_percentages[defect] += num_samples
-
+    # convert counts to percentages
     for defect, number in defect_percentages.items():
-        if defect not in DEFECT_TO_COLOR.keys():
+        if defect not in DEFECT_TO_COLOR:
             continue
-        percentage = number / total_samples * 100
-        defect_percentages[defect] = percentage
-
-    # draw the final line in the plot
+        defect_percentages[defect] = number / total_samples * 100
+    # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
     plot.legends_and_percentages(defect_percentages, highlighted_set)
