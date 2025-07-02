@@ -6,7 +6,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 ENV PYTHONUNBUFFERED 1
 
-SHELL ["bash", "-l", "-c"]  # Need -l to make ruby versions available.
+SHELL ["bash", "-l", "-c"]
 
 # Refresh package repositories.
 RUN apt-get update -qq -y
