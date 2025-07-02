@@ -20,18 +20,6 @@ def get_output_matrix(protein_sequences, min_count):
     depends on: qvalue, sequence_utils, math_utils, scipy, numpy.
     """
 
-    # DEBUG: Print function entry and input parameters
-    """
-    print("[DEBUG] get_output_matrix called with:")
-    print(f"  - Number of protein sequences: {len(protein_sequences) if protein_sequences else 0}")
-    print(f"  - min_count: {min_count}")
-    if protein_sequences:
-        print(f"  - First sequence length: {len(protein_sequences[0][1]) if len(protein_sequences[0]) > 1 else 'N/A'}")
-        print(f"  - First few sequences: {protein_sequences[:3] if len(protein_sequences) > 0 else 'None'}")
-    print(f"[DEBUG] Timestamp: {__import__('datetime').datetime.now()}")
-    print("[DEBUG] This is the UPDATED version with fixes (2024-12-27)")
-    """
-
     ##### Class and function definitions
 
     class ProteinData:
@@ -119,9 +107,6 @@ def get_output_matrix(protein_sequences, min_count):
 
     # This function extracts and calculates the needed data from the ColumnData class.
     def _run_seq_test(column_data, output_matrix):
-        print(
-            f"[DEBUG]   _run_seq_test for Pos {column_data.position + 1}, Amino Acid '{column_data.get_with().protein_char}'"
-        )
         w_amino = column_data.get_with().protein_char  # Get Protein char for with.
 
         w_decimal_list = (
@@ -136,11 +121,6 @@ def get_output_matrix(protein_sequences, min_count):
         w_count = column_data.get_with().get_occurrances()
         # Find the sum of all not-with occurance counts.
         nw_count = column_data.get_not_with_occurrances()
-
-        print(
-            f"[DEBUG]     - With group ('{w_amino}'): {w_count} values, median={w_median}"
-        )
-        print(f"[DEBUG]     - Not-With group: {nw_count} values, median={nw_median}")
 
         # Calculate p-value with proper validation
         try:
@@ -179,10 +159,7 @@ def get_output_matrix(protein_sequences, min_count):
                         p_value = math_utils.round_sf(raw_p_value, 5)
         except Exception as e:
             # Any error in statistical calculation - use conservative p-value
-            print(f"[DEBUG]     - Exception during p-value calculation: {e}")
             p_value = 1.0
-
-        print(f"[DEBUG]     - Calculated p-value: {p_value}")
 
         # Put all this information into the ColumnOutput class.
         output_column = ColumnOutput(
@@ -245,15 +222,9 @@ def get_output_matrix(protein_sequences, min_count):
         ):  # Case: there are at least two different proteins in this column.
             valid_data = []
 
-            print(
-                f"[DEBUG] Pos {column_index + 1}: Found {len(data_dict)} unique proteins. Total valid chars: {valid_characters}. min_count: {min_count}"
-            )
             for char, data in data_dict.items():
                 with_count = data.get_occurrances()
                 not_with_count = valid_characters - with_count
-                print(
-                    f"[DEBUG]   - Char '{char}': count={with_count}, other_count={not_with_count}. Meets criteria? {with_count >= min_count and not_with_count >= min_count}"
-                )
 
             for data in data_dict.values():
                 # Check if current char is a vaild group.
@@ -263,15 +234,9 @@ def get_output_matrix(protein_sequences, min_count):
                 ):
                     valid_data += [data]
         else:
-            print(
-                f"[DEBUG] Pos {column_index + 1}: Skipping, only one unique protein found."
-            )
             continue  # Case: all characters equal, ignore.
 
         if len(valid_data) <= 0:
-            print(
-                f"[DEBUG] Pos {column_index + 1}: No valid data groups found meeting min_count of {min_count}.\n"
-            )
             continue  # Case: no valid data groups.
 
         # Do analysis
@@ -292,12 +257,7 @@ def get_output_matrix(protein_sequences, min_count):
 
     # Handle empty output matrix
     if not output_matrix:
-        print("[DEBUG] Final output_matrix is empty. Returning.")
         return output_matrix
-
-    print(
-        f"[DEBUG] output_matrix has {len(output_matrix)} items before q-value calculation."
-    )
 
     # Extract p-values (now guaranteed to be valid from the statistical calculation)
     pvalue_list = []
@@ -305,17 +265,12 @@ def get_output_matrix(protein_sequences, min_count):
         raw_pvalue = item.get_formatted_row()[6]
         pvalue_list.append(raw_pvalue)
 
-    print(
-        f"[DEBUG] Extracted {len(pvalue_list)} p-values for q-value calculation: {pvalue_list}"
-    )
-
     # All p-values should now be valid, but add a final safety check
     if not pvalue_list:
         return output_matrix
 
     # Call qvalue function
     qvalue_list = op_qvalue.get_qvalues(pvalue_list)  # Get q values using the r script.
-    print(f"[DEBUG] Received {len(qvalue_list)} q-values: {qvalue_list}")
 
     # Validate that we have the same number of q-values as p-values
     if len(qvalue_list) != len(output_matrix):
@@ -328,7 +283,5 @@ def get_output_matrix(protein_sequences, min_count):
 
     for matrix_index in range(0, len(output_matrix)):
         output_matrix[matrix_index].q_value = qvalue_list[matrix_index]
-
-    print("[DEBUG] Successfully assigned q-values. Returning final matrix.")
 
     return output_matrix
