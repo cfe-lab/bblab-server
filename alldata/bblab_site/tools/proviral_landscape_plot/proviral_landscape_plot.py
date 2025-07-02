@@ -386,40 +386,54 @@ def sort_defect_rows(samp_list):
 
 def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
     """
-    Identify deletion gaps per sequence, sort each sample's gaps by size,
-    then order samples lexicographically by their descending gap-size lists.
+    Within a defect category, sort samples by their gaps:
+    1. Identify and record each gap as (start, end, size).
+    2. For each sample, sort its gaps by descending size.
+    3. Build per-sample lists of (start, end) from those sorted gaps.
+    4. Pad shorter lists with (END_POS+1, END_POS+1) to equal length.
+    5. Sort samples lexicographically by these flattened (start,end) lists,
+       ties on equal starts are broken by earlier ends.
     """
-    # group rows by sample and compute each sample's gaps
+    # group rows by sample
     sample_rows = defaultdict(list)
     for r in rows:
         sample_rows[r['samp_name'].strip()].append(r)
-    sample_gaps = {}
+    # compute gaps per sample
+    sample_gap_feats = {}
+    max_len = 0
     for samp, segs in sample_rows.items():
         segs_sorted = sorted(segs, key=lambda x: int(x['ref_start'].strip()))
-        gaps = []
         prev_end = START_POS
+        feats = []  # list of (start,end,size)
         for seg in segs_sorted:
             start = int(seg['ref_start'].strip())
             if start - prev_end > threshold:
-                gaps.append((prev_end, start))
+                size = start - prev_end
+                feats.append((prev_end, start, size))
             prev_end = max(prev_end, int(seg['ref_end'].strip()))
         if END_POS - prev_end > threshold:
-            gaps.append((prev_end, END_POS))
-        sample_gaps[samp] = gaps
-    # build gap-size lists sorted descending and pad to equal length
-    size_lists = {}
-    max_len = 0
-    for samp, gaps in sample_gaps.items():
-        sizes = sorted((e - s for s, e in gaps), reverse=True)
-        size_lists[samp] = sizes
-        max_len = max(max_len, len(sizes))
-    for samp, sizes in size_lists.items():
-        if len(sizes) < max_len:
-            sizes.extend([0] * (max_len - len(sizes)))
-        size_lists[samp] = sizes
-    # lexicographically sort by descending sizes
-    sorted_samples = sorted(size_lists,
-                            key=lambda s: tuple(-size for size in size_lists[s]))
+            size = END_POS - prev_end
+            feats.append((prev_end, END_POS, size))
+        # sort features by descending size
+        feats_sorted = sorted(feats, key=lambda x: x[2], reverse=True)
+        # extract only (start,end)
+        pos_list = [(s, e) for s, e, _ in feats_sorted]
+        sample_gap_feats[samp] = pos_list
+        max_len = max(max_len, len(pos_list))
+    # pad with out-of-range pairs to equal length
+    pad_pair = (END_POS + 1, END_POS + 1)
+    for samp, pos_list in sample_gap_feats.items():
+        if len(pos_list) < max_len:
+            pos_list.extend([pad_pair] * (max_len - len(pos_list)))
+        sample_gap_feats[samp] = pos_list
+    # final sort: flatten each (start,end) list and compare lex
+    def sample_key(samp):
+        flat = []
+        for start, end in sample_gap_feats[samp]:
+            flat.append(start)
+            flat.append(end)
+        return tuple(flat)
+    sorted_samples = sorted(sample_gap_feats.keys(), key=sample_key)
     return sorted_samples
 
 
