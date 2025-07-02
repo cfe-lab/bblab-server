@@ -131,4 +131,4 @@ smooth.log.pi0 = FALSE)
 }
 
 qobj <- qval(p)
-cat(paste(qobj$qvalues), collapse=",")  # The python file reads this as terminal output.
+cat(paste(qobj$qvalues, collapse=" "), ",")
