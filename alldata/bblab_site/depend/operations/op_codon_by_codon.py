@@ -167,6 +167,11 @@ def get_output_matrix( protein_sequences, min_count):
 		pvalue_list.append( item.get_formatted_row()[6] ) 
 
 	qvalue_list = op_qvalue.get_qvalues( pvalue_list )  # Get q values using the r script.
+	
+	# Validate that we have the same number of q-values as p-values
+	if len(qvalue_list) != len(output_matrix):
+		raise RuntimeError(f"Mismatch between q-values ({len(qvalue_list)}) and output matrix ({len(output_matrix)})")
+	
 	for matrix_index in range(0, len(output_matrix)):
 		output_matrix[matrix_index].q_value = qvalue_list[matrix_index]
 
