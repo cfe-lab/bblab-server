@@ -6,7 +6,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 ENV PYTHONUNBUFFERED 1
 
-SHELL ["bash", "-l", "-c"]  # Need -l to make ruby versions available.
+SHELL ["bash", "-l", "-c"]
 
 # Refresh package repositories.
 RUN apt-get update -qq -y
@@ -35,7 +35,7 @@ RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc |
     add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
     apt-get update -qq
 
-ENV R_BASE_VERSION 4.4.2
+ENV R_BASE_VERSION 4.5.1
 
 RUN apt-get install -q -y --no-install-recommends \
                     r-base=${R_BASE_VERSION}-* \

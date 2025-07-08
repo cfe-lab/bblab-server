@@ -384,44 +384,103 @@ def sort_defect_rows(samp_list):
         return -LEFT_PRIMER_END
 
 
+def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
+    """
+    Within a defect category, sort samples by their gaps:
+    1. Identify and record each gap as (start, end, size).
+    2. For each sample, sort its gaps by descending size.
+    3. Build per-sample lists of (start, end) from those sorted gaps.
+    4. Pad shorter lists with (END_POS+1, END_POS+1) to equal length.
+    5. Sort samples lexicographically by these flattened (start,end) lists,
+       ties on equal starts are broken by earlier ends.
+    """
+    # group rows by sample
+    sample_rows = defaultdict(list)
+    for r in rows:
+        sample_rows[r['samp_name'].strip()].append(r)
+    # compute gaps per sample
+    sample_gap_feats = {}
+    max_len = 0
+    for samp, segs in sample_rows.items():
+        segs_sorted = sorted(segs, key=lambda x: int(x['ref_start'].strip()))
+        prev_end = START_POS
+        feats = []  # list of (start,end,size)
+        for seg in segs_sorted:
+            start = int(seg['ref_start'].strip())
+            if start - prev_end > threshold:
+                size = start - prev_end
+                feats.append((prev_end, start, size))
+            prev_end = max(prev_end, int(seg['ref_end'].strip()))
+        if END_POS - prev_end > threshold:
+            size = END_POS - prev_end
+            feats.append((prev_end, END_POS, size))
+        # sort features by descending size
+        feats_sorted = sorted(feats, key=lambda x: x[2], reverse=True)
+        # extract only (start,end)
+        pos_list = [(s, e) for s, e, _ in feats_sorted]
+        sample_gap_feats[samp] = pos_list
+        max_len = max(max_len, len(pos_list))
+    # pad with out-of-range pairs to equal length
+    pad_pair = (END_POS + 1, END_POS + 1)
+    for samp, pos_list in sample_gap_feats.items():
+        if len(pos_list) < max_len:
+            pos_list.extend([pad_pair] * (max_len - len(pos_list)))
+        sample_gap_feats[samp] = pos_list
+    # final sort: flatten each (start,end) list and compare lex
+    def sample_key(samp):
+        flat = []
+        for start, end in sample_gap_feats[samp]:
+            flat.append(start)
+            flat.append(end)
+        return tuple(flat)
+    sorted_samples = sorted(sample_gap_feats.keys(), key=sample_key)
+    return sorted_samples
+
+
 def create_proviral_plot(input_file, output_svg):
+    # read all rows, set up figure and counters
+    lines = list(DictReader(input_file))
+    # total unique samples (across all defects)
+    total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
+    figure = Figure()
+    plot = ProviralLandscapePlot(figure, total_samples)
     defect_percentages = defaultdict(int)
     highlighted_set = set()
-    figure = Figure()
-    lines = list(DictReader(input_file))
-    total_samples = len(set([row['samp_name'].strip() for row in lines if row['defect'].strip() in DEFECT_TYPE.keys()]))
-    plot = ProviralLandscapePlot(figure, total_samples)
+    # group and plot by defect category, preserving category order
     for all_rows_this_defect in sort_csv_lines(lines):
         defect = DEFECT_TYPE[all_rows_this_defect[0]['defect'].strip()]
-        for row in all_rows_this_defect:
-            xstart = int(row['ref_start'].strip())
-            xend = int(row['ref_end'].strip())
-            highlighted = False
-            is_defective = row['is_defective'].strip()
-            is_inverted = row['is_inverted'].strip()
-            if is_defective:
-                highlighted_set.add('Defect Region')
-                highlighted = 'Defect Region'
-            elif is_inverted:
-                # if inverted AND defective are possible at the same time, we need to modify this.
-                highlighted_set.add('Inverted Region')
-                highlighted = 'Inverted Region'
-            plot.add_line(row['samp_name'].strip(),
-                          xstart,
-                          xend,
-                          defect,
-                          highlighted)
+        # within this defect, sort samples by their gap patterns
+        # collect rows for this defect
+        rows = all_rows_this_defect
+        sample_rows = defaultdict(list)
+        for r in rows:
+            sample_rows[r['samp_name'].strip()].append(r)
+        # determine order of samples in this defect
+        sample_order = order_samples_by_gaps(rows)
+        # plot each sample in the defect group
+        for samp in sample_order:
+            segs = sample_rows[samp]
+            segs.sort(key=lambda x: int(x['ref_start'].strip()))
+            for row in segs:
+                xstart = int(row['ref_start'].strip())
+                xend = int(row['ref_end'].strip())
+                highlighted = False
+                if row['is_defective'].strip():
+                    highlighted_set.add('Defect Region')
+                    highlighted = 'Defect Region'
+                elif row['is_inverted'].strip():
+                    highlighted_set.add('Inverted Region')
+                    highlighted = 'Inverted Region'
+                plot.add_line(samp, xstart, xend, defect, highlighted)
+        # count samples in this defect for percentages
+        defect_percentages[defect] += len(sample_order)
 
-        num_samples = len(set([row['samp_name'].strip() for row in all_rows_this_defect]))
-        defect_percentages[defect] += num_samples
-
+    # convert counts to percentages
     for defect, number in defect_percentages.items():
-        if defect not in DEFECT_TO_COLOR.keys():
+        if defect not in DEFECT_TO_COLOR:
             continue
-        percentage = number / total_samples * 100
-        defect_percentages[defect] = percentage
-
-    # draw the final line in the plot
+        defect_percentages[defect] = number / total_samples * 100
+    # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
     plot.legends_and_percentages(defect_percentages, highlighted_set)
