@@ -38,6 +38,7 @@ RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc |
 ENV R_BASE_VERSION 4.5.1
 
 RUN apt-get install -q -y --no-install-recommends \
+                    r-recommended=${R_BASE_VERSION}-* \
                     r-base=${R_BASE_VERSION}-* \
                     r-base-dev=${R_BASE_VERSION}-* \
                     r-base-core=${R_BASE_VERSION}-* \
