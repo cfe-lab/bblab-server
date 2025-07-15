@@ -69,9 +69,16 @@ RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
     rm -rf /var/lib/apt/lists/*
 
 # Install Ruby dependencies
-# bundler v1.17.2 is needed for older libraries
+# We install ruby globally by making the `/root/.rbenv` path accessible to everyone.
+# This is unusual.
+# But the recommended alternative is to install ruby only for the target user,
+# which in our case is `www-data`, a "system" user.
+# This is even worse.
 RUN curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
-RUN /root/.rbenv/bin/rbenv init - --no-rehash bash > /root/.bashrc
+RUN echo >> /etc/profile
+RUN /root/.rbenv/bin/rbenv init - --no-rehash bash >> /etc/profile
+RUN chmod a+X /root
+RUN chmod -R a+X /root/.rbenv
 RUN rbenv install 2.5.5
 RUN rbenv global 2.5.5
 COPY hla_class_setup/Gemfile ./

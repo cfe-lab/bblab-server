@@ -15,7 +15,7 @@
 		unlink($_SESSION["updates"]);
 	}
 
-	$ruby = "ruby";
+	$ruby = "$(bash -l -c 'command -v ruby')";
 	$script = dirname(__FILE__) . "/hla-easy.rb";
 	$_SESSION["results"] = dirname(__FILE__) . tempnam("/tmp", "");
 	$_SESSION["details"] = dirname(__FILE__) . tempnam("/tmp", "");
