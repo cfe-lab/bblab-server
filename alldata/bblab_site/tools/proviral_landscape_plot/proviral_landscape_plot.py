@@ -466,7 +466,8 @@ def create_proviral_plot(input_file, output_svg):
                 xend = int(row['ref_end'].strip())
                 highlighted = False
                 if row['is_defective'].strip():
-                    highlighted_set.add('Defect Region')
+                    # TODO: incorporate this when we get ranges info from proviral.
+                    # highlighted_set.add('Defect Region')
                     highlighted = 'Defect Region'
                 elif row['is_inverted'].strip():
                     highlighted_set.add('Inverted Region')
