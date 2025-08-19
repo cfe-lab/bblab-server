@@ -88,10 +88,17 @@ XOFFSET = 400
 SMALLEST_GAP = 50
 
 # default HXB2 landmarks for the small overview graphic (approximate coordinates)
+# assigned to three frames (0/1/2) so overlapping genes stack vertically
 LANDMARKS = [
     {'name': 'gag', 'start': START_POS, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
-    {'name': 'pol', 'start': GAG_END + 1, 'end': 5500, 'colour': '#1f78b4', 'frame': 0},
-    {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#b2df8a', 'frame': 0},
+    {'name': 'pol', 'start': GAG_END - 200, 'end': 5500, 'colour': '#1f78b4', 'frame': 1},
+    {'name': 'vif', 'start': 5043, 'end': 5619, 'colour': '#fb9a99', 'frame': 2},
+    {'name': 'vpr', 'start': 5559, 'end': 5850, 'colour': '#fdbf6f', 'frame': 0},
+    {'name': 'tat', 'start': 5830, 'end': 6045, 'colour': '#b2df8a', 'frame': 1},
+    {'name': 'rev', 'start': 5970, 'end': 6045, 'colour': '#c2a5cf', 'frame': 2},
+    {'name': 'vpu', 'start': 6062, 'end': 6310, 'colour': '#ffff99', 'frame': 0},
+    {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#8dd3c7', 'frame': 1},
+    {'name': 'nef', 'start': 8797, 'end': 9417, 'colour': '#bebada', 'frame': 2},
 ]
 
 
@@ -114,9 +121,16 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
         prev_landmark = landmark
 
     # Draw landmarks grouped by frame (keeps stacked subtracks if frames are used)
-    for frame, frame_landmarks in groupby(landmarks_sorted, itemgetter('frame')):
+    # Group landmarks by their 'frame' value so overlapping genes stack into the
+    # same row. We preserve start-order within each frame by iterating the
+    # start-sorted list.
+    frame_groups = defaultdict(list)
+    for lm in landmarks_sorted:
+        frame_groups[lm.get('frame', 0)].append(lm)
+
+    for frame in sorted(frame_groups.keys()):
         subtracks = []
-        for lm in frame_landmarks:
+        for lm in frame_groups[frame]:
             colour = lm.get('colour') or lm.get('color')
             if colour is None:
                 continue
@@ -527,6 +541,13 @@ def create_proviral_plot(input_file, output_svg):
     plot = ProviralLandscapePlot(figure, total_samples)
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
+    # add a small blank multitrack to create vertical separation between the overview
+    # and the sample tracks (gap value tuned experimentally)
+    try:
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
+    except TypeError:
+        # fallback if Track signature differs; attempt without named color
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, '#ffffff', h=2)]), gap=8)
     # keep raw counts while building percentages later
     defect_counts = defaultdict(int)
     highlighted_set = set()
