@@ -128,8 +128,11 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     for lm in landmarks_sorted:
         frame_groups[lm.get('frame', 0)].append(lm)
 
+    # We will draw a simple overview for each frame ourselves (black rectangles
+    # with white centered labels). Using draw.Text here guarantees the label
+    # colour regardless of the genetracks.Track/Label API on the host system.
     for frame in sorted(frame_groups.keys()):
-        subtracks = []
+        rect_items = []
         for lm in frame_groups[frame]:
             colour = lm.get('colour') or lm.get('color')
             if colour is None:
@@ -137,14 +140,48 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
             # clamp to START/END so nothing draws outside the plot region
             start = max(lm.get('start', START_POS), START_POS)
             end = min(lm.get('end', END_POS), END_POS)
-            # create Track; use label and color kw if supported by genetracks.Track
-            try:
-                subtracks.append(Track(start + xoffset, end + xoffset, label=lm.get('name'), color=colour, h=height))
-            except TypeError:
-                # fallback if Track doesn't accept label/color kw names used above
-                subtracks.append(Track(start + xoffset, end + xoffset, colour, h=height))
-        if subtracks:
-            figure.add(Multitrack(subtracks), gap=1)
+            if end <= start:
+                continue
+            # compute absolute x position (includes xoffset) and width
+            x_pos = start + xoffset
+            width = end - start
+            rect_items.append((x_pos, width, lm.get('name')))
+
+        if not rect_items:
+            continue
+
+        # small wrapper object with a draw() method so Figure.add can accept it
+        class _OverviewDrawer:
+            def __init__(self, items, height):
+                self.items = items
+                self.h = height
+                # genetracks expects a .w (width) attribute on drawable elements
+                # compute the rightmost coordinate covered by the items
+                self.w = max(((x_pos + width) for (x_pos, width, _) in items), default=0)
+
+            def draw(self, x=0, y=0, xscale=1.0):
+                g = draw.Group(transform=f"translate({x} {y})")
+                for x_pos, width, name in self.items:
+                    x_scaled = x_pos * xscale
+                    w_scaled = width * xscale
+                    # black rectangle for the gene
+                    g.append(draw.Rectangle(x_scaled, 0, w_scaled, self.h, fill='black', stroke='black'))
+                    # white centered label; choose a readable font size relative to track height
+                    font_size = max(10, int(self.h * 0.8))
+                    text_x = x_scaled + w_scaled / 2
+                    # draw.Text positions text with baseline at y, so we shift down a little
+                    text_y = self.h / 2 + font_size / 3
+                    g.append(draw.Text(text=name,
+                                       font_size=font_size,
+                                       x=text_x,
+                                       y=text_y,
+                                       font_family='monospace',
+                                       center=True,
+                                       fill='white'))
+                return g
+
+        # add our custom overview drawer to the figure; keep a small gap between frames
+        figure.add(_OverviewDrawer(rect_items, height), gap=1)
 
 
 def defect_order(defect):
