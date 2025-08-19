@@ -154,7 +154,8 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
         class _OverviewDrawer:
             def __init__(self, items, height):
                 self.items = items
-                self.h = height
+                # double the requested height so rectangles are ~100% taller
+                self.h = height * 2
                 # genetracks expects a .w (width) attribute on drawable elements
                 # compute the rightmost coordinate covered by the items
                 self.w = max(((x_pos + width) for (x_pos, width, _) in items), default=0)
@@ -180,8 +181,8 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                                        fill='white'))
                 return g
 
-        # add our custom overview drawer to the figure; keep a small gap between frames
-        figure.add(_OverviewDrawer(rect_items, height), gap=1)
+        # add our custom overview drawer to the figure; keep a slightly larger gap between frames
+        figure.add(_OverviewDrawer(rect_items, height), gap=2)
 
 
 def defect_order(defect):
