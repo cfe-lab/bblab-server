@@ -132,7 +132,7 @@ class XAxis:
 
 
 class LegendAndPercentages:
-    def __init__(self, defect_percentages, highlighted, total_samples, lineheight, xaxisheight):
+    def __init__(self, defect_percentages, highlighted, total_samples, lineheight, xaxisheight, force_move_percentages=False):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
@@ -145,6 +145,8 @@ class LegendAndPercentages:
         self.h = 20 * self.num_lines
         self.lineheight = lineheight
         self.xaxisheight = xaxisheight
+        # if True, move percentages into legend (used when any category is small)
+        self.force_move_percentages = force_move_percentages
 
     def add_legend(self, a, column_space, barlen, barheight, drawing, include_percentages=False):
         """Draw legend entries. If include_percentages is True, append percentages to legend labels
@@ -269,10 +271,8 @@ class LegendAndPercentages:
         fontsize = 20
 
         # Determine whether to move percentages into the legend
-        # active categories = number of defects with non-zero percentage + number of highlighted types
-        active_defects = sum(1 for d in self.defect_types if self.defect_percentages.get(d, 0) > 0)
-        active_categories = active_defects + len(self.highlighted_types)
-        move_percentages_to_legend = (1 + active_categories) * 3 > self.num_samples
+        # move_percentages_to_legend is controlled externally via force_move_percentages flag
+        move_percentages_to_legend = bool(self.force_move_percentages)
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
@@ -368,12 +368,13 @@ class ProviralLandscapePlot:
         self.figure.add(XAxis(h=xaxis_thickness), padding=padding, gap=gap)
         self.xaxisheight = padding + gap + xaxis_thickness
 
-    def legends_and_percentages(self, defect_percentages, highlight_types):
+    def legends_and_percentages(self, defect_percentages, highlight_types, force_move_percentages=False):
         self.figure.add(LegendAndPercentages(defect_percentages,
                                              highlight_types,
                                              self.tot_samples,
                                              self.lineheight,
-                                             self.xaxisheight))
+                                             self.xaxisheight,
+                                             force_move_percentages))
 
 
 def sort_csv_lines(lines):
@@ -479,7 +480,8 @@ def create_proviral_plot(input_file, output_svg):
     total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
     figure = Figure()
     plot = ProviralLandscapePlot(figure, total_samples)
-    defect_percentages = defaultdict(int)
+    # keep raw counts while building percentages later
+    defect_counts = defaultdict(int)
     highlighted_set = set()
     # group and plot by defect category, preserving category order
     for all_rows_this_defect in sort_csv_lines(lines):
@@ -509,17 +511,21 @@ def create_proviral_plot(input_file, output_svg):
                     highlighted = 'Inverted Region'
                 plot.add_line(samp, xstart, xend, defect, highlighted)
         # count samples in this defect for percentages
-        defect_percentages[defect] += len(sample_order)
+        defect_counts[defect] += len(sample_order)
+
+    # determine small-category condition: any category with fewer than 4 members
+    any_small_category = any(count < 4 for count in defect_counts.values())
 
     # convert counts to percentages
-    for defect, number in defect_percentages.items():
+    defect_percentages = defaultdict(int)
+    for defect, number in defect_counts.items():
         if defect not in DEFECT_TO_COLOR:
             continue
         defect_percentages[defect] = number / total_samples * 100
     # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
-    plot.legends_and_percentages(defect_percentages, highlighted_set)
+    plot.legends_and_percentages(defect_percentages, highlighted_set, force_move_percentages=any_small_category)
     figure.show(w=900).save_svg(output_svg)
 
 
