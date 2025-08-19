@@ -189,7 +189,17 @@ class LegendAndPercentages:
             else:
                 label_text = defect
 
-            drawing.append(Label(0, label_text, font_size=15, offset=ypos).draw(x=(a + xpos + barlen)))
+            # place label to the right of the colored bar with a padding and left-aligned text
+            label_padding = 12
+            label_x = xpos + barlen + label_padding
+            # vertical position: center text alongside the color bar (small upward offset)
+            label_y = ypos + barheight / 2 - 5
+            drawing.append(draw.Text(text=label_text,
+                                     font_size=15,
+                                     x=label_x,
+                                     y=label_y,
+                                     font_family='monospace',
+                                     fill='black'))
 
     def add_sidebar(self, sidebar_x, sidebar_ystart, fontsize, drawing):
         pending_percentages = []
