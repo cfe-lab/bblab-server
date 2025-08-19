@@ -42,7 +42,7 @@ def run(csv_data, analysis_id, email_address_string):
     #
     # Actual send
     #
-    if mailer.send_sfu_email("proviral_landscape_plot", email_address_string, subject_line, msg_body) == 0:
+    if mailer.send_sfu_email("proviral_landscape_plot", email_address_string, subject_line, msg_body, [plot_file]) == 0:
         website.send(("An email has been sent to <b>{}</b> with your image."
                       "<br>Make sure <b>{}</b> is spelled correctly.").format(email_address_string,
                                                                               email_address_string))
