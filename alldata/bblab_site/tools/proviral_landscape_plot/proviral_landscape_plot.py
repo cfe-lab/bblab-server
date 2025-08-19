@@ -513,8 +513,24 @@ def create_proviral_plot(input_file, output_svg):
         # count samples in this defect for percentages
         defect_counts[defect] += len(sample_order)
 
-    # determine small-category condition: any category with fewer than 4 members
-    any_small_category = any(count < 4 for count in defect_counts.values())
+    # determine neighbouring-category condition: true when two active categories are vertically adjacent
+    # Build display ordering used in the legend: defect keys in insertion order, followed by highlighted types
+    displayed_entries = list(defect_counts.keys()) + list(highlighted_set)
+    total_entries = len(displayed_entries)
+    neighbour_flag = False
+    if total_entries > 1:
+        num_per_col = ceil(total_entries / 3)
+        # build list of counts for displayed entries (0 if missing)
+        counts_list = [defect_counts.get(entry, 0) for entry in displayed_entries]
+        for i in range(total_entries - 1):
+            # check if i and i+1 fall in same column
+            if (i // num_per_col) == ((i + 1) // num_per_col):
+                c1 = counts_list[i]
+                c2 = counts_list[i + 1]
+                # both must be active (count>0) and both have very few samples (<4)
+                if c1 > 0 and c2 > 0 and c1 < 4 and c2 < 4:
+                    neighbour_flag = True
+                    break
 
     # convert counts to percentages
     defect_percentages = defaultdict(int)
@@ -525,7 +541,7 @@ def create_proviral_plot(input_file, output_svg):
     # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
-    plot.legends_and_percentages(defect_percentages, highlighted_set, force_move_percentages=any_small_category)
+    plot.legends_and_percentages(defect_percentages, highlighted_set, force_move_percentages=neighbour_flag)
     figure.show(w=900).save_svg(output_svg)
 
 
