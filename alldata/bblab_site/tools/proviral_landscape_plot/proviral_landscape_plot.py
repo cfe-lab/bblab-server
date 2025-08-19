@@ -170,7 +170,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                     font_size = max(10, int(self.h * 0.8))
                     text_x = x_scaled + w_scaled / 2
                     # draw.Text positions text with baseline at y; use a modest downward offset
-                    text_y = self.h / 2 + font_size * 0.2
+                    text_y = self.h / 2 + font_size * 0.1
                     g.append(draw.Text(text=name,
                                        font_size=font_size,
                                        x=text_x,
