@@ -140,12 +140,15 @@ class LegendAndPercentages:
         self.highlighted_types = highlighted
         self.defect_percentages = defect_percentages
         self.num_samples = total_samples
+        # number of legend lines (3 columns)
         self.num_lines = (len(self.defect_types) + len(self.highlighted_types)) / 3
         self.h = 20 * self.num_lines
         self.lineheight = lineheight
         self.xaxisheight = xaxisheight
 
-    def add_legend(self, a, column_space, barlen, barheight, drawing):
+    def add_legend(self, a, column_space, barlen, barheight, drawing, include_percentages=False):
+        """Draw legend entries. If include_percentages is True, append percentages to legend labels
+        instead of drawing them in the sidebar."""
         ypos_first = self.h
         num_defects = 0
         num_defects_per_column = ceil((len(self.defect_types) + len(self.highlighted_types)) / 3)
@@ -174,7 +177,19 @@ class LegendAndPercentages:
 
             # legend entries
             drawing.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
-            drawing.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen)))
+
+            # Build label text. If asked, include percentage next to defect name
+            if include_percentages:
+                pct = self.defect_percentages.get(defect, 0.0)
+                # Only show percentage for defects that have an entry in defect_percentages
+                if defect in self.defect_percentages:
+                    label_text = f"{defect} ({round(pct, 1)}%)"
+                else:
+                    label_text = defect
+            else:
+                label_text = defect
+
+            drawing.append(Label(0, label_text, font_size=15, offset=ypos).draw(x=(a + xpos + barlen)))
 
     def add_sidebar(self, sidebar_x, sidebar_ystart, fontsize, drawing):
         pending_percentages = []
@@ -243,13 +258,23 @@ class LegendAndPercentages:
         yaxis_label_height = h + self.xaxisheight + self.num_samples * (self.lineheight + 1) / 2
         fontsize = 20
 
+        # Determine whether to move percentages into the legend
+        # active categories = number of defects with non-zero percentage + number of highlighted types
+        active_defects = sum(1 for d in self.defect_types if self.defect_percentages.get(d, 0) > 0)
+        active_categories = active_defects + len(self.highlighted_types)
+        move_percentages_to_legend = (1 + active_categories) * 3 > self.num_samples
+
         d = draw.Group(transform="translate({} {})".format(x, y))
 
         d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height + 12).draw(x=(a - 30)))
         d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height - 12).draw(x=(a - 30)))
 
-        self.add_legend(a, column_space, barlen, barheight, d)
-        self.add_sidebar(sidebar_x, sidebar_ystart, fontsize, d)
+        # draw legend; optionally include percentages in the legend labels
+        self.add_legend(a, column_space, barlen, barheight, d, include_percentages=move_percentages_to_legend)
+
+        # only draw the sidebar when percentages are not moved into the legend
+        if not move_percentages_to_legend:
+            self.add_sidebar(sidebar_x, sidebar_ystart, fontsize, d)
 
         return d
 
