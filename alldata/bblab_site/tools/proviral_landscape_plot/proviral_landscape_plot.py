@@ -513,31 +513,30 @@ def create_proviral_plot(input_file, output_svg):
         # count samples in this defect for percentages
         defect_counts[defect] += len(sample_order)
 
-    # determine neighbouring-category condition: true when two active categories are vertically adjacent
-    # Build display ordering used in the legend: defect keys in insertion order, followed by highlighted types
-    displayed_entries = list(defect_counts.keys()) + list(highlighted_set)
-    total_entries = len(displayed_entries)
-    neighbour_flag = False
-    if total_entries > 1:
-        num_per_col = ceil(total_entries / 3)
-        # build list of counts for displayed entries (0 if missing)
-        counts_list = [defect_counts.get(entry, 0) for entry in displayed_entries]
-        for i in range(total_entries - 1):
-            # check if i and i+1 fall in same column
-            if (i // num_per_col) == ((i + 1) // num_per_col):
-                c1 = counts_list[i]
-                c2 = counts_list[i + 1]
-                # both must be active (count>0) and both have very few samples (<4)
-                if c1 > 0 and c2 > 0 and c1 < 4 and c2 < 4:
-                    neighbour_flag = True
-                    break
-
-    # convert counts to percentages
+    # convert counts to percentages (only include defects that have a defined color)
     defect_percentages = defaultdict(int)
     for defect, number in defect_counts.items():
         if defect not in DEFECT_TO_COLOR:
             continue
         defect_percentages[defect] = number / total_samples * 100
+
+    # Determine whether to move percentages into the legend based on adjacency in the
+    # right-hand percentage sidebar. The sidebar iterates defects in the same order
+    # as defect_percentages.keys(), so use that ordering here.
+    neighbour_flag = False
+    sidebar_entries = list(defect_percentages.keys())
+    total_entries = len(sidebar_entries)
+    if total_entries > 1:
+        # build list of counts for sidebar entries (0 if missing)
+        counts_list = [defect_counts.get(entry, 0) for entry in sidebar_entries]
+        for i in range(total_entries - 1):
+            c1 = counts_list[i]
+            c2 = counts_list[i + 1]
+            # both must be active (count>0) and both have very few samples (<4)
+            if c1 > 0 and c2 > 0 and c1 < 4 and c2 < 4:
+                neighbour_flag = True
+                break
+
     # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
