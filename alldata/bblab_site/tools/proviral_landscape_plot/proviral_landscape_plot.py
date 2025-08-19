@@ -87,6 +87,51 @@ GAG_END = 2292
 XOFFSET = 400
 SMALLEST_GAP = 50
 
+# default HXB2 landmarks for the small overview graphic (approximate coordinates)
+LANDMARKS = [
+    {'name': 'gag', 'start': START_POS, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
+    {'name': 'pol', 'start': GAG_END + 1, 'end': 5500, 'colour': '#1f78b4', 'frame': 0},
+    {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#b2df8a', 'frame': 0},
+]
+
+
+def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
+    """
+    Draw a simple overview of the reference (HXB2) using the provided
+    landmarks list. Each landmark should be a dict with 'start', 'end', 'name'
+    and optionally 'colour' and 'frame'. Coordinates are assumed to be in the
+    same reference coordinate system as START_POS/END_POS; this function adds
+    XOFFSET so the overview lines up with the main plot.
+    """
+
+    # Fill out missing ends (simple behaviour: end is start-1 of next)
+    prev_landmark = None
+    landmarks_sorted = sorted(landmarks, key=itemgetter('start'))
+    for landmark in landmarks_sorted:
+        landmark.setdefault('frame', 0)
+        if prev_landmark and 'end' not in prev_landmark:
+            prev_landmark['end'] = landmark['start'] - 1
+        prev_landmark = landmark
+
+    # Draw landmarks grouped by frame (keeps stacked subtracks if frames are used)
+    for frame, frame_landmarks in groupby(landmarks_sorted, itemgetter('frame')):
+        subtracks = []
+        for lm in frame_landmarks:
+            colour = lm.get('colour') or lm.get('color')
+            if colour is None:
+                continue
+            # clamp to START/END so nothing draws outside the plot region
+            start = max(lm.get('start', START_POS), START_POS)
+            end = min(lm.get('end', END_POS), END_POS)
+            # create Track; use label and color kw if supported by genetracks.Track
+            try:
+                subtracks.append(Track(start + xoffset, end + xoffset, label=lm.get('name'), color=colour, h=height))
+            except TypeError:
+                # fallback if Track doesn't accept label/color kw names used above
+                subtracks.append(Track(start + xoffset, end + xoffset, colour, h=height))
+        if subtracks:
+            figure.add(Multitrack(subtracks), gap=1)
+
 
 def defect_order(defect):
     defect_type = DEFECT_TYPE[defect]
@@ -480,6 +525,8 @@ def create_proviral_plot(input_file, output_svg):
     total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
     figure = Figure()
     plot = ProviralLandscapePlot(figure, total_samples)
+    # add genome overview at the top of the figure so it appears above sample tracks
+    add_genome_overview(figure, LANDMARKS)
     # keep raw counts while building percentages later
     defect_counts = defaultdict(int)
     highlighted_set = set()
