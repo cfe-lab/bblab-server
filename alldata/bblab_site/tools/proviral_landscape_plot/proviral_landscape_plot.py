@@ -254,9 +254,20 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                     pass
                 else:
                     label = name
-                    g.append(draw.Text(text=label, font_size=font_size,
-                                    x=x0 + w0/2, y=y0 + self.row_h/2 + font_size*0.1,
-                                    font_family='monospace', center=True, fill='black'))
+                    # start font as float based on row height
+                    font = font_size
+                    # multiplicative shrink factor per iteration (e.g., 0.90 -> reduce by 10% each step)
+                    shrink_factor = 0.90
+                    # approximate monospace character width (pixels per font unit)
+                    char_w = 0.6
+                    padding = 4
+                    avail = w0 - padding
+                    while (font * char_w * len(label)) > avail:
+                        font = font * shrink_factor
+                    # vertical offset tuned to visually center text; use float font
+                    g.append(draw.Text(text=label, font_size=font,
+                                       x=x0 + w0/2, y=y0 + self.row_h/2 + font * 0.0,
+                                       font_family='monospace', center=True, fill='black'))
 
             return g
 
