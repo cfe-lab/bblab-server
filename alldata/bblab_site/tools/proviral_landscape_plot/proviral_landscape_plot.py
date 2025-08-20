@@ -234,7 +234,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                 name = e1[3]
                 font_size = max(8, int(self.row_h * 0.6))
                 x_label = (xA_mid + xB_mid) / 2
-                y_label = y_gap + font_size * 0.1
+                y_label = y_gap + font_size * 0.5
                 g.append(draw.Text(text=name, font_size=font_size,
                                    x=x_label, y=y_label,
                                    font_family='monospace', center=True, fill='black'))
