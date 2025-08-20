@@ -302,7 +302,6 @@ def run(csv_data, analysis_id, email_address_string):
         website.send("<h2 style='color:#8a6d3b'>We noticed some issues</h2>")
         website.send("<p>We could create the plot despite them, but these items below might have affected the result. Please check them and correct if needed.</p>")
         website.send(_make_box('Things to check', warnings, '#f0ad4e', '#fcf8e3', '#8a6d3b'))
-        website.send("<p>The plot could be made, but please review the warnings above for possible problems.</p>")
 
     if suggestions:
         website.send("<h2 style='color:#31708f'>Suggested fixes for column names</h2>")
