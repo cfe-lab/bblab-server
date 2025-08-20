@@ -260,13 +260,13 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                     shrink_factor = 0.90
                     # approximate monospace character width (pixels per font unit)
                     char_w = 0.6
-                    padding = 4
+                    padding = 2
                     avail = w0 - padding
                     while (font * char_w * len(label)) > avail:
                         font = font * shrink_factor
                     # vertical offset tuned to visually center text; use float font
                     g.append(draw.Text(text=label, font_size=font,
-                                       x=x0 + w0/2, y=y0 + self.row_h/2 + font * 0.0,
+                                       x=x0 + w0/2, y=y0 + self.row_h/2,
                                        font_family='monospace', center=True, fill='black'))
 
             return g
