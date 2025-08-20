@@ -157,15 +157,15 @@ smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
 
 When doing development, it's easiest to mount your local copy of `alldata` into the container's `/alldata` directory, so that local file changes are reflected on the server immediately.
 
-There is a second Docker compose file for this, called [`docker-compose-bblab-mounts.yml`]. To use this, start the container with the flags
+There is a second Docker compose file for this, called [`docker-compose-bblab-dev.yml`]. To use this, start the container with the flags
 
 ```
-docker-compose [--env-file <your-env-file>] -f docker-compose.bblab.yml -f docker-compose-bblab-mounts.yml up [other-flags]
+docker-compose [--env-file <your-env-file>] -f docker-compose.bblab.yml -f docker-compose-bblab-dev.yml up [other-flags]
 ```
 
 After making file changes, it's usually necessary to run `service apache2 reload` in the container before the changes are reflected in the browser.
 
-[`docker-compose-bblab-mounts.yml`]: docker-compose-bblab-mounts.yml
+[`docker-compose-bblab-dev.yml`]: docker-compose-bblab-dev.yml
 
 ## Wiki admin
 
