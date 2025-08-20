@@ -209,6 +209,14 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                     g.append(draw.Rectangle(mid_x1, y2 - thickness/2,
                                            (mid_x2 - mid_x1), thickness,
                                            fill=colour, stroke='none'))
+                # label at connector midpoint
+                name = e1[3]
+                font_size = max(8, int(self.row_h * 0.6))
+                x_label = (mid_x1 + mid_x2) / 2
+                y_label = (y1 + y2) / 2 + font_size * 1.5
+                g.append(draw.Text(text=name, font_size=font_size,
+                                   x=x_label, y=y_label,
+                                   font_family='monospace', center=True, fill='black'))
 
             # draw exon boxes
             for frame, x_pos, width, name, exon_num, colour in self.items:
@@ -218,13 +226,16 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                 # gene rectangle
                 g.append(draw.Rectangle(x0, y0, w0, self.row_h,
                                       fill=colour, stroke='black'))
+
                 # label
-                label = f"{name} (ex{exon_num})" if exon_num>1 else (
-                    f"{name} (ex1)" if len(gene_exons[name])>1 else name)
-                font_size = max(8, int(self.row_h*0.6))
-                g.append(draw.Text(text=label, font_size=font_size,
-                                   x=x0 + w0/2, y=y0 + self.row_h/2 + font_size*0.1,
-                                   font_family='monospace', center=True, fill='black'))
+                if exon_num > 1 or len(gene_exons[name]) > 1:
+                    pass
+                else:
+                    label = name
+                    font_size = max(8, int(self.row_h * 0.6))
+                    g.append(draw.Text(text=label, font_size=font_size,
+                                    x=x0 + w0/2, y=y0 + self.row_h/2 + font_size*0.1,
+                                    font_family='monospace', center=True, fill='black'))
 
             return g
 
