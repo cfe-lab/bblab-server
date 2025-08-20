@@ -87,16 +87,16 @@ GAG_END = 2292
 XOFFSET = 400
 SMALLEST_GAP = 50
 
-# default HXB2 landmarks for the small overview graphic (approximate coordinates)
+# default HXB2 landmarks for the small overview graphic
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
 # tat and rev have multiple exons, so we include both parts
 LANDMARKS = [
-    {"name": "5`LTR", 'start': 0, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
+    {"name": "5`LTR", 'start': 1, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
     {'name': 'gag', 'start': 790, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
     {'name': 'pol', 'start': 2085, 'end': 5096, 'colour': '#1f78b4', 'frame': 2},
-    {'name': 'vif', 'start': 5043, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
+    {'name': 'vif', 'start': 5041, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
     {'name': 'vpr', 'start': 5559, 'end': 5850, 'colour': '#fdbf6f', 'frame': 2},
-    {'name': 'tat', 'start': 5830, 'end': 6045, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
+    {'name': 'tat', 'start': 5831, 'end': 6045, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
     {'name': 'tat', 'start': 8379, 'end': 8469, 'colour': '#b2df8a', 'frame': 0, 'exon': 2},
     {'name': 'rev', 'start': 5970, 'end': 6045, 'colour': '#c2a5cf', 'frame': 2, 'exon': 1},
     {'name': 'rev', 'start': 8379, 'end': 8653, 'colour': '#c2a5cf', 'frame': 1, 'exon': 2},
@@ -105,7 +105,6 @@ LANDMARKS = [
     {'name': 'nef', 'start': 8797, 'end': 9417, 'colour': '#bebada', 'frame': 0},
     {"name": "3`LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
 ]
-
 
 def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     """
