@@ -87,6 +87,192 @@ GAG_END = 2292
 XOFFSET = 400
 SMALLEST_GAP = 50
 
+# default HXB2 landmarks for the small overview graphic
+# assigned to three frames (0/1/2) so overlapping genes stack vertically
+# tat and rev have multiple exons, so we include both parts
+LANDMARKS = [
+    {"name": "5′LTR", 'start': 1, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
+    {'name': 'gag', 'start': 790, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
+    {'name': 'pol', 'start': 2085, 'end': 5096, 'colour': '#1f78b4', 'frame': 2},
+    {'name': 'vif', 'start': 5041, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
+    {'name': 'vpr', 'start': 5559, 'end': 5850, 'colour': '#fdbf6f', 'frame': 2},
+    {'name': 'tat', 'start': 5831, 'end': 6045, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
+    {'name': 'tat', 'start': 8379, 'end': 8469, 'colour': '#b2df8a', 'frame': 0, 'exon': 2},
+    {'name': 'rev', 'start': 5970, 'end': 6045, 'colour': '#c2a5cf', 'frame': 2, 'exon': 1},
+    {'name': 'rev', 'start': 8379, 'end': 8653, 'colour': '#c2a5cf', 'frame': 1, 'exon': 2},
+    {'name': 'vpu', 'start': 6062, 'end': 6310, 'colour': '#ffff99', 'frame': 1},
+    {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#8dd3c7', 'frame': 2},
+    {'name': 'nef', 'start': 8797, 'end': 9417, 'colour': '#bebada', 'frame': 0},
+    {"name": "3′LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
+]
+
+def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
+    """
+    Draw a simple overview of the reference (HXB2) using the provided
+    landmarks list. Each landmark should be a dict with 'start', 'end', 'name'
+    and optionally 'colour' and 'frame'. Coordinates are assumed to be in the
+    same reference coordinate system as START_POS/END_POS; this function adds
+    XOFFSET so the overview lines up with the main plot.
+    """
+
+    # Fill out missing ends (simple behaviour: end is start-1 of next)
+    prev_landmark = None
+    landmarks_sorted = sorted(landmarks, key=itemgetter('start'))
+    for landmark in landmarks_sorted:
+        landmark.setdefault('frame', 0)
+        if prev_landmark and 'end' not in prev_landmark:
+            prev_landmark['end'] = landmark['start'] - 1
+        prev_landmark = landmark
+
+    # Build a list of items and per-gene exon lists
+    items = []  # each is (frame, x_pos, width, name, exon_num, colour)
+    gene_exons = defaultdict(list)
+    frames = []
+
+    # collect all landmark items
+    for lm in landmarks_sorted:
+        frame = lm.get('frame', 0)
+        colour = 'white'
+        start = lm['start']
+        end = lm['end']
+        if end <= start:
+            continue
+        x_pos = start + xoffset
+        width = end - start
+        name = lm.get('name')
+        exon_num = lm.get('exon', 1)
+        items.append((frame, x_pos, width, name, exon_num, colour))
+        gene_exons[name].append((frame, x_pos, width, name, exon_num, colour))
+        if frame not in frames:
+            frames.append(frame)
+
+    frames.sort()
+
+    # build connectors: connect exon N to exon N+1 for each gene
+    connectors = []  # tuples (ex1_item, ex2_item, colour)
+    for name, exlist in gene_exons.items():
+        # sort exons by exon_num
+        exlist_sorted = sorted(exlist, key=lambda e: e[4])
+        for i in range(len(exlist_sorted) - 1):
+            e1 = exlist_sorted[i]
+            e2 = exlist_sorted[i+1]
+            # ensure multi-exon
+            if e2[4] > e1[4]:
+                connectors.append((e1, e2, e1[5]))
+
+    # dimensions
+    row_h = height * 2
+    font_size = max(8, int(row_h * 0.7))
+    gap = 10
+
+    # a single drawer that draws all exons at different y-rows and connectors
+    class _MultiRowDrawer:
+        def __init__(self, items, connectors, row_h, gap):
+            self.items = items
+            self.connectors = connectors
+            self.row_h = row_h
+            self.gap = gap
+            # total height over all frame rows
+            self.h = len(frames) * row_h + (len(frames)-1) * gap
+            # width covers all items
+            self.w = max((x + w for (_, x, w, _, _, _) in items), default=0)
+
+        def draw(self, x=0, y=0, xscale=1.0):
+            g = draw.Group(transform=f"translate({x} {y})")
+
+            # helper to get y offset (flip so frame 0 is top)
+            def y_offset(frame):
+                idx = frames.index(frame)
+                # inverted: highest frame at bottom
+                max_idx = len(frames) - 1
+                return (max_idx - idx) * (self.row_h + self.gap)
+
+            # draw connectors routing from exon to exon based on vertical positions
+            for e1, e2, colour in self.connectors:
+                colour = 'black'
+                f1, x1, w1, *_ = e1
+                f2, x2, w2, *_ = e2
+                # compute scaled positions
+                x1_start = x1 * xscale
+                x2_start = x2 * xscale
+                w1_scaled = w1 * xscale
+                w2_scaled = w2 * xscale
+                # thickness of connector
+                thickness = max(1, int(self.row_h * 0.05))
+                # exon vertical bounds and mid-gap y-coordinate
+                yA_top = y_offset(f1)
+                yA_bottom = yA_top + self.row_h
+                yB_top = y_offset(f2)
+                yB_bottom = yB_top + self.row_h
+                y_gap = ((yA_bottom + yB_top) / 2) if yA_top < yB_top else ((yB_bottom + yA_top) / 2)
+                # midpoints of exons
+                xA_mid = x1_start + w1_scaled/2
+                xB_mid = x2_start + w2_scaled/2
+                # draw vertical from first exon to gap
+                if yA_top < yB_top:
+                    g.append(draw.Lines(xA_mid, yA_bottom,
+                                       xA_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    # horizontal between exons
+                    g.append(draw.Lines(xA_mid, y_gap,
+                                       xB_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    # vertical to second exon
+                    g.append(draw.Lines(xB_mid, y_gap,
+                                       xB_mid, yB_top,
+                                       stroke=colour, stroke_width=thickness))
+                else:
+                    g.append(draw.Lines(xB_mid, yB_bottom,
+                                       xB_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    g.append(draw.Lines(xB_mid, y_gap,
+                                       xA_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    g.append(draw.Lines(xA_mid, y_gap,
+                                       xA_mid, yA_top,
+                                       stroke=colour, stroke_width=thickness))
+                # label at horizontal segment midpoint
+                name = e1[3]
+                x_label = (xA_mid + xB_mid) / 2
+                y_label = y_gap + font_size * 0.5
+                g.append(draw.Text(text=name, font_size=font_size,
+                                   x=x_label, y=y_label,
+                                   font_family='monospace', center=True, fill='black'))
+
+            # draw exon boxes
+            for frame, x_pos, width, name, exon_num, colour in self.items:
+                y0 = y_offset(frame)
+                x0 = x_pos * xscale
+                w0 = width * xscale
+                # gene rectangle
+                g.append(draw.Rectangle(x0, y0, w0, self.row_h,
+                                      fill=colour, stroke='black'))
+
+                # label
+                if exon_num > 1 or len(gene_exons[name]) > 1:
+                    pass
+                else:
+                    label = name
+                    # start font as float based on row height
+                    font = font_size
+                    # multiplicative shrink factor per iteration (e.g., 0.90 -> reduce by 10% each step)
+                    shrink_factor = 0.90
+                    # approximate monospace character width (pixels per font unit)
+                    char_w = 0.6
+                    padding = 2
+                    avail = w0 - padding
+                    while (font * char_w * len(label)) > avail:
+                        font = font * shrink_factor
+                    # vertical offset tuned to visually center text; use float font
+                    g.append(draw.Text(text=label, font_size=font,
+                                       x=x0 + w0/2, y=y0 + self.row_h/2,
+                                       font_family='monospace', center=True, fill='black'))
+
+            return g
+
+    # add the combined overview drawer
+    figure.add(_MultiRowDrawer(items, connectors, row_h, gap))
+
 
 def defect_order(defect):
     defect_type = DEFECT_TYPE[defect]
@@ -132,7 +318,7 @@ class XAxis:
 
 
 class LegendAndPercentages:
-    def __init__(self, defect_percentages, highlighted, total_samples, lineheight, xaxisheight):
+    def __init__(self, defect_percentages, highlighted, total_samples, lineheight, xaxisheight, force_move_percentages=False):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
@@ -140,12 +326,17 @@ class LegendAndPercentages:
         self.highlighted_types = highlighted
         self.defect_percentages = defect_percentages
         self.num_samples = total_samples
+        # number of legend lines (3 columns)
         self.num_lines = (len(self.defect_types) + len(self.highlighted_types)) / 3
         self.h = 20 * self.num_lines
         self.lineheight = lineheight
         self.xaxisheight = xaxisheight
+        # if True, move percentages into legend (used when any category is small)
+        self.force_move_percentages = force_move_percentages
 
-    def add_legend(self, a, column_space, barlen, barheight, drawing):
+    def add_legend(self, a, column_space, barlen, barheight, drawing, include_percentages=False):
+        """Draw legend entries. If include_percentages is True, append percentages to legend labels
+        instead of drawing them in the sidebar."""
         ypos_first = self.h
         num_defects = 0
         num_defects_per_column = ceil((len(self.defect_types) + len(self.highlighted_types)) / 3)
@@ -174,7 +365,29 @@ class LegendAndPercentages:
 
             # legend entries
             drawing.append(draw.Rectangle(xpos, ypos, barlen, barheight, fill=color, stroke=color))
-            drawing.append(Label(0, defect, font_size=15, offset=ypos).draw(x=(a + xpos + barlen)))
+
+            # Build label text. If asked, include percentage next to defect name
+            if include_percentages:
+                pct = self.defect_percentages.get(defect, 0.0)
+                # Only show percentage for defects that have an entry in defect_percentages
+                if defect in self.defect_percentages:
+                    label_text = f"{defect} ({round(pct, 1)}%)"
+                else:
+                    label_text = defect
+            else:
+                label_text = defect
+
+            # place label to the right of the colored bar with a padding and left-aligned text
+            label_padding = 12
+            label_x = xpos + barlen + label_padding
+            # vertical position: center text alongside the color bar (small upward offset)
+            label_y = ypos + barheight / 2 - 5
+            drawing.append(draw.Text(text=label_text,
+                                     font_size=15,
+                                     x=label_x,
+                                     y=label_y,
+                                     font_family='monospace',
+                                     fill='black'))
 
     def add_sidebar(self, sidebar_x, sidebar_ystart, fontsize, drawing):
         pending_percentages = []
@@ -243,13 +456,21 @@ class LegendAndPercentages:
         yaxis_label_height = h + self.xaxisheight + self.num_samples * (self.lineheight + 1) / 2
         fontsize = 20
 
+        # Determine whether to move percentages into the legend
+        # move_percentages_to_legend is controlled externally via force_move_percentages flag
+        move_percentages_to_legend = bool(self.force_move_percentages)
+
         d = draw.Group(transform="translate({} {})".format(x, y))
 
         d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height + 12).draw(x=(a - 30)))
         d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height - 12).draw(x=(a - 30)))
 
-        self.add_legend(a, column_space, barlen, barheight, d)
-        self.add_sidebar(sidebar_x, sidebar_ystart, fontsize, d)
+        # draw legend; optionally include percentages in the legend labels
+        self.add_legend(a, column_space, barlen, barheight, d, include_percentages=move_percentages_to_legend)
+
+        # only draw the sidebar when percentages are not moved into the legend
+        if not move_percentages_to_legend:
+            self.add_sidebar(sidebar_x, sidebar_ystart, fontsize, d)
 
         return d
 
@@ -283,7 +504,6 @@ class ProviralLandscapePlot:
             if is_first:
                 xstart = LEFT_PRIMER_END
                 xend = RIGHT_PRIMER_START
-                highlight = False
             else:
                 return
         if is_first:
@@ -333,12 +553,13 @@ class ProviralLandscapePlot:
         self.figure.add(XAxis(h=xaxis_thickness), padding=padding, gap=gap)
         self.xaxisheight = padding + gap + xaxis_thickness
 
-    def legends_and_percentages(self, defect_percentages, highlight_types):
+    def legends_and_percentages(self, defect_percentages, highlight_types, force_move_percentages=False):
         self.figure.add(LegendAndPercentages(defect_percentages,
                                              highlight_types,
                                              self.tot_samples,
                                              self.lineheight,
-                                             self.xaxisheight))
+                                             self.xaxisheight,
+                                             force_move_percentages))
 
 
 def sort_csv_lines(lines):
@@ -444,7 +665,17 @@ def create_proviral_plot(input_file, output_svg):
     total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
     figure = Figure()
     plot = ProviralLandscapePlot(figure, total_samples)
-    defect_percentages = defaultdict(int)
+    # add genome overview at the top of the figure so it appears above sample tracks
+    add_genome_overview(figure, LANDMARKS)
+    # add a small blank multitrack to create vertical separation between the overview
+    # and the sample tracks (gap value tuned experimentally)
+    try:
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
+    except TypeError:
+        # fallback if Track signature differs; attempt without named color
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, '#ffffff', h=2)]), gap=8)
+    # keep raw counts while building percentages later
+    defect_counts = defaultdict(int)
     highlighted_set = set()
     # group and plot by defect category, preserving category order
     for all_rows_this_defect in sort_csv_lines(lines):
@@ -466,24 +697,45 @@ def create_proviral_plot(input_file, output_svg):
                 xend = int(row['ref_end'].strip())
                 highlighted = False
                 if row['is_defective'].strip():
-                    highlighted_set.add('Defect Region')
+                    # TODO: incorporate this when we get ranges info from proviral.
+                    # highlighted_set.add('Defect Region')
                     highlighted = 'Defect Region'
                 elif row['is_inverted'].strip():
                     highlighted_set.add('Inverted Region')
                     highlighted = 'Inverted Region'
                 plot.add_line(samp, xstart, xend, defect, highlighted)
         # count samples in this defect for percentages
-        defect_percentages[defect] += len(sample_order)
+        defect_counts[defect] += len(sample_order)
 
-    # convert counts to percentages
-    for defect, number in defect_percentages.items():
+    # convert counts to percentages (only include defects that have a defined color)
+    defect_percentages = defaultdict(int)
+    for defect, number in defect_counts.items():
         if defect not in DEFECT_TO_COLOR:
             continue
         defect_percentages[defect] = number / total_samples * 100
+
+    # Determine whether to move percentages into the legend based on adjacency in the
+    # right-hand percentage sidebar. The sidebar iterates defects in the same order
+    # as defect_percentages.keys(), so use that ordering here.
+    neighbour_flag = False
+    sidebar_entries = list(defect_percentages.keys())
+    total_entries = len(sidebar_entries)
+    if total_entries > 1:
+        # build list of counts for sidebar entries (0 if missing)
+        counts_list = [defect_counts.get(entry, 0) for entry in sidebar_entries]
+        for i in range(total_entries - 1):
+            c1 = counts_list[i]
+            c2 = counts_list[i + 1]
+            # both must be active (count>0) and both have very few samples (<4)
+            if c1 > 0 and c2 > 0 and c1 < 4 and c2 < 4:
+                neighbour_flag = True
+                break
+
     # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
-    plot.legends_and_percentages(defect_percentages, highlighted_set)
+    plot.legends_and_percentages(defect_percentages, highlighted_set, force_move_percentages=neighbour_flag)
+    # display with a standard width so the overview is visible
     figure.show(w=900).save_svg(output_svg)
 
 
