@@ -7,8 +7,3 @@ services:
         target: /alldata
     ports:
       - "80:80/tcp"
-
-  # Disable traefik in development.
-  traefik:
-    deploy:
-      replicas: 0
