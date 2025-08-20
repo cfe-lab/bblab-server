@@ -273,38 +273,43 @@ def run(csv_data, analysis_id, email_address_string):
     csv_text, read_err = _read_csv_text(csv_data)
     if read_err:
         website.send(
-            f"<div style='border:1px solid #d9534f;padding:12px;background:#f8d7da;color:#721c24;'><h2>Critical error</h2><p>{html.escape(read_err)}</p></div>"
+            f"<div style='border:1px solid #d9534f;padding:12px;background:#f8d7da;color:#721c24;'><h2>Problem reading your file</h2><p>{html.escape(read_err)}</p><p>Please make sure you uploaded a CSV file and that it is readable. If you opened the file in Excel or Google Sheets, try exporting/saving as CSV and upload that.</p></div>"
         )
         return website.generate_site()
 
     # Validate
     errors, warnings, suggestions = _validate_csv_text(csv_text)
 
-    # Present validation results
+    # Present validation results in plain, user-friendly language
     if errors:
-        website.send("<h1 style='color:#a94442'>Input validation failed</h1>")
-        website.send(_make_box('Errors', errors, '#a94442', '#f2dede', '#a94442'))
+        website.send("<h1 style='color:#a94442'>We couldn't create your plot</h1>")
+        website.send("<p>There are problems in your file that prevent us from making the plot. Please fix the items below and try again.</p>")
+        website.send("<p>If you are using a spreadsheet program (Excel, Numbers, Google Sheets): make sure the first row contains the column names and save/export as CSV before uploading.</p>")
+        website.send(_make_box('What to fix', errors, '#a94442', '#f2dede', '#a94442'))
         if warnings:
-            website.send(_make_box('Warnings', warnings, '#f0ad4e', '#fcf8e3', '#8a6d3b'))
+            website.send(_make_box('Things to check', warnings, '#f0ad4e', '#fcf8e3', '#8a6d3b'))
         # If we have header suggestions (likely because required columns were missing), show them here too
         if suggestions:
-            website.send("<h2 style='color:#31708f'>Header suggestions</h2>")
+            website.send("<h2 style='color:#31708f'>Suggested fixes for column names</h2>")
+            website.send("<p style='background:#eef9ff;padding:8px;border-left:4px solid #31708f;'>Tip: To fix a column name, open your CSV or spreadsheet and change the name in the first row (the column headers). The suggestions below show likely corrections. Whitespace (extra spaces) is highlighted when present.</p>")
             for sug in suggestions:
                 website.send(sug)
-            website.send("<p>Review the suggestions above to improve your CSV file.</p>")
-        website.send("<p>Please correct the CSV file and try again. No plot was generated.</p>")
+            website.send("<p>After making changes, save the file as CSV and upload it again.</p>")
+        website.send("<p>Please fix these issues and try again. No plot was generated.</p>")
         return website.generate_site()
 
     if warnings:
-        website.send("<h2 style='color:#8a6d3b'>Validation warnings</h2>")
-        website.send(_make_box('Warnings', warnings, '#f0ad4e', '#fcf8e3', '#8a6d3b'))
-        website.send("<p>The plot will be generated but some rows may be unexpected. Inspect the warnings above.</p>")
+        website.send("<h2 style='color:#8a6d3b'>We noticed some issues</h2>")
+        website.send("<p>These items may not stop the plot from being made, but they might affect the result. Please check them and correct if needed.</p>")
+        website.send(_make_box('Things to check', warnings, '#f0ad4e', '#fcf8e3', '#8a6d3b'))
+        website.send("<p>The plot will be generated, but please review the warnings above for possible problems.</p>")
 
     if suggestions:
-        website.send("<h2 style='color:#31708f'>Header suggestions</h2>")
+        website.send("<h2 style='color:#31708f'>Suggested fixes for column names</h2>")
+        website.send("<p style='background:#eef9ff;padding:8px;border-left:4px solid #31708f;'>Tip: To fix a column name, open your CSV or spreadsheet and change the name in the first row (the column headers). The suggestions below show likely corrections. Whitespace (extra spaces) is highlighted when present.</p>")
         for sug in suggestions:
             website.send(sug)
-        website.send("<p>Review the suggestions above to improve your CSV file.</p>")
+        website.send("<p>These suggestions are just that — suggestions. If you know your file is correct, you can continue.</p>")
 
     # Import plotting module after successful validation
     plot_mod, import_err = _import_plot_module()
