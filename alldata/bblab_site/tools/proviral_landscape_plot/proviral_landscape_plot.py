@@ -134,8 +134,8 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
         colour = lm.get('colour') or lm.get('color')
         if colour is None:
             continue
-        start = max(lm.get('start', START_POS), START_POS)
-        end = min(lm.get('end', END_POS), END_POS)
+        start = lm['start']
+        end = lm['end']
         if end <= start:
             continue
         x_pos = start + xoffset
