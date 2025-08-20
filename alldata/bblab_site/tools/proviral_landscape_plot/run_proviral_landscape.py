@@ -65,6 +65,11 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str]]:
         errors.append("No CSV header found or file is empty.")
         return errors, warnings
 
+    # Track which columns are actually present so we don't emit cascading row-level
+    # errors when a required column is missing (e.g., if 'samp_name' is absent, don't
+    # complain about every row missing a sample name — the header-level error is enough).
+    present_columns = set(headers)
+
     for col in REQUIRED_COLUMNS:
         if col not in headers:
             errors.append(f"Missing required column: '{col}'")
@@ -82,31 +87,40 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str]]:
         if not any((v and v.strip() for v in row.values())):
             continue
 
-        samp = (row.get('samp_name') or '').strip()
-        if not samp:
-            errors.append(f"Row {i}: missing sample name ('samp_name').")
+        # samp_name: only validate per-row if the column exists
+        if 'samp_name' in present_columns:
+            samp = (row.get('samp_name') or '').strip()
+            if not samp:
+                errors.append(f"Row {i}: missing sample name ('samp_name').")
 
-        rs = (row.get('ref_start') or '').strip()
-        re = (row.get('ref_end') or '').strip()
-        if not rs or not re:
-            errors.append(f"Row {i}: missing 'ref_start' or 'ref_end'.")
-            continue
-        try:
-            rs_i = int(rs)
-            re_i = int(re)
-            if rs_i < 0 or re_i < 0:
-                warnings.append(f"Row {i}: start/end negative: {rs}/{re}.")
-            if rs_i >= re_i:
-                warnings.append(f"Row {i}: 'ref_start' >= 'ref_end' ({rs_i} >= {re_i}).")
-        except ValueError:
-            errors.append(f"Row {i}: 'ref_start' and 'ref_end' must be integers (got '{html.escape(rs)}'/'{html.escape(re)}').")
-            continue
+        # ref_start / ref_end numeric: only validate if both columns are present
+        if 'ref_start' in present_columns and 'ref_end' in present_columns:
+            rs = (row.get('ref_start') or '').strip()
+            re = (row.get('ref_end') or '').strip()
+            if not rs or not re:
+                errors.append(f"Row {i}: missing 'ref_start' or 'ref_end'.")
+                continue
+            try:
+                rs_i = int(rs)
+                re_i = int(re)
+                if rs_i < 0 or re_i < 0:
+                    warnings.append(f"Row {i}: start/end negative: {rs}/{re}.")
+                if rs_i >= re_i:
+                    warnings.append(f"Row {i}: 'ref_start' >= 'ref_end' ({rs_i} >= {re_i}).")
+            except ValueError:
+                errors.append(f"Row {i}: 'ref_start' and 'ref_end' must be integers (got '{html.escape(rs)}'/'{html.escape(re)}').")
+                continue
 
-        defect_val = (row.get('defect') or '').strip()
-        if not defect_val:
-            warnings.append(f"Row {i}: empty 'defect' field.")
+        # defect: only validate if column exists
+        if 'defect' in present_columns:
+            defect_val = (row.get('defect') or '').strip()
+            if not defect_val:
+                warnings.append(f"Row {i}: empty 'defect' field.")
 
+        # boolean-like checks: only validate columns that exist
         for bool_col in ('is_defective', 'is_inverted'):
+            if bool_col not in present_columns:
+                continue
             val = (row.get(bool_col) or '').strip().lower()
             if val and val not in ('0', '1', 'true', 'false', 't', 'f'):
                 warnings.append(
@@ -181,7 +195,7 @@ def run(csv_data, analysis_id, email_address_string):
         return website.generate_site()
 
     # Show SVG output
-    website.send(f"<img width='100%' src='/media/output.svg' alt='Output svg' />")
+    website.send("<img width='100%' src='/media/output.svg' alt='Output svg' />")
 
     # Short description for email
     short_description = analysis_id or ''
