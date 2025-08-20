@@ -153,14 +153,13 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                     # only show visible-whitespace view if either side has leading/trailing spaces or tabs
                     show_ws = _has_visible_whitespace(col) or _has_visible_whitespace(m)
                     if show_ws:
-                        vis_exp, exp_exp_details = _visible_whitespace_html(col)
-                        vis_found, exp_found_details = _visible_whitespace_html(m)
+                        vis_exp = _visible_whitespace_html(col)
+                        vis_found = _visible_whitespace_html(m)
                         suggestions.append(
                             "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
                             f"<strong>Possible header match for '{html.escape(col)}'</strong>"
                             f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
                             f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_exp}</code><br/>Found: <code style='white-space:pre'>{vis_found}</code></div>"
-                            f"<div style='margin-top:6px;color:#245269;font-size:smaller'>{html.escape(exp_exp_details)} | {html.escape(exp_found_details)}</div>"
                             "</div>"
                         )
                     else:
@@ -180,14 +179,13 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                     if top_score > 0:
                         exp_h, found_h = _highlight_differences(col, top_candidate)
                         if show_ws:
-                            vis_top, top_details = _visible_whitespace_html(top_candidate)
-                            vis_col, col_details = _visible_whitespace_html(col)
+                            vis_top = _visible_whitespace_html(top_candidate)
+                            vis_col = _visible_whitespace_html(col)
                             suggestions.append(
                                 "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
                                 f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
                                 f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
                                 f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_col}</code><br/>Found: <code style='white-space:pre'>{vis_top}</code></div>"
-                                f"<div style='margin-top:6px;color:#666;font-size:smaller'>{html.escape(col_details)} | {html.escape(top_details)}</div>"
                                 "</div>"
                             )
                         else:
@@ -365,17 +363,11 @@ def _has_visible_whitespace(s: str) -> bool:
     return (s != s.lstrip(' \t')) or (s != s.rstrip(' \t')) or ('\t' in s)
 
 
-def _visible_whitespace_html(s: str) -> Tuple[str, str]:
-    """Return an HTML fragment that makes spaces/tabs visible and a short details string.
-    Spaces are shown as a middle dot (·) and tabs as a tab-arrow (⇥).
-    """
+def _visible_whitespace_html(s: str) -> str:
     if s is None:
         s = ''
-    leading = len(s) - len(s.lstrip(' \t'))
-    trailing = len(s) - len(s.rstrip(' \t'))
-    tabs = s.count('\t')
+
     rep = html.escape(s)
     rep = rep.replace(' ', "<span style='background:#fffbdd;color:#a94442;padding:0 1px;margin:0;'>·</span>")
     rep = rep.replace('\t', "<span style='background:#fffbdd;color:#a94442;padding:0 1px;margin:0;'>⇥</span>")
-    details = f"Leading spaces: {leading}; Trailing spaces: {trailing}; Tabs: {tabs}"
-    return rep, details
+    return rep
