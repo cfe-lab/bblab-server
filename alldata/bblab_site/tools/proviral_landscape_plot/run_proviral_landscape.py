@@ -441,10 +441,10 @@ def _boxed_column_preview(exp_html: str, found_html: str) -> str:
     return (
         f"<div style='{container_style}'>"
         # Expected row
-        f"<div style='color:#666;font-size:smaller;'>Expected:</div>"
+        f"<div style='color:#666;font-size:smaller;margin-top:2.5px;'>Expected:</div>"
         f"<div style='justify-self:start;'><span style='{box_style}'>{exp_html}</span></div>"
         # Found row
-        f"<div style='color:#666;font-size:smaller;'>Found:</div>"
+        f"<div style='color:#666;font-size:smaller;margin-top:2.5px;'>Found:</div>"
         f"<div style='justify-self:start;'><span style='{box_style}'>{found_html}</span></div>"
         "</div>"
     )
