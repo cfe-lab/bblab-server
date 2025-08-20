@@ -335,6 +335,15 @@ def run(csv_data, analysis_id, email_address_string):
 
     # Show SVG output
     website.send("<img width='100%' src='/media/output.svg' alt='Output svg' />")
+    # Add a centered, prominent download button so non-technical users can easily save the image
+    website.send(
+        "<div style='text-align:center;margin:16px 0;'>"
+        "<a href='/media/output.svg' download='proviral_landscape.svg' "
+        "style='display:inline-block;background:#31708f;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;box-shadow:0 4px 10px rgba(0,0,0,0.12);'>"
+        "Download"
+        "</a>"
+        "</div>"
+    )
 
     # Short description for email
     short_description = analysis_id or ''
