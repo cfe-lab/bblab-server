@@ -167,7 +167,7 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                         suggestions.append(
                             "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
                             f"<strong>Possible header match for '{html.escape(col)}'</strong>"
-                            f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                            f"<div style='margin-top:6px;'>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
                             "</div>"
                         )
             else:
@@ -194,7 +194,7 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                             suggestions.append(
                                 "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
                                 f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
-                                f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                                f"<div style='margin-top:6px;'>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
                                 "</div>"
                             )
 
