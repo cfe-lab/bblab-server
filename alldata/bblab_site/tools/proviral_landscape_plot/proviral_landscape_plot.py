@@ -132,9 +132,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     # collect all landmark items
     for lm in landmarks_sorted:
         frame = lm.get('frame', 0)
-        colour = lm.get('colour') or lm.get('color')
-        if colour is None:
-            continue
+        colour = 'white'
         start = lm['start']
         end = lm['end']
         if end <= start:
@@ -191,6 +189,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
 
             # draw connectors routing from exon to exon based on vertical positions
             for e1, e2, colour in self.connectors:
+                colour = 'black'
                 f1, x1, w1, *_ = e1
                 f2, x2, w2, *_ = e2
                 # compute scaled positions
