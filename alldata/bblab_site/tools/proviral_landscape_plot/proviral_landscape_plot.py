@@ -165,12 +165,19 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                 for x_pos, width, name in self.items:
                     x_scaled = x_pos * xscale
                     w_scaled = width * xscale
-                    # black rectangle for the gene
+                    # draw a black outer rectangle as the border
                     g.append(draw.Rectangle(x_scaled, 0, w_scaled, self.h, fill='black', stroke='black'))
-                    # white centered label; choose a readable font size relative to track height
+                    # inset an inner white rectangle so the visible fill is white with a black border
+                    inset = max(1, int(self.h * 0.06))
+                    inner_x = x_scaled + inset
+                    inner_y = inset
+                    inner_w = max(0, w_scaled - 2 * inset)
+                    inner_h = max(0, self.h - 2 * inset)
+                    g.append(draw.Rectangle(inner_x, inner_y, inner_w, inner_h, fill='white', stroke='none'))
+                    # centered label; choose a readable font size relative to track height
                     font_size = max(10, int(self.h * 0.8))
                     text_x = x_scaled + w_scaled / 2
-                    # draw.Text positions text with baseline at y; use a modest downward offset
+                    # position baseline slightly below center for visual centering
                     text_y = self.h / 2 + font_size * 0.1
                     g.append(draw.Text(text=name,
                                        font_size=font_size,
@@ -178,7 +185,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                                        y=text_y,
                                        font_family='monospace',
                                        center=True,
-                                       fill='white'))
+                                       fill='green'))
                 return g
 
         # add our custom overview drawer to the figure; keep a slightly larger gap between frames
