@@ -157,8 +157,6 @@ def run(csv_data, analysis_id, email_address_string):
         website.send("<h2 style='color:#8a6d3b'>Validation warnings</h2>")
         website.send(_make_box('Warnings', warnings, '#f0ad4e', '#fcf8e3', '#8a6d3b'))
         website.send("<p>The plot will be generated but some rows may be unexpected. Inspect the warnings above.</p>")
-    else:
-        website.send("<div style='border:1px solid #5cb85c;padding:10px;background:#dff0d8;color:#3c763d;'><strong>Validation passed</strong> — generating plot.</div>")
 
     # Import plotting module after successful validation
     plot_mod, import_err = _import_plot_module()
