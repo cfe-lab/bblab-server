@@ -49,20 +49,46 @@ def _read_csv_text(csv_data) -> Tuple[str, str]:
 
 def _highlight_differences(expected: str, found: str) -> Tuple[str, str]:
     """Return (expected_html, found_html) with differing characters highlighted.
-    This is a simple positional comparison (suitable for short header names) that
-    highlights differing characters in red/bold."""
-    maxlen = max(len(expected), len(found))
+
+    Use SequenceMatcher opcodes to align the two strings so only the actual
+    differing characters are highlighted (handles insertions/deletions/replaces)
+    rather than highlighting everything after the first mismatch.
+    """
+    if expected is None:
+        expected = ''
+    if found is None:
+        found = ''
+
+    sm = difflib.SequenceMatcher(None, expected, found)
     exp_parts = []
     found_parts = []
-    for i in range(maxlen):
-        ca = expected[i] if i < len(expected) else ''
-        cb = found[i] if i < len(found) else ''
-        if ca == cb:
-            exp_parts.append(html.escape(ca))
-            found_parts.append(html.escape(cb))
-        else:
-            exp_parts.append(f"<span style='color:#d9534f;font-weight:bold'>{html.escape(ca)}</span>" if ca else "<span style='color:#d9534f;font-weight:bold'>&#8203;</span>")
-            found_parts.append(f"<span style='color:#d9534f;font-weight:bold'>{html.escape(cb)}</span>" if cb else "<span style='color:#d9534f;font-weight:bold'>&#8203;</span>")
+
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == 'equal':
+            # matching run: add as-is
+            exp_parts.append(html.escape(expected[i1:i2]))
+            found_parts.append(html.escape(found[j1:j2]))
+        elif tag == 'replace':
+            # differing run of same length (or similar) -> highlight both sides
+            exp_sub = html.escape(expected[i1:i2])
+            found_sub = html.escape(found[j1:j2])
+            exp_parts.append(f"<span style='color:#d9534f;font-weight:bold'>{exp_sub}</span>")
+            found_parts.append(f"<span style='color:#d9534f;font-weight:bold'>{found_sub}</span>")
+        elif tag == 'delete':
+            # expected has extra characters that are missing in found
+            exp_sub = html.escape(expected[i1:i2])
+            # in the 'found' display, insert visible zero-width placeholders so alignment
+            # visually indicates missing characters
+            placeholders = ''.join("<span style='color:#d9534f;font-weight:bold'>&#8203;</span>" for _ in range(i2 - i1))
+            exp_parts.append(f"<span style='color:#d9534f;font-weight:bold'>{exp_sub}</span>")
+            found_parts.append(placeholders)
+        elif tag == 'insert':
+            # found has extra characters that are missing in expected
+            found_sub = html.escape(found[j1:j2])
+            placeholders = ''.join("<span style='color:#d9534f;font-weight:bold'>&#8203;</span>" for _ in range(j2 - j1))
+            exp_parts.append(placeholders)
+            found_parts.append(f"<span style='color:#d9534f;font-weight:bold'>{found_sub}</span>")
+
     return ''.join(exp_parts), ''.join(found_parts)
 
 
