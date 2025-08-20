@@ -36,7 +36,7 @@ def run(csv_data, analysis_id, email_address_string):
     #
     # Prepare the file
     #
-    svg_content = Path(output_svg).read_text()
+    svg_content = Path(output_svg).read_text(encoding='utf8')
     plot_file = mailer.create_file( short_description, 'svg', svg_content )
 
     #
