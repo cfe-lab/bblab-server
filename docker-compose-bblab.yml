@@ -67,8 +67,6 @@ services:
       - /srv/bblab_site/media:/alldata/bblab_site/media
       - /srv/bblab_site/tools/guava_layout/output:/alldata/bblab_site/tools/guava_layout/output
       - /srv/bblab_site/tools/sequencing_layout/output:/alldata/bblab_site/tools/sequencing_layout/output
-    ports:
-      - "80:80"
 
   db:
     image: mariadb:11.6
