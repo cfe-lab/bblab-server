@@ -179,10 +179,14 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
 
         def draw(self, x=0, y=0, xscale=1.0):
             g = draw.Group(transform=f"translate({x} {y})")
-            # helper to get y offset
+
+            # helper to get y offset (flip so frame 0 is top)
             def y_offset(frame):
                 idx = frames.index(frame)
-                return idx * (self.row_h + self.gap)
+                # inverted: highest frame at bottom
+                max_idx = len(frames) - 1
+                return (max_idx - idx) * (self.row_h + self.gap)
+
             # draw connectors first using thin rectangles (no triangles)
             for e1, e2, colour in self.connectors:
                 f1, x1, w1, *_ = e1
@@ -221,7 +225,9 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                 g.append(draw.Text(text=label, font_size=font_size,
                                    x=x0 + w0/2, y=y0 + self.row_h/2 + font_size*0.1,
                                    font_family='monospace', center=True, fill='black'))
+
             return g
+
     # add the combined overview drawer
     figure.add(_MultiRowDrawer(items, connectors, row_h, gap))
 
