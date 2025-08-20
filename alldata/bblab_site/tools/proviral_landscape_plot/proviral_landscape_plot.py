@@ -91,8 +91,9 @@ SMALLEST_GAP = 50
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
 # tat and rev have multiple exons, so we include both parts
 LANDMARKS = [
-    {'name': 'gag', 'start': START_POS, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
-    {'name': 'pol', 'start': GAG_END - 200, 'end': 5500, 'colour': '#1f78b4', 'frame': 2},
+    {"name": "5`LTR", 'start': 0, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
+    {'name': 'gag', 'start': 790, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
+    {'name': 'pol', 'start': 2085, 'end': 5096, 'colour': '#1f78b4', 'frame': 2},
     {'name': 'vif', 'start': 5043, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
     {'name': 'vpr', 'start': 5559, 'end': 5850, 'colour': '#fdbf6f', 'frame': 2},
     {'name': 'tat', 'start': 5830, 'end': 6045, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
@@ -102,6 +103,7 @@ LANDMARKS = [
     {'name': 'vpu', 'start': 6062, 'end': 6310, 'colour': '#ffff99', 'frame': 1},
     {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#8dd3c7', 'frame': 2},
     {'name': 'nef', 'start': 8797, 'end': 9417, 'colour': '#bebada', 'frame': 0},
+    {"name": "3`LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
 ]
 
 
