@@ -89,13 +89,16 @@ SMALLEST_GAP = 50
 
 # default HXB2 landmarks for the small overview graphic (approximate coordinates)
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
+# tat and rev have multiple exons, so we include both parts
 LANDMARKS = [
     {'name': 'gag', 'start': START_POS, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
     {'name': 'pol', 'start': GAG_END - 200, 'end': 5500, 'colour': '#1f78b4', 'frame': 1},
     {'name': 'vif', 'start': 5043, 'end': 5619, 'colour': '#fb9a99', 'frame': 2},
     {'name': 'vpr', 'start': 5559, 'end': 5850, 'colour': '#fdbf6f', 'frame': 0},
-    {'name': 'tat', 'start': 5830, 'end': 6045, 'colour': '#b2df8a', 'frame': 1},
-    {'name': 'rev', 'start': 5970, 'end': 6045, 'colour': '#c2a5cf', 'frame': 2},
+    {'name': 'tat', 'start': 5830, 'end': 6045, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
+    {'name': 'tat', 'start': 8379, 'end': 8469, 'colour': '#b2df8a', 'frame': 1, 'exon': 2},
+    {'name': 'rev', 'start': 5970, 'end': 6045, 'colour': '#c2a5cf', 'frame': 2, 'exon': 1},
+    {'name': 'rev', 'start': 8379, 'end': 8653, 'colour': '#c2a5cf', 'frame': 2, 'exon': 2},
     {'name': 'vpu', 'start': 6062, 'end': 6310, 'colour': '#ffff99', 'frame': 0},
     {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#8dd3c7', 'frame': 1},
     {'name': 'nef', 'start': 8797, 'end': 9417, 'colour': '#bebada', 'frame': 2},
@@ -128,11 +131,13 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     for lm in landmarks_sorted:
         frame_groups[lm.get('frame', 0)].append(lm)
 
-    # We will draw a simple overview for each frame ourselves (black rectangles
-    # with white centered labels). Using draw.Text here guarantees the label
+    # We will draw a simple overview for each frame ourselves (white rectangles
+    # with black borders and exon connectors). Using draw.Text here guarantees the label
     # colour regardless of the genetracks.Track/Label API on the host system.
     for frame in sorted(frame_groups.keys()):
         rect_items = []
+        connectors = []  # store connector info for genes with multiple exons
+        
         for lm in frame_groups[frame]:
             colour = lm.get('colour') or lm.get('color')
             if colour is None:
@@ -145,51 +150,126 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
             # compute absolute x position (includes xoffset) and width
             x_pos = start + xoffset
             width = end - start
-            rect_items.append((x_pos, width, lm.get('name')))
-
-        if not rect_items:
-            continue
+            
+            gene_name = lm.get('name')
+            exon_num = lm.get('exon', 1)
+            # add exon item for drawing overview
+            rect_items.append((x_pos, width, gene_name, exon_num, colour))
+            # for multi-exon genes, link exon1 and exon2 with a connector
+            if exon_num > 1:
+                # find the first exon entry for this gene
+                exon1_info = next(item for item in rect_items[:-1] if item[2] == gene_name and item[3] == 1)
+                exon2_info = rect_items[-1]
+                connectors.append((gene_name, exon1_info, exon2_info, colour))
 
         # small wrapper object with a draw() method so Figure.add can accept it
         class _OverviewDrawer:
-            def __init__(self, items, height):
+            def __init__(self, items, connectors, height):
                 self.items = items
+                self.connectors = connectors
                 # double the requested height so rectangles are ~100% taller
                 self.h = height * 2
                 # genetracks expects a .w (width) attribute on drawable elements
                 # compute the rightmost coordinate covered by the items
-                self.w = max(((x_pos + width) for (x_pos, width, _) in items), default=0)
+                if items:
+                    self.w = max(((x_pos + width) for (x_pos, width, _, _, _) in items), default=0)
+                else:
+                    self.w = 0
+
+            def draw_connector(self, g, exon1_info, exon2_info, colour, xscale):
+                """Draw a curved connector between two exons using thin rectangles"""
+                x1_pos, x1_width, _, _, _ = exon1_info
+                x2_pos, x2_width, _, _, _ = exon2_info
+                
+                x1_scaled = x1_pos * xscale
+                x1_width_scaled = x1_width * xscale
+                x2_scaled = x2_pos * xscale
+                # x2_width_scaled = x2_width * xscale  # unused
+                
+                # Start and end points of the connector
+                start_x = x1_scaled + x1_width_scaled  # right edge of first exon
+                end_x = x2_scaled  # left edge of second exon
+                
+                # Connector styling
+                connector_thickness = max(1, int(self.h * 0.08))
+                curve_height = self.h * 0.6  # how far the curve extends upward
+                
+                # Draw connector using multiple thin rectangles to create a curved path
+                # Horizontal line from first exon
+                horizontal1_width = min(50, (end_x - start_x) * 0.3)
+                g.append(draw.Rectangle(start_x, self.h/2 - connector_thickness/2, 
+                                      horizontal1_width, connector_thickness, 
+                                      fill=colour, stroke='none'))
+                
+                # Vertical line going up
+                vertical_start_x = start_x + horizontal1_width
+                g.append(draw.Rectangle(vertical_start_x - connector_thickness/2, 
+                                      self.h/2 - curve_height, 
+                                      connector_thickness, curve_height, 
+                                      fill=colour, stroke='none'))
+                
+                # Horizontal line across the top
+                horizontal_top_width = max(10, end_x - vertical_start_x - 50)
+                g.append(draw.Rectangle(vertical_start_x, 
+                                      self.h/2 - curve_height - connector_thickness/2, 
+                                      horizontal_top_width, connector_thickness, 
+                                      fill=colour, stroke='none'))
+                
+                # Vertical line going down
+                vertical_end_x = vertical_start_x + horizontal_top_width
+                g.append(draw.Rectangle(vertical_end_x - connector_thickness/2, 
+                                      self.h/2 - curve_height, 
+                                      connector_thickness, curve_height, 
+                                      fill=colour, stroke='none'))
+                
+                # Final horizontal line to second exon
+                final_horizontal_width = end_x - vertical_end_x
+                if final_horizontal_width > 0:
+                    g.append(draw.Rectangle(vertical_end_x, self.h/2 - connector_thickness/2, 
+                                          final_horizontal_width, connector_thickness, 
+                                          fill=colour, stroke='none'))
 
             def draw(self, x=0, y=0, xscale=1.0):
                 g = draw.Group(transform=f"translate({x} {y})")
-                for x_pos, width, name in self.items:
+                
+                # Draw connectors first (so they appear behind exons)
+                for gene_name, exon1_info, exon2_info, colour in self.connectors:
+                    self.draw_connector(g, exon1_info, exon2_info, colour, xscale)
+                
+                # Draw exon rectangles
+                for x_pos, width, name, exon_num, gene_colour in self.items:
                     x_scaled = x_pos * xscale
                     w_scaled = width * xscale
-                    # draw a black outer rectangle as the border
-                    g.append(draw.Rectangle(x_scaled, 0, w_scaled, self.h, fill='black', stroke='black'))
-                    # inset an inner white rectangle so the visible fill is white with a black border
-                    inset = max(1, int(self.h * 0.06))
-                    inner_x = x_scaled + inset
-                    inner_y = inset
-                    inner_w = max(0, w_scaled - 2 * inset)
-                    inner_h = max(0, self.h - 2 * inset)
-                    g.append(draw.Rectangle(inner_x, inner_y, inner_w, inner_h, fill='white', stroke='none'))
+                    # draw exon rectangle with gene-specific colour fill and black border
+                    g.append(draw.Rectangle(x_scaled, 0, w_scaled, self.h, fill=gene_colour, stroke='black'))
+                    
+                    # Label text (show exon number for multi-exon genes)
+                    if exon_num > 1:
+                        label_text = f"{name} (ex{exon_num})"
+                    else:
+                        # Check if this gene has multiple exons
+                        has_multiple_exons = any(item[2] == name and item[3] > 1 for item in self.items)
+                        if has_multiple_exons:
+                            label_text = f"{name} (ex1)"
+                        else:
+                            label_text = name
+                    
                     # centered label; choose a readable font size relative to track height
-                    font_size = max(10, int(self.h * 0.8))
+                    font_size = max(8, int(self.h * 0.6))  # smaller font to fit exon labels
                     text_x = x_scaled + w_scaled / 2
                     # position baseline slightly below center for visual centering
                     text_y = self.h / 2 + font_size * 0.1
-                    g.append(draw.Text(text=name,
+                    g.append(draw.Text(text=label_text,
                                        font_size=font_size,
                                        x=text_x,
                                        y=text_y,
                                        font_family='monospace',
                                        center=True,
-                                       fill='green'))
+                                       fill='black'))
                 return g
 
-        # add our custom overview drawer to the figure; keep a slightly larger gap between frames
-        figure.add(_OverviewDrawer(rect_items, height), gap=2)
+        # add our custom overview drawer to the figure; larger gap between frames for connectors
+        figure.add(_OverviewDrawer(rect_items, connectors, height), gap=4)
 
 
 def defect_order(defect):
@@ -653,6 +733,7 @@ def create_proviral_plot(input_file, output_svg):
     plot.draw_current_multitrack()
     plot.add_xaxis()
     plot.legends_and_percentages(defect_percentages, highlighted_set, force_move_percentages=neighbour_flag)
+    # display with a standard width so the overview is visible
     figure.show(w=900).save_svg(output_svg)
 
 
