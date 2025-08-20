@@ -183,11 +183,14 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                     if show_ws:
                         vis_exp = _visible_whitespace_html(col)
                         vis_found = _visible_whitespace_html(m)
+                        # use the same boxed preview for the visible-whitespace view
+                        vis_boxed = _boxed_column_preview(vis_exp, vis_found)
                         suggestions.append(
                             "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
                             f"<strong>Possible header match for '{html.escape(col)}'</strong>"
                             f"{boxed_preview}"
-                            f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_exp}</code><br/>Found: <code style='white-space:pre'>{vis_found}</code></div>"
+                            f"<div style='margin-top:8px;'><em>Visible-whitespace view</em>" \
+                            f"{vis_boxed}</div>"
                             "</div>"
                         )
                     else:
@@ -210,11 +213,13 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                         if show_ws:
                             vis_top = _visible_whitespace_html(top_candidate)
                             vis_col = _visible_whitespace_html(col)
+                            # show visible-whitespace using the same boxed layout
+                            vis_boxed_fb = _boxed_column_preview(vis_col, vis_top)
                             suggestions.append(
                                 "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
                                 f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
                                 f"{boxed_preview_fb}"
-                                f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_col}</code><br/>Found: <code style='white-space:pre'>{vis_top}</code></div>"
+                                f"<div style='margin-top:8px;'><em>Visible-whitespace view</em>{vis_boxed_fb}</div>"
                                 "</div>"
                             )
                         else:
@@ -418,16 +423,28 @@ def _visible_whitespace_html(s: str) -> str:
 def _boxed_column_preview(exp_html: str, found_html: str) -> str:
     """Return HTML showing 'Expected' and 'Found' labels with tight boxes around the
     provided HTML fragments (which are already escaped/highlighted). The boxes are
-    inline-block with no min-width so they exactly bound the text. Labels are fixed-width
-    so the two boxed values start at the same x position.
+    rendered using a two-column CSS grid (fixed-width label column, auto value column)
+    so the left edge of both boxed values always lines up exactly.
     """
     label_w = '80px'
-    box_style = "display:inline-block;border:1px solid #cfcfcf;padding:2px 6px;font-family:monospace;background:#fff;white-space:pre;"
+    # box is tight to content; max-width prevents runaway long text, preserve monospace
+    box_style = (
+        "display:inline-block;border:1px solid #cfcfcf;padding:2px 6px;"
+        "font-family:monospace;background:#fff;white-space:pre;max-width:70vw;"
+        "overflow-wrap:break-word;"
+    )
+    container_style = (
+        f"margin-top:6px;display:grid;grid-template-columns:{label_w} auto;"
+        "column-gap:8px;row-gap:6px;align-items:start;"
+    )
+
     return (
-        "<div style='margin-top:6px;'>"
-        f"<span style='display:inline-block;width:{label_w};font-size:smaller;color:#666;'>Expected:</span>"
-        f"<span style='{box_style}'>{exp_html}</span><br/>"
-        f"<span style='display:inline-block;width:{label_w};font-size:smaller;color:#666;'>Found:</span>"
-        f"<span style='{box_style}'>{found_html}</span>"
+        f"<div style='{container_style}'>"
+        # Expected row
+        f"<div style='color:#666;font-size:smaller;'>Expected:</div>"
+        f"<div style='justify-self:start;'><span style='{box_style}'>{exp_html}</span></div>"
+        # Found row
+        f"<div style='color:#666;font-size:smaller;'>Found:</div>"
+        f"<div style='justify-self:start;'><span style='{box_style}'>{found_html}</span></div>"
         "</div>"
     )
