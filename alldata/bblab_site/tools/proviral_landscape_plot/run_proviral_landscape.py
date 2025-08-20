@@ -171,7 +171,7 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
             # sort by score descending
             candidates.sort(key=lambda x: x[0], reverse=True)
             # threshold for suggesting a possible typo match
-            ratio_threshold = 0.55
+            ratio_threshold = 0.6
             suggested = [h for r, h in candidates if r >= ratio_threshold][:3]
             if suggested:
                 for m in suggested:
