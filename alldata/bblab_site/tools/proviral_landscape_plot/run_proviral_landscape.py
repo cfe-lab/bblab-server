@@ -429,7 +429,7 @@ def _boxed_column_preview(exp_html: str, found_html: str) -> str:
     label_w = '80px'
     # box is tight to content; max-width prevents runaway long text, preserve monospace
     box_style = (
-        "display:inline-block;border:1px solid #cfcfcf;padding:2px 6px;"
+        "display:inline-block;border:1px solid #cfcfcf;padding:2px 2px;"
         "font-family:monospace;background:#fff;white-space:pre;max-width:70vw;"
         "overflow-wrap:break-word;"
     )
