@@ -6,3 +6,5 @@ services:
       - type: bind
         source: ./alldata/
         target: /alldata
+    ports:
+      - "80:80/tcp"
