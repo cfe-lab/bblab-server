@@ -150,25 +150,53 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
             if suggested:
                 for m in suggested:
                     exp_h, found_h = _highlight_differences(col, m)
-                    suggestions.append(
-                        "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
-                        f"<strong>Possible header match for '{html.escape(col)}'</strong>"
-                        f"<div style='margin-top:6px;'>Expected: <code>{exp_h}</code><br/>Found: <code>{found_h}</code></div>"
-                        "</div>"
-                    )
+                    # only show visible-whitespace view if either side has leading/trailing spaces or tabs
+                    show_ws = _has_visible_whitespace(col) or _has_visible_whitespace(m)
+                    if show_ws:
+                        vis_exp, exp_exp_details = _visible_whitespace_html(col)
+                        vis_found, exp_found_details = _visible_whitespace_html(m)
+                        suggestions.append(
+                            "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
+                            f"<strong>Possible header match for '{html.escape(col)}'</strong>"
+                            f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                            f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_exp}</code><br/>Found: <code style='white-space:pre'>{vis_found}</code></div>"
+                            f"<div style='margin-top:6px;color:#245269;font-size:smaller'>{html.escape(exp_exp_details)} | {html.escape(exp_found_details)}</div>"
+                            "</div>"
+                        )
+                    else:
+                        suggestions.append(
+                            "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
+                            f"<strong>Possible header match for '{html.escape(col)}'</strong>"
+                            f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                            "</div>"
+                        )
             else:
                 # as a fallback, show the top candidate (even if below threshold) to aid debugging
                 if candidates:
                     top_score, top_candidate = candidates[0]
+                    # include visible-whitespace markers only if needed
+                    show_ws = _has_visible_whitespace(col) or _has_visible_whitespace(top_candidate)
                     suggestions.append(f"Debug: top candidate for '{col}' is '{html.escape(top_candidate)}' with score {top_score:.3f}")
                     if top_score > 0:
                         exp_h, found_h = _highlight_differences(col, top_candidate)
-                        suggestions.append(
-                            "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
-                            f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
-                            f"<div style='margin-top:6px;'>Expected: <code>{exp_h}</code><br/>Found: <code>{found_h}</code></div>"
-                            "</div>"
-                        )
+                        if show_ws:
+                            vis_top, top_details = _visible_whitespace_html(top_candidate)
+                            vis_col, col_details = _visible_whitespace_html(col)
+                            suggestions.append(
+                                "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
+                                f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
+                                f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                                f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_col}</code><br/>Found: <code style='white-space:pre'>{vis_top}</code></div>"
+                                f"<div style='margin-top:6px;color:#666;font-size:smaller'>{html.escape(col_details)} | {html.escape(top_details)}</div>"
+                                "</div>"
+                            )
+                        else:
+                            suggestions.append(
+                                "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
+                                f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
+                                f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                                "</div>"
+                            )
 
     # Inspect rows for basic type/value checks
     stream.seek(0)
@@ -329,3 +357,25 @@ def run(csv_data, analysis_id, email_address_string):
         website.send(f"<pre style='background:#fff;padding:8px;border:1px solid #eee;'>{html.escape(traceback.format_exc())}</pre>")
 
     return website.generate_site()
+
+def _has_visible_whitespace(s: str) -> bool:
+    """Return True if string has leading/trailing spaces or any tab characters."""
+    if s is None:
+        return False
+    return (s != s.lstrip(' \t')) or (s != s.rstrip(' \t')) or ('\t' in s)
+
+
+def _visible_whitespace_html(s: str) -> Tuple[str, str]:
+    """Return an HTML fragment that makes spaces/tabs visible and a short details string.
+    Spaces are shown as a middle dot (·) and tabs as a tab-arrow (⇥).
+    """
+    if s is None:
+        s = ''
+    leading = len(s) - len(s.lstrip(' \t'))
+    trailing = len(s) - len(s.rstrip(' \t'))
+    tabs = s.count('\t')
+    rep = html.escape(s)
+    rep = rep.replace(' ', "<span style='background:#fffbdd;color:#a94442;padding:0 1px;margin:0;'>·</span>")
+    rep = rep.replace('\t', "<span style='background:#fffbdd;color:#a94442;padding:0 1px;margin:0;'>⇥</span>")
+    details = f"Leading spaces: {leading}; Trailing spaces: {trailing}; Tabs: {tabs}"
+    return rep, details
