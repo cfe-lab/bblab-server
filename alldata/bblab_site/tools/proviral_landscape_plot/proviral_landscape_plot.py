@@ -187,33 +187,54 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                 max_idx = len(frames) - 1
                 return (max_idx - idx) * (self.row_h + self.gap)
 
-            # draw connectors first using thin rectangles (no triangles)
+            # draw connectors routing from exon to exon based on vertical positions
             for e1, e2, colour in self.connectors:
                 f1, x1, w1, *_ = e1
-                f2, x2, _, *_ = e2
+                f2, x2, w2, *_ = e2
                 # compute scaled positions
-                mid_x1 = (x1 + w1) * xscale
-                mid_x2 = x2 * xscale
-                y1 = y_offset(f1) + self.row_h/2
-                y2 = y_offset(f2) + self.row_h/2
+                x1_start = x1 * xscale
+                x2_start = x2 * xscale
+                w1_scaled = w1 * xscale
+                w2_scaled = w2 * xscale
                 # thickness of connector
                 thickness = max(1, int(self.row_h * 0.05))
-                # vertical segment
-                y_top = min(y1, y2)
-                height = abs(y2 - y1)
-                g.append(draw.Rectangle(mid_x1 - thickness/2, y_top,
-                                       thickness, height,
-                                       fill=colour, stroke='none'))
-                # horizontal segment
-                if mid_x2 > mid_x1:
-                    g.append(draw.Rectangle(mid_x1, y2 - thickness/2,
-                                           (mid_x2 - mid_x1), thickness,
-                                           fill=colour, stroke='none'))
-                # label at connector midpoint
+                # exon vertical bounds and mid-gap y-coordinate
+                yA_top = y_offset(f1)
+                yA_bottom = yA_top + self.row_h
+                yB_top = y_offset(f2)
+                yB_bottom = yB_top + self.row_h
+                y_gap = ((yA_bottom + yB_top) / 2) if yA_top < yB_top else ((yB_bottom + yA_top) / 2)
+                # midpoints of exons
+                xA_mid = x1_start + w1_scaled/2
+                xB_mid = x2_start + w2_scaled/2
+                # draw vertical from first exon to gap
+                if yA_top < yB_top:
+                    g.append(draw.Lines(xA_mid, yA_bottom,
+                                       xA_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    # horizontal between exons
+                    g.append(draw.Lines(xA_mid, y_gap,
+                                       xB_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    # vertical to second exon
+                    g.append(draw.Lines(xB_mid, y_gap,
+                                       xB_mid, yB_top,
+                                       stroke=colour, stroke_width=thickness))
+                else:
+                    g.append(draw.Lines(xB_mid, yB_bottom,
+                                       xB_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    g.append(draw.Lines(xB_mid, y_gap,
+                                       xA_mid, y_gap,
+                                       stroke=colour, stroke_width=thickness))
+                    g.append(draw.Lines(xA_mid, y_gap,
+                                       xA_mid, yA_top,
+                                       stroke=colour, stroke_width=thickness))
+                # label at horizontal segment midpoint
                 name = e1[3]
                 font_size = max(8, int(self.row_h * 0.6))
-                x_label = (mid_x1 + mid_x2) / 2
-                y_label = (y1 + y2) / 2 + font_size * 1.5
+                x_label = (xA_mid + xB_mid) / 2
+                y_label = y_gap + font_size * 0.1
                 g.append(draw.Text(text=name, font_size=font_size,
                                    x=x_label, y=y_label,
                                    font_family='monospace', center=True, fill='black'))
