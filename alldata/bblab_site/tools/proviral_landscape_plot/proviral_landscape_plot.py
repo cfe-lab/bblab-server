@@ -163,7 +163,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
 
     # dimensions
     row_h = height * 2
-    gap = 4
+    gap = 10
 
     # a single drawer that draws all exons at different y-rows and connectors
     class _MultiRowDrawer:
