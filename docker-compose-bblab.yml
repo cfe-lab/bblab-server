@@ -2,7 +2,7 @@ version: "3.9"
   
 networks:
   bb-external:
-    external: false # set to true when using an existing Docker network
+    external: true
     name: ${DEFAULT_TRAEFIK_NETWORK?error default network undefined}
   bb-internal:
     external: false
