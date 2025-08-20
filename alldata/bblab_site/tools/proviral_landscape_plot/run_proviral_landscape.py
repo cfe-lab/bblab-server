@@ -178,13 +178,15 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                     exp_h, found_h = _highlight_differences(col, m)
                     # only show visible-whitespace view if either side has leading/trailing spaces or tabs
                     show_ws = _has_visible_whitespace(col) or _has_visible_whitespace(m)
+                    # build the compact boxed preview for the two names
+                    boxed_preview = _boxed_column_preview(exp_h, found_h)
                     if show_ws:
                         vis_exp = _visible_whitespace_html(col)
                         vis_found = _visible_whitespace_html(m)
                         suggestions.append(
                             "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
                             f"<strong>Possible header match for '{html.escape(col)}'</strong>"
-                            f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                            f"{boxed_preview}"
                             f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_exp}</code><br/>Found: <code style='white-space:pre'>{vis_found}</code></div>"
                             "</div>"
                         )
@@ -192,7 +194,7 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                         suggestions.append(
                             "<div style='border:1px dashed #31708f;padding:10px;background:#d9edf7;color:#31708f;margin:6px 0;'>"
                             f"<strong>Possible header match for '{html.escape(col)}'</strong>"
-                            f"<div style='margin-top:6px;'>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                            f"{boxed_preview}"
                             "</div>"
                         )
             else:
@@ -204,13 +206,14 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                     suggestions.append(f"Debug: top candidate for '{col}' is '{html.escape(top_candidate)}' with score {top_score:.3f}")
                     if top_score > 0:
                         exp_h, found_h = _highlight_differences(col, top_candidate)
+                        boxed_preview_fb = _boxed_column_preview(exp_h, found_h)
                         if show_ws:
                             vis_top = _visible_whitespace_html(top_candidate)
                             vis_col = _visible_whitespace_html(col)
                             suggestions.append(
                                 "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
                                 f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
-                                f"<div style='margin-top:6px;'><em>Character diff view</em><br/>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                                f"{boxed_preview_fb}"
                                 f"<div style='margin-top:8px;'><em>Visible-whitespace view</em><br/>Expected: <code style='white-space:pre'>{vis_col}</code><br/>Found: <code style='white-space:pre'>{vis_top}</code></div>"
                                 "</div>"
                             )
@@ -218,7 +221,7 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
                             suggestions.append(
                                 "<div style='border:1px dashed #eee;padding:10px;background:#f7f7f7;color:#555;margin:6px 0;'>"
                                 f"<strong>Closest header to '{html.escape(col)}' is '{html.escape(top_candidate)}' (score {top_score:.2f})</strong>"
-                                f"<div style='margin-top:6px;'>Expected: <code style='white-space:pre'>{exp_h}</code><br/>Found: <code style='white-space:pre'>{found_h}</code></div>"
+                                f"{boxed_preview_fb}"
                                 "</div>"
                             )
 
@@ -410,3 +413,21 @@ def _visible_whitespace_html(s: str) -> str:
     rep = rep.replace(' ', "<span style='background:#fffbdd;color:#a94442;padding:0 1px;margin:0;'>·</span>")
     rep = rep.replace('\t', "<span style='background:#fffbdd;color:#a94442;padding:0 1px;margin:0;'>⇥</span>")
     return rep
+
+
+def _boxed_column_preview(exp_html: str, found_html: str) -> str:
+    """Return HTML showing 'Expected' and 'Found' labels with tight boxes around the
+    provided HTML fragments (which are already escaped/highlighted). The boxes are
+    inline-block with no min-width so they exactly bound the text. Labels are fixed-width
+    so the two boxed values start at the same x position.
+    """
+    label_w = '80px'
+    box_style = "display:inline-block;border:1px solid #cfcfcf;padding:2px 6px;font-family:monospace;background:#fff;white-space:pre;"
+    return (
+        "<div style='margin-top:6px;'>"
+        f"<span style='display:inline-block;width:{label_w};font-size:smaller;color:#666;'>Expected:</span>"
+        f"<span style='{box_style}'>{exp_html}</span><br/>"
+        f"<span style='display:inline-block;width:{label_w};font-size:smaller;color:#666;'>Found:</span>"
+        f"<span style='{box_style}'>{found_html}</span>"
+        "</div>"
+    )
