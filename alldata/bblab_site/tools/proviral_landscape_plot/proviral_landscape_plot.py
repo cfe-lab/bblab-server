@@ -164,6 +164,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
 
     # dimensions
     row_h = height * 2
+    font_size = max(8, int(row_h * 0.7))
     gap = 10
 
     # a single drawer that draws all exons at different y-rows and connectors
@@ -233,7 +234,6 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                                        stroke=colour, stroke_width=thickness))
                 # label at horizontal segment midpoint
                 name = e1[3]
-                font_size = max(8, int(self.row_h * 0.6))
                 x_label = (xA_mid + xB_mid) / 2
                 y_label = y_gap + font_size * 0.5
                 g.append(draw.Text(text=name, font_size=font_size,
@@ -254,7 +254,6 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                     pass
                 else:
                     label = name
-                    font_size = max(8, int(self.row_h * 0.6))
                     g.append(draw.Text(text=label, font_size=font_size,
                                     x=x0 + w0/2, y=y0 + self.row_h/2 + font_size*0.1,
                                     font_family='monospace', center=True, fill='black'))
