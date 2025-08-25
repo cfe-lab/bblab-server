@@ -97,7 +97,7 @@ RUN apt-get install -qq libcairo2-dev cmake gobject-introspection libgirepositor
 # Install Python dependencies:
 WORKDIR /opt/bblab_site/
 COPY alldata/bblab_site/pyproject.toml alldata/bblab_site/README.md ./
-RUN uv sync
+RUN UV_PROJECT_ENVIRONMENT=/opt/bblab_site/python-virtualenv uv sync
 
 # # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \
