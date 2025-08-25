@@ -65,8 +65,9 @@ RUN install2.r --error \
 	BiocManager
 RUN R -e "install.packages(\"https://cran.r-project.org/src/contrib/Archive/rvcheck/rvcheck_0.1.8.tar.gz\", repos = NULL)" \
  && R -e "BiocManager::install(\"ggtree\", force=TRUE)"
-RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
-    rm -rf /var/lib/apt/lists/*
+
+# RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
+#     rm -rf /var/lib/apt/lists/*
 
 # Install Ruby dependencies
 # We install ruby globally by making the `/root/.rbenv` path accessible to everyone.
@@ -90,10 +91,13 @@ RUN wget -qO- https://astral.sh/uv/install.sh -O /tmp/uv-install.sh && \
     sh /tmp/uv-install.sh && \
     cp /root/.local/bin/uv /bin/
 
+# [DEV] Install some other python dependencies
+RUN apt-get install -qq libcairo2-dev cmake gobject-introspection libgirepository1.0-dev libdbus-1-dev pkg-config
+
 # Install Python dependencies:
 WORKDIR /opt/bblab_site/
 COPY alldata/bblab_site/pyproject.toml alldata/bblab_site/README.md ./
-RUN pip3 install --break-system-packages --no-cache-dir .
+RUN uv sync
 
 # # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \
