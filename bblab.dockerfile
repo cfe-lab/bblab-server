@@ -86,8 +86,9 @@ RUN gem install bundler:1.17.2
 RUN bundle install
 
 # Install Python dependencies:
-COPY alldata/bblab_site/requirements.txt .
-RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
+WORKDIR /opt/bblab_site/
+COPY alldata/bblab_site/pyproject.toml alldata/bblab_site/README.md ./
+RUN pip3 install --break-system-packages --no-cache-dir .
 
 # # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \
