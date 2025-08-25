@@ -3,7 +3,7 @@ name = "bblab_site"
 version = "0.0.0"
 description = "BBLab web-site"
 readme = "README.md"
-requires-python = ">=3.8,<3.9"
+requires-python = ">=3.12,<3.13"
 license = { text = "AGPL-3.0" }
 authors = [
     { name = "British Columbia Centre for Excellence in HIV/AIDS", email = "vmysak@bccfe.ca" },
@@ -86,3 +86,11 @@ test = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+  "README.md",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
