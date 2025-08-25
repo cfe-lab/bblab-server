@@ -1,4 +1,3 @@
-
 services:
   bblab-site:
     volumes:

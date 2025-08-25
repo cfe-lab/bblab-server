@@ -1,4 +1,3 @@
-  
 networks:
   bb-external:
     external: true
@@ -45,7 +44,7 @@ services:
     networks:
       - bb-external
       - bb-internal
-    expose: [80]
+    expose: [ 80 ]
     command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
     labels:
       - "traefik.enable=true"
