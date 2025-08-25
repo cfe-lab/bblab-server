@@ -23,7 +23,9 @@ RUN apt-get install -qq unzip wget vim curl \
         libapache2-mod-wsgi-py3 \
         php libapache2-mod-php \
         libxml2-dev libcurl4-openssl-dev libssl-dev \
-        gfortran liblapack-dev libblas-dev libopenblas-dev git
+        gfortran liblapack-dev libblas-dev libopenblas-dev git \
+        libcairo2-dev cmake gobject-introspection \
+        libgirepository1.0-dev libdbus-1-dev pkg-config
 
 # set the timezone for Vancouver, so that datetime.now() returns our
 # local time, not UTC.
@@ -90,9 +92,6 @@ RUN bundle install
 RUN wget -qO- https://astral.sh/uv/install.sh -O /tmp/uv-install.sh && \
     sh /tmp/uv-install.sh && \
     cp /root/.local/bin/uv /bin/
-
-# [DEV] Install some other python dependencies
-RUN apt-get install -qq libcairo2-dev cmake gobject-introspection libgirepository1.0-dev libdbus-1-dev pkg-config
 
 # Install Python dependencies:
 WORKDIR /opt/bblab_site/
