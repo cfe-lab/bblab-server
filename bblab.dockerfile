@@ -16,7 +16,7 @@ RUN apt-get install -qq --no-install-recommends apt-utils software-properties-co
 
 # Install system packages.
 RUN apt-get install -qq unzip wget vim curl \
-        python3-dev python3-pip \
+        python3-dev \
         default-libmysqlclient-dev \
         build-essential tzdata \
         apache2 apache2-dev \
