@@ -91,7 +91,7 @@ SMALLEST_GAP = 50
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
 # tat and rev have multiple exons, so we include both parts
 LANDMARKS = [
-    {"name": "5LTR", 'start': 1, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
+    {"name": "5'LTR", 'start': 1, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
     {'name': 'gag', 'start': 790, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
     {'name': 'pol', 'start': 2085, 'end': 5096, 'colour': '#1f78b4', 'frame': 2},
     {'name': 'vif', 'start': 5041, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
@@ -103,7 +103,7 @@ LANDMARKS = [
     {'name': 'vpu', 'start': 6062, 'end': 6310, 'colour': '#ffff99', 'frame': 1},
     {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#8dd3c7', 'frame': 2},
     {'name': 'nef', 'start': 8797, 'end': 9417, 'colour': '#bebada', 'frame': 0},
-    {"name": "3LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
+    {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
 ]
 
 def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):

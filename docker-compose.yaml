@@ -1,8 +1,6 @@
-version: "3.9"
-  
 networks:
   bb-external:
-    external: false # set to true when using an existing Docker network
+    external: true
     name: ${DEFAULT_TRAEFIK_NETWORK?error default network undefined}
   bb-internal:
     external: false
@@ -46,13 +44,7 @@ services:
     networks:
       - bb-external
       - bb-internal
-    expose: [80]
-    # For dev: if you'd like to bypass Traefik, uncomment this
-    #          in this container. Apache will set the URL from 
-    #          BBLAB_WEB_ADDRESS (use "localhost" or your DNS)
-    #          and Django will accept requests to that address
-    # ports:
-    #   - "80:80/tcp"
+    expose: [ 80 ]
     command: /bin/sh -c "/usr/sbin/apachectl -D FOREGROUND"
     labels:
       - "traefik.enable=true"
@@ -84,31 +76,3 @@ services:
     volumes:
       - /srv/bblab_site/mysql:/var/lib/mysql
       - /srv/bblab_site/db_dump:/docker-entrypoint-initdb.d
-
-  # traefik:
-  #   image: "traefik:${TRAEFIK_IMAGE_TAG:-latest}"
-  #   restart: unless-stopped
-  #   command:
-  #     - --api.insecure=true
-  #     - --entrypoints.web.address=:80
-  #     - --entrypoints.web-secure.address=:443
-  #     - --providers.docker=true
-  #     - --providers.docker.exposedByDefault=false
-  #     - --providers.file.directory=/etc/traefik
-  #     - --providers.file.watch=true
-  #     - --log.level=DEBUG
-  #   networks:
-  #     - bb-external
-  #   ports:
-  #     - "80:80/tcp"
-  #     - "443:443/tcp"
-  #     - "8088:8080/tcp"
-  #   healthcheck:
-  #     test: wget --quiet --tries=1 --spider http://localhost/ping || exit 1
-  #     interval: 1m30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 40s
-  #   volumes:
-  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
-  #     - "${TRAEFIK_CONFIG_PATH:-./traefik}:/etc/traefik"

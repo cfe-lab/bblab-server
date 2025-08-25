@@ -16,14 +16,16 @@ RUN apt-get install -qq --no-install-recommends apt-utils software-properties-co
 
 # Install system packages.
 RUN apt-get install -qq unzip wget vim curl \
-        python3-dev python3-pip \
+        python3-dev \
         default-libmysqlclient-dev \
         build-essential tzdata \
         apache2 apache2-dev \
         libapache2-mod-wsgi-py3 \
         php libapache2-mod-php \
         libxml2-dev libcurl4-openssl-dev libssl-dev \
-        gfortran liblapack-dev libblas-dev libopenblas-dev git
+        gfortran liblapack-dev libblas-dev libopenblas-dev git \
+        libcairo2-dev cmake gobject-introspection \
+        libgirepository1.0-dev libdbus-1-dev pkg-config
 
 # set the timezone for Vancouver, so that datetime.now() returns our
 # local time, not UTC.
@@ -65,8 +67,9 @@ RUN install2.r --error \
 	BiocManager
 RUN R -e "install.packages(\"https://cran.r-project.org/src/contrib/Archive/rvcheck/rvcheck_0.1.8.tar.gz\", repos = NULL)" \
  && R -e "BiocManager::install(\"ggtree\", force=TRUE)"
-RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
-    rm -rf /var/lib/apt/lists/*
+
+# RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
+#     rm -rf /var/lib/apt/lists/*
 
 # Install Ruby dependencies
 # We install ruby globally by making the `/root/.rbenv` path accessible to everyone.
@@ -85,9 +88,15 @@ COPY hla_class_setup/Gemfile ./
 RUN gem install bundler:1.17.2
 RUN bundle install
 
+# Install `uv` package manager
+RUN wget -qO- https://astral.sh/uv/install.sh -O /tmp/uv-install.sh && \
+    sh /tmp/uv-install.sh && \
+    cp /root/.local/bin/uv /bin/
+
 # Install Python dependencies:
-COPY alldata/bblab_site/requirements.txt .
-RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
+WORKDIR /opt/bblab_site/
+COPY alldata/bblab_site/pyproject.toml alldata/bblab_site/uv.lock alldata/bblab_site/README.md ./
+RUN UV_PROJECT_ENVIRONMENT=/opt/bblab_site/python-virtualenv uv sync --frozen
 
 # # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \

@@ -1,8 +1,8 @@
-version: '3.9'
-
 services:
   bblab-site:
     volumes:
       - type: bind
         source: ./alldata/
         target: /alldata
+    ports:
+      - "80:80/tcp"
