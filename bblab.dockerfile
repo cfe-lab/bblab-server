@@ -85,6 +85,11 @@ COPY hla_class_setup/Gemfile ./
 RUN gem install bundler:1.17.2
 RUN bundle install
 
+# Install `uv` package manager
+RUN wget -qO- https://astral.sh/uv/install.sh -O /tmp/uv-install.sh && \
+    sh /tmp/uv-install.sh && \
+    cp /root/.local/bin/uv /bin/
+
 # Install Python dependencies:
 WORKDIR /opt/bblab_site/
 COPY alldata/bblab_site/pyproject.toml alldata/bblab_site/README.md ./
