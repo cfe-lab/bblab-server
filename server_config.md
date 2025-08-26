@@ -118,12 +118,12 @@ Copy `services/crontab_mail.py` to `/opt/`
  - More log / daily scripts can be added
 
 ## Launch containers using docker-compose
-Copy `.env-bblab` and `docker-compose-bblab.yml` to `/etc/docker-compose/`
+Copy `.env-bblab` and `docker-compose.yaml` to `/etc/docker-compose/`
  - The `.env-bblab` file contains secrets. Contact the site admin if you require access to this file.
  - Check the existing docker network which is running Traefik and set `DEFAULT_TRAEFIK_NETWORK` accordingly
  - Set the site URL (which differs for dev and prod) in the `.env-bblab` file.
- - If using standalone Traefik, uncomment the service in [`docker-compose-bblab.yml#L81-L107`]
- - Running `sudo /usr/local/bin/docker-compose --env-file ./.env-bblab -f docker-compose-bblab.yml up -d`
+ - If using standalone Traefik, uncomment the service in [`docker-compose.yaml#L81-L107`]
+ - Running `sudo /usr/local/bin/docker-compose --env-file ./.env-bblab -f docker-compose.yaml up -d`
    will bring up the containers.
 
 Once the container is running, you can enter a `bash` session with `docker exec -it bblab_bblab-site_1 bash -l`, 
@@ -133,13 +133,13 @@ Note that the `bblab-site` container runs the Apache server which serves the Dja
 files found in `conf/`. From within the container, run `service apache2 reload` to reload the server after any manual changes.
 Do NOT use `service apache2 restart`, as this will stop PID 1 and the container itself will restart.
 
-[`docker-compose-bblab.yml#L81-L107`]: docker-compose-bblab.yml#L81-L107
+[`docker-compose.yaml#L81-L107`]: docker-compose.yaml#L81-L107
 
 ## SMTP authorization
 
 In order to send emails to addresses external to the BC-CfE, this application will authenticate with the SMTP mail server using a dedicated mail account.
 
-The login information for this account is stored in environmental variables which are passed in to the container by `docker-compose-bblab.yml`.
+The login information for this account is stored in environmental variables which are passed in to the container by `docker-compose.yaml`.
 
 Using `smptlib` the SMTP connection is put into TLS mode, using EHLO, before logging in to the server. See here: [`mailer.py#L59-L62`]:
 ```
@@ -157,15 +157,15 @@ smtpobj.login(os.environ['SMTP_MAIL_USER'], os.environ['SMTP_MAIL_PASSWORD'])
 
 When doing development, it's easiest to mount your local copy of `alldata` into the container's `/alldata` directory, so that local file changes are reflected on the server immediately.
 
-There is a second Docker compose file for this, called [`docker-compose-bblab-dev.yml`]. To use this, start the container with the flags
+There is a second Docker compose file for this, called [`docker-compose-dev.yaml`]. To use this, start the container with the flags
 
 ```
-docker-compose [--env-file <your-env-file>] -f docker-compose.bblab.yml -f docker-compose-bblab-dev.yml up [other-flags]
+docker-compose [--env-file <your-env-file>] -f docker-compose.yaml -f docker-compose-dev.yaml up [other-flags]
 ```
 
 After making file changes, it's usually necessary to run `service apache2 reload` in the container before the changes are reflected in the browser.
 
-[`docker-compose-bblab-dev.yml`]: docker-compose-bblab-dev.yml
+[`docker-compose-dev.yaml`]: docker-compose-dev.yaml
 
 ## Wiki admin
 
