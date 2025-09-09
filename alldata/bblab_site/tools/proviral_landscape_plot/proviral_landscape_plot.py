@@ -488,8 +488,6 @@ class ProviralLandscapePlot:
         self.xaxisheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
-        highlight = None
-
         is_first = False
         if defect_type not in DEFECT_TO_COLOR.keys():
             print(f"Unknown defect: {defect_type}")
@@ -673,7 +671,7 @@ def create_proviral_plot(input_file, output_svg):
         figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
     except TypeError:
         # fallback if Track signature differs; attempt without named color
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, '#ffffff', h=2)]), gap=8)
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
     # keep raw counts while building percentages later
     defect_counts = defaultdict(int)
     highlighted_set = set()
@@ -696,13 +694,14 @@ def create_proviral_plot(input_file, output_svg):
                 xstart = int(row['ref_start'].strip())
                 xend = int(row['ref_end'].strip())
                 highlighted = False
-                if row['is_defective'].strip():
-                    # TODO: incorporate this when we get ranges info from proviral.
-                    # highlighted_set.add('Defect Region')
-                    highlighted = 'Defect Region'
-                elif row['is_inverted'].strip():
+                if row['is_inverted'].strip().lower() in ('1', 'true', 't'):
                     highlighted_set.add('Inverted Region')
                     highlighted = 'Inverted Region'
+                if row['is_defective'].strip().lower() in ('1', 'true', 't'):
+                    # TODO: incorporate this when we get ranges info from proviral.
+                    # highlighted_set.add('Defect Region')
+                    # highlighted = 'Defect Region'
+                    pass
                 plot.add_line(samp, xstart, xend, defect, highlighted)
         # count samples in this defect for percentages
         defect_counts[defect] += len(sample_order)
