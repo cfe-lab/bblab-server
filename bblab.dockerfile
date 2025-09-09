@@ -93,10 +93,13 @@ RUN wget -qO- https://astral.sh/uv/install.sh -O /tmp/uv-install.sh && \
     sh /tmp/uv-install.sh && \
     cp /root/.local/bin/uv /bin/
 
+
+ENV UV_PROJECT_ENVIRONMENT /opt/bblab_site/python-virtualenv
+
 # Install Python dependencies:
 WORKDIR /opt/bblab_site/
 COPY alldata/bblab_site/pyproject.toml alldata/bblab_site/uv.lock alldata/bblab_site/README.md ./
-RUN UV_PROJECT_ENVIRONMENT=/opt/bblab_site/python-virtualenv uv sync --frozen
+RUN uv sync --frozen
 
 # # Set user/group for Apache/Django execution
 RUN groupadd varwwwusers && \
