@@ -95,6 +95,8 @@ RUN wget -qO- https://astral.sh/uv/install.sh -O /tmp/uv-install.sh && \
 
 
 ENV UV_PROJECT_ENVIRONMENT /opt/bblab_site/python-virtualenv
+ENV UV_PROJECT /opt/bblab_site
+ENV UV_CACHE_DIR /opt/bblab_site/uv-cache
 
 # Install Python dependencies:
 WORKDIR /opt/bblab_site/
