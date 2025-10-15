@@ -1,3 +1,6 @@
+networks:
+  bb-external:
+    external: false
 services:
   bblab-site:
     volumes:
