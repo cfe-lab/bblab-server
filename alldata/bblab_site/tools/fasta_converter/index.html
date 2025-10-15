@@ -1,0 +1,133 @@
+{% extends "tool_base.html" %}
+{% load static %}
+
+{% block head %}
+	<link rel="stylesheet" href="{% static "fas_css/style.css" %}">
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="{% static "fac_script.js" %}"></script>
+	<title>Fasta Converter</title>
+{% endblock %}
+
+{% block content %}
+<div id="body-div">
+<div class="container">
+	<form enctype="multipart/form-data" action="calculate/" method="post" id="form">
+    		{% csrf_token %}	
+		<div class="row">
+        		<div class="col-md-9">
+	        		<textarea style="font-family:monospace;" placeholder="Enter fasta or excel data here" id="textinput" name="textinput" form="form" required></textarea>
+	        		<div id="clearbutton" class="hide">Clear</div>
+        		</div>
+        		<div class="col-md-3">
+            			<div class="info-box">
+                			<h2>Upload Fasta File:</h2>
+                			<input id="datafile" type="file" name="datafile" size="40">
+	        		</div>
+        		</div>
+    		</div>
+		<div class="spacer"></div>
+    		<div class="row">
+			<div class="col-md-6">
+				<div class="info-box">
+					<h2>Options</h2>
+					<h3>Delimiter:</h3>
+					<select class="styled-select" name="delim">
+						<option value = "_" selected>underscore: _</option>
+						<option value = "/">forward slash: /</option>
+						<option value = "-">dash: -</option>
+						<option value = ".">period: .</option>
+						<option value = " ">whitespace: &nbsp;</option>
+					</select>
+					<div class="row checkbox">
+						<div class="col-md-6">
+							<input type="checkbox" id="cboxOne" value="on" name="splitfastaheader" checked>
+							<label for="cboxOne">Split fasta header by delimiter</label>
+						</div>
+						<div class="col-md-6 description">
+						If you would like your fasta header to be broken up into its constituent parts, enable this option. The header
+						will be split based on the delimiter selection above.
+						</div>
+					</div>
+					<div class="row checkbox" id="whitespace-strip">
+						<div class="col-md-6">
+							<input type="checkbox" id="cboxTwo" value="on" name="stripwhitespace" checked>
+							<label for="cboxTwo">Strip whitespace from fasta headers</label>
+						</div>
+						<div class="col-md-6 description">
+						Sometimes programs do not correctly parse whitespaces and will truncate your headers. To avoid this, check this box to
+						enable automatic collapse of whitespaces in your fasta headers.
+						</div>
+					</div>
+				</div>
+			</div>
+		<div class="col-md-6">
+			<div class="info-box">
+				<h2>Converting or downloading to CSV</h2>
+				<p>
+					When converting or downloading fasta to csv, the input must consist of a header beginning with ">"
+					, followed by the name of the header. The following line must be the sequence corresponding to that header. <br><br> 
+					Often people want to encode multiple types of information
+					in their headers, if you have a header with multiple columns of information then you may select the
+					appropriate delimiter in the delimiter setting. The header will be broken up into its constituent parts.
+					For example:
+					<div class="example">>4xB001_03-05-2014_British Columbia_ACUTE</div>
+					will become:
+					<div class="example"><table id="fasta-convert-table"><td>4xB001</td><td>03-05-2014</td><td>British Columbia</td><td>ACUTE</td></table></div>
+					The line following the header must be a sequence of (ATCG) or extended mixture base pairs (R,Y,K,M,S,W,B,H,D,V,N, or :) or '-' for gaps. 
+					Sequences may span multiple lines for a given header, or they may be one line.
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="spacer"></div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="info-box">
+				<h2>Converting or downloading to Fasta</h2>
+				<p>
+					The input must be in tab-delimited format or comma-delimited format, with the last column being the sequence. It is 
+					easiest to have your data in excel, and directly copy and paste from there (excluding headers). 
+					All columns prior to the last will be concatenated into the header for that sequence in the 
+					fasta file. For example:
+					<div class="example">
+						<table id="fasta-convert-table">
+							<tr>
+								<td>4xB001</td>
+								<td>03-05-2014</td>
+								<td>Canada</td>
+								<td>ACUTE</td>
+								<td>CCCGTGCGAAATA</td>
+							</tr>
+							<tr>
+								<td>4xB002</td>
+								<td>01-10-2014</td>
+								<td>Australia</td>
+								<td>ACUTE</td>
+								<td>CTGACTCTAGAGG</td>
+							</tr>
+						</table>
+					</div>
+					will become:
+					<div class="example">
+						>4xB001_03-05-2014_Canada_ACUTE<br>
+						CCCGTGCGAAATA<br>
+						>4xB002_01-10-2014_Australia_ACUTE<br>
+						CTGACTCTAGAGG
+					</div>
+					depending on which delimiter you choose. Your fasta header will be joined using the delimiter
+					selected in the delimiter setting. In this case it is joined using the underscore.
+				</p>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<input class="button blue multibutton dual left" id="submit_button" type="submit" name="runfasta" value="Convert to Fasta"><!--
+		 --><input class="button blue multibutton dual right" id="submit_button" type="submit" name="dlfasta" value="Download Fasta">
+			<input class="button orange multibutton dual left" id="submit_button" type="submit" name="runcsv" value="Convert to CSV"><!--
+		 --><input class="button orange multibutton dual right" id="submit_button" type="submit" name="dlcsv" value="Download CSV">
+		</div>	
+	</div>
+	
+	</form>
+</div>
+</div>
+{% endblock %}
