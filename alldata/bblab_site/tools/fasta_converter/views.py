@@ -25,7 +25,7 @@ def calculate(request):
                 fasta_data += chunk
             fasta_data = fasta_data.decode("utf-8")
 
-        # Determine which button is pressed (which analysis to run)	
+        # Determine which button is pressed (which analysis to run)
         if "runfasta" in data:
                 button = "runfasta"
         elif "dlfasta" in data:
@@ -35,8 +35,8 @@ def calculate(request):
         elif "dlcsv" in data:
                 button = "dlcsv"
         else:
-                button = "err"	
-        
+                button = "err"
+
         delim = data['delim']
         splitfastaheader = data.get('splitfastaheader', '')
         stripwhitespace = data.get('stripwhitespace', '')
