@@ -38,8 +38,8 @@ def calculate(request):
                 button = "err"	
         
         delim = data['delim']
-        splitfastaheader = data['splitfastaheader']
-        stripwhitespace = data['stripwhitespace']
+        splitfastaheader = data.get('splitfastaheader', '')
+        stripwhitespace = data.get('stripwhitespace', '')
 
         # Run actual calulation (by passing data)
         from . import fasta_converter
