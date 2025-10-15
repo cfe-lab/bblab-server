@@ -4,9 +4,6 @@
 [submodule "alldata/bblab_site/tools/tests/phylodating"]
 	path = alldata/bblab_site/tools/tests/phylodating
 	url = https://github.com/cfe-lab/phylodating.git
-[submodule "alldata/bblab_site/tools/fasta_converter"]
-	path = alldata/bblab_site/tools/fasta_converter
-	url = https://github.com/cfe-lab/fasta_converter.git
 [submodule "alldata/bblab_site/tools/translate_DNA"]
 	path = alldata/bblab_site/tools/translate_DNA
 	url = git@github.com:cfe-lab/translate-DNA.git
