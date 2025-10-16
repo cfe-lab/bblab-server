@@ -21,6 +21,7 @@ from . import views
 urlpatterns = [
 	path('admin/', admin.site.urls),
 	path('', views.root_redirect),
+	path('version/', views.version),
 	path('account/', include('account.urls')),
 	path('tools/', include('tools.urls')),
 	path('wiki/', include('wiki.urls')),
