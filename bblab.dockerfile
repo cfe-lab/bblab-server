@@ -118,9 +118,10 @@ RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/
 COPY alldata /alldata
 
 # Capture git version information during build
-COPY .git /tmp/.git
-RUN git --git-dir=/tmp/.git describe --always --dirty --tags > /alldata/bblab_site/VERSION && \
-    rm -rf /tmp/.git
+COPY .git /tmp/bblab-git
+RUN cd /tmp/bblab-git && \
+    git --git-dir=/tmp/bblab-git describe --always --dirty --tags > /BBLAB_SITE_VERSION 2>/dev/null && \
+    rm -rf /tmp/bblab-git
 
 RUN chown -R www-data:varwwwusers /alldata /tmp/download
 

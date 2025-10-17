@@ -10,13 +10,10 @@ def root_redirect(request):
 
 def version(request):
 	"""Return the git version of the container."""
-	version_file = os.path.join(settings.BASE_DIR, 'VERSION')
+	version_file = '/BBLAB_SITE_VERSION'
 
-	try:
-		with open(version_file, 'r') as f:
-			git_version = f.read().strip()
-	except FileNotFoundError:
-		git_version = 'unknown'
+	with open(version_file, 'r') as f:
+		git_version = f.read().strip()
 
 	return JsonResponse({
 		'version': git_version,
