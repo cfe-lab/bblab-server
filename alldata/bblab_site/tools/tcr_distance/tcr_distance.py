@@ -15,15 +15,14 @@ g_TIMEOUT = 600 * 3  # 30 mins
 
 
 def create_random_directory():
-	import random
-	random.seed()
+	import secrets
 	
 	os.chdir(tmp_dirs_path)	
 
 	# find mostly unique dir_num	
-	dir_num = str(random.randint(0, 100))
+	dir_num = str(secrets.randbits(128))
 	while os.path.exists( "tmp_{}".format(dir_num) ):
-		dir_num = dir_num + 1 #str(random.randint(0, 2**63 - 1))
+		dir_num = str(secrets.randbits(128))
 
 	# make tmp_n folder to store intermediary files in. 
 	tmpdir = "tmp_{}".format(dir_num)
