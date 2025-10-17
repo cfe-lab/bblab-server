@@ -106,11 +106,17 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
 
                 append_status_file("10x files written")
 
-                command = "python2 {}/make_10x_clones_file.py -f {}/filtered_contig_annotations.tsv ".format(tcr_dist_path, wd) + \
-                          "-c {}/consensus_annotations.tsv -o {}/clones_file --organism {}".format(wd, wd, organism)
+                command = [
+                        "python2",
+                        "{}/make_10x_clones_file.py".format(tcr_dist_path),
+                        "-f", "{}/filtered_contig_annotations.tsv".format(wd),
+                        "-c", "{}/consensus_annotations.tsv".format(wd),
+                        "-o", "{}/clones_file".format(wd),
+                        "--organism", organism
+                ]
 
                 append_status_file("starting 10x conversion")
-                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       
                 # This loop allows for the process to be terminated 
                 process_done = False
@@ -156,10 +162,15 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
         ##### Convert clones file into matrix files (also using tcr dist)
         
         
-        command = "python2 {}/compute_distances.py --clones_file {}/clones_file --organism {}".format(tcr_dist_path, wd, organism)
+        command = [
+                "python2",
+                "{}/compute_distances.py".format(tcr_dist_path),
+                "--clones_file", "{}/clones_file".format(wd),
+                "--organism", organism
+        ]
 
         append_status_file("starting distance computation");
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # This loop allows for the process to be terminated 
         process_done = False
@@ -202,8 +213,11 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
 
         append_status_file("compressing files")
 
-        command = "cd {}; zip matrices.zip clones__A.dist clones__B.dist clones__AB.dist; cd -".format(wd)
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        command = [
+                "zip", "matrices.zip",
+                "clones__A.dist", "clones__B.dist", "clones__AB.dist"
+        ]
+        process = subprocess.Popen(command, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         # This loop allows for the process to be terminated 
         process_done = False
