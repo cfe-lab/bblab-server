@@ -15,15 +15,14 @@ g_TIMEOUT = 600 * 3  # 30 mins
 
 
 def create_random_directory():
-	import random
-	random.seed()
+	import secrets
 	
 	os.chdir(tmp_dirs_path)	
 
 	# find mostly unique dir_num	
-	dir_num = str(random.randint(0, 100))
+	dir_num = str(secrets.randbits(128))
 	while os.path.exists( "tmp_{}".format(dir_num) ):
-		dir_num = dir_num + 1 #str(random.randint(0, 2**63 - 1))
+		dir_num = str(secrets.randbits(128))
 
 	# make tmp_n folder to store intermediary files in. 
 	tmpdir = "tmp_{}".format(dir_num)
@@ -107,11 +106,17 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
 
                 append_status_file("10x files written")
 
-                command = "python2 {}/make_10x_clones_file.py -f {}/filtered_contig_annotations.tsv ".format(tcr_dist_path, wd) + \
-                          "-c {}/consensus_annotations.tsv -o {}/clones_file --organism {}".format(wd, wd, organism)
+                command = [
+                        "python2",
+                        "{}/make_10x_clones_file.py".format(tcr_dist_path),
+                        "-f", "{}/filtered_contig_annotations.tsv".format(wd),
+                        "-c", "{}/consensus_annotations.tsv".format(wd),
+                        "-o", "{}/clones_file".format(wd),
+                        "--organism", organism
+                ]
 
                 append_status_file("starting 10x conversion")
-                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       
                 # This loop allows for the process to be terminated 
                 process_done = False
@@ -157,10 +162,15 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
         ##### Convert clones file into matrix files (also using tcr dist)
         
         
-        command = "python2 {}/compute_distances.py --clones_file {}/clones_file --organism {}".format(tcr_dist_path, wd, organism)
+        command = [
+                "python2",
+                "{}/compute_distances.py".format(tcr_dist_path),
+                "--clones_file", "{}/clones_file".format(wd),
+                "--organism", organism
+        ]
 
         append_status_file("starting distance computation");
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # This loop allows for the process to be terminated 
         process_done = False
@@ -203,8 +213,11 @@ def run(input_kind, filtered_contig_annotations, consensus_annotations, clones_f
 
         append_status_file("compressing files")
 
-        command = "cd {}; zip matrices.zip clones__A.dist clones__B.dist clones__AB.dist; cd -".format(wd)
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        command = [
+                "zip", "matrices.zip",
+                "clones__A.dist", "clones__B.dist", "clones__AB.dist"
+        ]
+        process = subprocess.Popen(command, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         # This loop allows for the process to be terminated 
         process_done = False
