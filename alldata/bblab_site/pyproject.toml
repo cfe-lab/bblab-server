@@ -96,7 +96,7 @@ allow-direct-references = true
 
 [tool.pytest.ini_options]
 testpaths = [
-    "tools",
+    ".",
 ]
 # Exclude vendor/dependency directories and submodule repos that have their own test suites
 norecursedirs = [
@@ -113,8 +113,9 @@ norecursedirs = [
     "phylodating",
     "translate_DNA",
     "tests/phylodating",  # Exclude the test submodule copy
+    "tools",  # Skip the empty Django test stubs
 ]
 # Only collect test files from our actual project, not vendored dependencies
-python_files = ["tests.py"]  # Only collect Django test files
+python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
