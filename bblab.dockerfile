@@ -134,13 +134,6 @@ COPY phylodating_setup/logwatcher.sh /var/www/phylodating/logwatcher.sh
 # copy source code
 COPY alldata /alldata
 
-# Capture git version information during build
-COPY .git /tmp/bblab-git
-RUN cd /tmp/bblab-git && \
-    git --git-dir=/tmp/bblab-git reset --hard && \
-    git --git-dir=/tmp/bblab-git describe --always --dirty --tags > /BBLAB_SITE_VERSION 2>/dev/null && \
-    rm -rf /tmp/bblab-git
-
 RUN chown -R www-data:varwwwusers /alldata /tmp/download
 
 USER www-data
@@ -208,3 +201,10 @@ LABEL build_date=$CI_BUILD_DATE \
 #ignoring this will set it to the standard directory
 ARG WORKINGDIR=/alldata
 WORKDIR $WORKINGDIR
+
+# Capture git version information during build
+COPY .git /tmp/bblab-git
+RUN cd /tmp/bblab-git && \
+    git --git-dir=/tmp/bblab-git reset --hard && \
+    git --git-dir=/tmp/bblab-git describe --always --dirty --tags > /BBLAB_SITE_VERSION 2>/dev/null && \
+    rm -rf /tmp/bblab-git
