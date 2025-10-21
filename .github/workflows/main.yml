@@ -1,0 +1,46 @@
+name: main tests
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./bblab.dockerfile
+          target: bblab-site
+          push: false
+          tags: cfe-lab/bblab-site
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run pytest tests
+        run: |
+          docker run --rm \
+            -w /alldata/bblab_site \
+            cfe-lab/bblab-site \
+            uv run pytest -v
+
+      - name: Run Django tests
+        run: |
+          docker run --rm \
+            --env-file ./compose-template.env \
+            -w /alldata/bblab_site \
+            cfe-lab/bblab-site \
+            uv run python manage.py test --noinput

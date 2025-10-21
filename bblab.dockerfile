@@ -114,6 +114,23 @@ RUN wget https://github.com/cfe-lab/bblab-server/releases/download/v0.1.0-alpha/
     tar -xzf blast-2.2.16-x64-linux.tar.gz && \
     tar -xzf tcrdist_extras_v2.tgz
 
+# load configuration for Apache server
+COPY conf/apache2.conf /etc/apache2/
+COPY conf/tools-*.conf /etc/apache2/mods-available/
+COPY conf/php.conf /etc/apache2/mods-available
+RUN ln -sf /etc/apache2/mods-available/tools-gld.conf /etc/apache2/mods-enabled/tools-gld.conf && \
+    ln -sf /etc/apache2/mods-available/tools-pld.conf /etc/apache2/mods-enabled/tools-pld.conf && \
+    ln -sf /etc/apache2/mods-available/tools-hla.conf /etc/apache2/mods-enabled/tools-hla.conf && \
+    ln -sf /etc/apache2/mods-available/php.conf /etc/apache2/mods-enabled/php.conf && \
+    ln -sf /var/log/apache2/access.log /dev/stdout && \
+    ln -sf /var/log/apache2/error.log /dev/stderr && \
+    chmod 766 -R /var/log/apache2/ && \
+    a2dissite 000-default.conf && a2dissite default-ssl.conf
+
+# Copy shell scripts for Phylodating
+COPY phylodating_setup/clean.sh /var/www/phylodating/clean.sh
+COPY phylodating_setup/logwatcher.sh /var/www/phylodating/logwatcher.sh
+
 # copy source code
 COPY alldata /alldata
 
@@ -147,23 +164,6 @@ RUN mv ./tcrdist_extras_v2/external/ /alldata/bblab_site/depend/apps/tcr-dist/ &
     rm -r tcrdist_extras_v2
 
 USER root
-
-# load configuration for Apache server
-COPY conf/apache2.conf /etc/apache2/
-COPY conf/tools-*.conf /etc/apache2/mods-available/
-COPY conf/php.conf /etc/apache2/mods-available
-RUN ln -sf /etc/apache2/mods-available/tools-gld.conf /etc/apache2/mods-enabled/tools-gld.conf && \
-    ln -sf /etc/apache2/mods-available/tools-pld.conf /etc/apache2/mods-enabled/tools-pld.conf && \
-    ln -sf /etc/apache2/mods-available/tools-hla.conf /etc/apache2/mods-enabled/tools-hla.conf && \
-    ln -sf /etc/apache2/mods-available/php.conf /etc/apache2/mods-enabled/php.conf && \
-    ln -sf /var/log/apache2/access.log /dev/stdout && \
-    ln -sf /var/log/apache2/error.log /dev/stderr && \
-    chmod 766 -R /var/log/apache2/ && \
-    a2dissite 000-default.conf && a2dissite default-ssl.conf
-
-# Copy shell scripts for Phylodating
-COPY phylodating_setup/clean.sh /var/www/phylodating/clean.sh
-COPY phylodating_setup/logwatcher.sh /var/www/phylodating/logwatcher.sh
 
 # Set permissions and ownership for WSGI user/group (www-data:varwwwusers)
 RUN mkdir -p /alldata/bblab_site/tools/sequencing_layout/output && \
