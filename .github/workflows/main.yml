@@ -35,7 +35,7 @@ jobs:
           docker run --rm \
             -w /alldata/bblab_site \
             cfe-lab/bblab-site:test \
-            /opt/bblab_site/.venv/bin/pytest -v
+            uv run pytest -v
 
       - name: Run Django tests
         run: |
