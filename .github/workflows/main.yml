@@ -25,7 +25,7 @@ jobs:
           file: ./bblab.dockerfile
           target: bblab-site
           push: false
-          tags: cfe-lab/bblab-site:test
+          tags: cfe-lab/bblab-site
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -34,7 +34,7 @@ jobs:
         run: |
           docker run --rm \
             -w /alldata/bblab_site \
-            cfe-lab/bblab-site:test \
+            cfe-lab/bblab-site \
             uv run pytest -v
 
       - name: Run Django tests
@@ -42,5 +42,5 @@ jobs:
           docker run --rm \
             --env-file ./compose-template.env \
             -w /alldata/bblab_site \
-            cfe-lab/bblab-site:latest \
+            cfe-lab/bblab-site \
             uv run python manage.py test --noinput
