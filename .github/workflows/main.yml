@@ -40,26 +40,7 @@ jobs:
       - name: Run Django tests
         run: |
           docker run --rm \
-            -e DJANGO_SETTINGS_MODULE=bblab_site.settings \
-            -e BBLAB_DB_USER=test_user \
-            -e BBLAB_DB_PASSWORD=test_password \
-            -e BBLAB_DB_ROOT_PASSWORD=test_root_password \
-            -e BBLAB_DB_NAME=test_db \
-            -e BBLAB_DB_HOST=localhost \
-            -e BBLAB_WEB_ADDRESS=test.example.com \
-            -e BBLAB_SECRET_KEY=test-secret-key-for-ci-only \
-            -e BBLAB_DEBUG=True \
-            -e BBLAB_CSRF_COOKIE_SECURE=False \
-            -e BBLAB_SESSION_COOKIE_SECURE=False \
-            -e BBLAB_STATIC_ROOT=/alldata/bblab_site/static \
-            -e BBLAB_MEDIA_ROOT=/alldata/bblab_site/media \
-            -e BBLAB_LOG_FILE=/alldata/bblab_site/logs/bblab.log \
-            -e BBLAB_UTIL_PATH=/alldata/bblab_site/depend/util_scripts \
-            -e BBLAB_LIB_PATH=/alldata/bblab_site/depend/libraries \
-            -e BBLAB_R_PATH=/usr/bin/R \
-            -e BBLAB_OP_PATH=/alldata/bblab_site/tools \
-            -e BBLAB_TOOL_ROOT=/alldata/bblab_site/tools \
-            -e BBLAB_TEMPLATE_ROOT=/alldata/bblab_site/templates \
+            --env-file ./compose-template.env \
             -w /alldata/bblab_site \
             cfe-lab/bblab-site:latest \
             uv run python manage.py test --noinput
