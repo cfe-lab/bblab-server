@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     
     steps:
@@ -25,6 +25,41 @@ jobs:
           file: ./bblab.dockerfile
           target: bblab-site
           push: false
-          tags: cfe-lab/bblab-site:${{ github.sha }}
+          tags: cfe-lab/bblab-site:test
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Run pytest tests
+        run: |
+          docker run --rm \
+            -w /alldata/bblab_site \
+            cfe-lab/bblab-site:test \
+            /opt/bblab_site/.venv/bin/pytest -v
+
+      - name: Run Django tests
+        run: |
+          docker run --rm \
+            -e DJANGO_SETTINGS_MODULE=bblab_site.settings \
+            -e BBLAB_DB_USER=test_user \
+            -e BBLAB_DB_PASSWORD=test_password \
+            -e BBLAB_DB_ROOT_PASSWORD=test_root_password \
+            -e BBLAB_DB_NAME=test_db \
+            -e BBLAB_DB_HOST=localhost \
+            -e BBLAB_WEB_ADDRESS=test.example.com \
+            -e BBLAB_SECRET_KEY=test-secret-key-for-ci-only \
+            -e BBLAB_DEBUG=True \
+            -e BBLAB_CSRF_COOKIE_SECURE=False \
+            -e BBLAB_SESSION_COOKIE_SECURE=False \
+            -e BBLAB_STATIC_ROOT=/alldata/bblab_site/static \
+            -e BBLAB_MEDIA_ROOT=/alldata/bblab_site/media \
+            -e BBLAB_LOG_FILE=/alldata/bblab_site/logs/bblab.log \
+            -e BBLAB_UTIL_PATH=/alldata/bblab_site/depend/util_scripts \
+            -e BBLAB_LIB_PATH=/alldata/bblab_site/depend/libraries \
+            -e BBLAB_R_PATH=/usr/bin/R \
+            -e BBLAB_OP_PATH=/alldata/bblab_site/tools \
+            -e BBLAB_TOOL_ROOT=/alldata/bblab_site/tools \
+            -e BBLAB_TEMPLATE_ROOT=/alldata/bblab_site/templates \
+            -w /alldata/bblab_site \
+            cfe-lab/bblab-site:test \
+            /opt/bblab_site/.venv/bin/python manage.py test --noinput
