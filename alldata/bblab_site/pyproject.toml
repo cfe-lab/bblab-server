@@ -93,3 +93,28 @@ include = [
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tools",
+]
+# Exclude vendor/dependency directories and submodule repos that have their own test suites
+norecursedirs = [
+    "depend",
+    ".venv",
+    "build",
+    "dist",
+    "*.egg",
+    ".git",
+    "git",
+    ".tox",
+    "repo",  # Excludes submodule repos like tools/phage_i_expanded/repo/
+    "blind_dating",
+    "phylodating",
+    "translate_DNA",
+    "tests/phylodating",  # Exclude the test submodule copy
+]
+# Only collect test files from our actual project, not vendored dependencies
+python_files = ["tests.py"]  # Only collect Django test files
+python_classes = ["Test*"]
+python_functions = ["test_*"]
