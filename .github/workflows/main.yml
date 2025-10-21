@@ -61,5 +61,5 @@ jobs:
             -e BBLAB_TOOL_ROOT=/alldata/bblab_site/tools \
             -e BBLAB_TEMPLATE_ROOT=/alldata/bblab_site/templates \
             -w /alldata/bblab_site \
-            cfe-lab/bblab-site:test \
-            /opt/bblab_site/.venv/bin/python manage.py test --noinput
+            cfe-lab/bblab-site:latest \
+            uv run python manage.py test --noinput
