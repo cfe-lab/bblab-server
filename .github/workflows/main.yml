@@ -30,6 +30,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Run pytest tests
+        run: |
+          docker run --rm \
+            -w /alldata/bblab_site \
+            cfe-lab/bblab-site:test \
+            uv run pytest -v
+
       - name: Run Django tests
         run: |
           docker run --rm \
@@ -56,10 +63,3 @@ jobs:
             -w /alldata/bblab_site \
             cfe-lab/bblab-site:test \
             /opt/bblab_site/.venv/bin/python manage.py test --noinput
-
-      - name: Run pytest tests
-        run: |
-          docker run --rm \
-            -w /alldata/bblab_site \
-            cfe-lab/bblab-site:test \
-            uv run pytest -v
