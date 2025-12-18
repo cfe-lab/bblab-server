@@ -43,6 +43,7 @@ RUN apt-get install -q -y --no-install-recommends \
                     r-base=${R_BASE_VERSION}-* \
                     r-base-dev=${R_BASE_VERSION}-* \
                     r-base-core=${R_BASE_VERSION}-* \
+                    r-recommended=${R_BASE_VERSION}-* \
                     littler r-cran-littler
 
 RUN true \
