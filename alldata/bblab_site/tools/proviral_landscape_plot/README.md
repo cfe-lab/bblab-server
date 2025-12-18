@@ -22,4 +22,8 @@ Required CSV columns
 - `ref_end`   : integer, end coordinate in reference
 - `defect`    : defect key (mapped via `DEFECT_TYPE`)
 - `is_defective` : flag (string) used to detect defect-region highlighting
+  - Accepted TRUE values (case-insensitive): `1`, `true`, `t`, `yes`, `y`
+  - Accepted FALSE values (case-insensitive): `0`, `false`, `f`, `no`, `n`, or empty string
 - `is_inverted`  : flag (string) used to detect inversion highlighting
+  - Accepted TRUE values (case-insensitive): `1`, `true`, `t`, `yes`, `y`
+  - Accepted FALSE values (case-insensitive): `0`, `false`, `f`, `no`, `n`, or empty string

@@ -278,10 +278,10 @@ def _validate_csv_text(csv_text: str) -> Tuple[List[str], List[str], List[str]]:
             if bool_col not in present_columns:
                 continue
             val = (row.get(bool_col) or '').strip().lower()
-            if val and val not in ('0', '1', 'true', 'false', 't', 'f'):
+            if val and val not in ('0', '1', 'true', 'false', 't', 'f', 'yes', 'no', 'y', 'n'):
                 warnings.append(
                     f"Row {i}: column '{bool_col}' has non-standard value '{html.escape(row.get(bool_col) or '')}'."
-                    " Expected 0/1 or True/False."
+                    " Expected 0/1, True/False, or Yes/No."
                 )
 
     return errors, warnings, suggestions
