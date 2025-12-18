@@ -106,6 +106,16 @@ LANDMARKS = [
     {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
 ]
 
+def is_truthy(value):
+    """
+    Check if a value should be interpreted as True.
+    Accepts: '1', 'true', 't', 'yes', 'y' (case-insensitive)
+    Rejects: '0', 'false', 'f', 'no', 'n', '' (empty string), and any other value
+    """
+    if not value:
+        return False
+    return value.strip().lower() in ('1', 'true', 't', 'yes', 'y')
+
 def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     """
     Draw a simple overview of the reference (HXB2) using the provided
@@ -574,7 +584,7 @@ def sort_csv_lines(lines):
                 for i, row in enumerate(samp_rows):
                     ref_start = int(row['ref_start'].strip())
                     ref_end = int(row['ref_end'].strip())
-                    if row['is_inverted'] or row['is_defective']:
+                    if is_truthy(row['is_inverted']) or is_truthy(row['is_defective']):
                         continue
                     if i == 0:
                         if (ref_start - LEFT_PRIMER_END) < SMALLEST_GAP and ref_end > LEFT_PRIMER_END:
@@ -694,10 +704,10 @@ def create_proviral_plot(input_file, output_svg):
                 xstart = int(row['ref_start'].strip())
                 xend = int(row['ref_end'].strip())
                 highlighted = False
-                if row['is_inverted'].strip().lower() in ('1', 'true', 't'):
+                if is_truthy(row['is_inverted']):
                     highlighted_set.add('Inverted Region')
                     highlighted = 'Inverted Region'
-                if row['is_defective'].strip().lower() in ('1', 'true', 't'):
+                if is_truthy(row['is_defective']):
                     # TODO: incorporate this when we get ranges info from proviral.
                     # highlighted_set.add('Defect Region')
                     # highlighted = 'Defect Region'
