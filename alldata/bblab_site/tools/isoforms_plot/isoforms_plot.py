@@ -106,6 +106,23 @@ LANDMARKS = [
     {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
 ]
 
+# default positions of splicing sites in NL43.
+SPLICING_SITES = [
+    {'name': 'D1', 'start': 743, 'type': 'donor'},
+    {'name': 'D2', 'start': 4962, 'type': 'donor'},
+    {'name': 'D2b', 'start': 5058, 'type': 'donor'},
+    {'name': 'D3', 'start': 5463, 'type': 'donor'},
+    {'name': 'D4', 'start': 6046, 'type': 'donor'},
+    {'name': 'A1', 'start': 4913, 'type': 'acceptor'},
+    {'name': 'A2', 'start': 5390, 'type': 'acceptor'},
+    {'name': 'A3', 'start': 5777, 'type': 'acceptor'},
+    {'name': 'A4c', 'start': 5936, 'type': 'acceptor'},
+    {'name': 'A4a', 'start': 5954, 'type': 'acceptor'},
+    {'name': 'A4b', 'start': 5960, 'type': 'acceptor'},
+    {'name': 'A5', 'start': 5976, 'type': 'acceptor'},
+    {'name': 'A7', 'start': 8369, 'type': 'acceptor'},
+]
+
 def is_truthy(value):
     """
     Check if a value should be interpreted as True.
