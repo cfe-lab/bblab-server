@@ -1,11 +1,8 @@
-from csv import DictReader
 from argparse import ArgumentParser
 from genetracks import Figure, Track, Multitrack, Label
-from itertools import groupby
 from operator import itemgetter
 import drawsvg as draw
 from collections import defaultdict
-from math import ceil
 
 
 # Multiplier that helps estimating label widths. It is approximate and font-dependent.
