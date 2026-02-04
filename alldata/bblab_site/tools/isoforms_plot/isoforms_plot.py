@@ -452,7 +452,7 @@ class SplicingSites:
             # Use stroke-linecap='round' with stroke-dasharray to get round dots
             d.append(draw.Line(x_pos, dotted_start_y, x_pos, dotted_end_y,
                              stroke='lightgray', stroke_width=1.5,
-                             stroke_dasharray='0.5,4',  # very short dash with larger gap = dots
+                             stroke_dasharray='0.3,3',
                              stroke_linecap='round'))  # makes ends round
 
         # Draw ticks and labels
