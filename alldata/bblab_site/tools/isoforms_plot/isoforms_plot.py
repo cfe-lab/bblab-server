@@ -128,6 +128,16 @@ SPLICING_SITES = [
     {'name': 'A7', 'start': 8369, 'type': 'acceptor'},
 ]
 
+# Information about individual isoforms to be displayed.
+TRANSCRIPTS = [
+    {'parts': [(1, 743), (4913, 5463)]},  # generates vif.
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
+]
+
 def is_truthy(value):
     """
     Check if a value should be interpreted as True.
