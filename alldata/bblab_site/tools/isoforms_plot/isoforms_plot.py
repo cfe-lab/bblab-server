@@ -10,12 +10,6 @@ CHAR_WIDTH_FACTOR = 0.6
 
 DOTTED_LINES_WIDTH = 1
 
-# colors are chosen from Paul Tol's muted color scheme, which is color-blind safe
-# if another defect color is needed, this one is recommended: #DDCC77
-HIGHLIGHT_COLORS = {'Defect Region': "black",
-                    'Inverted Region': "#AFAFAF",
-                    }
-
 START_POS = 638
 END_POS = 9632
 LEFT_PRIMER_END = 666
@@ -257,7 +251,7 @@ class SplicingSites:
     """
     Draw a horizontal line with vertical ticks at splicing site positions.
     Donor sites have ticks going up, acceptor sites have ticks going down.
-    Dotted lines extend down from each site through the defects section.
+    Dotted lines extend down from each site through the transcripts section.
     """
     def __init__(self, splicing_sites, total_samples=0, lineheight=5, h=60):
         self.splicing_sites = splicing_sites
@@ -402,36 +396,6 @@ class SplicingSites:
         return d
 
 
-class XAxis:
-    def __init__(self, h=3):
-        self.a = START_POS + XOFFSET
-        self.b = END_POS + XOFFSET
-        self.w = END_POS + XOFFSET + 1500
-        self.h = h
-        self.color = 'black'
-        self.ticks = [i for i in range(1000, 10000, 1000)]
-
-    def draw(self, x=0, y=0, xscale=1.0):
-        h = self.h
-        a = self.a * xscale
-        b = self.b * xscale
-        x = x * xscale
-
-        d = draw.Group(transform="translate({} {})".format(x, y))
-        d.append(draw.Rectangle(a, 0, b - a, h,
-                                fill=self.color, stroke=self.color))
-
-        for tick in self.ticks:
-            label = str(tick)
-            x_tick = (tick + XOFFSET) * xscale
-            d.append(draw.Lines(x_tick, 0, x_tick, -20, stroke=self.color, stroke_width=h))
-            d.append(Label(0, label, font_size=20, offset=-40).draw(x=x_tick))
-
-        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=a + (b - a) / 2))
-
-        return d
-
-
 class TranscriptLine:
     """Draws a transcript with its parts and optional label on the right side."""
     def __init__(self, parts, color, label=None, lineheight=5):
@@ -485,92 +449,17 @@ class TranscriptLine:
         return d
 
 
-class IsoformsPlot:
-    def __init__(self, figure, tot_samples):
-        self.curr_samp_name = ''
-        self.figure = figure
-        self.curr_multitrack = []
-        self.tot_samples = tot_samples
-        self.lineheight = 500 / self.tot_samples if self.tot_samples > 0 else 0
-        if self.lineheight > 5:
-            self.lineheight = 5
-        self.xaxisheight = 0
-
-    def draw_current_multitrack(self):
-        # draw line and reset multitrack
-        if self.curr_multitrack:
-            self.figure.add(Multitrack(self.curr_multitrack), gap=1)
-        self.curr_multitrack = []
-
-    def add_xaxis(self):
-        padding = 20
-        gap = 100
-        xaxis_thickness = 3
-        self.figure.add(XAxis(h=xaxis_thickness), padding=padding, gap=gap)
-        self.xaxisheight = padding + gap + xaxis_thickness
-
-def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
-    """
-    Within a defect category, sort samples by their gaps:
-    1. Identify and record each gap as (start, end, size).
-    2. For each sample, sort its gaps by descending size.
-    3. Build per-sample lists of (start, end) from those sorted gaps.
-    4. Pad shorter lists with (END_POS+1, END_POS+1) to equal length.
-    5. Sort samples lexicographically by these flattened (start,end) lists,
-       ties on equal starts are broken by earlier ends.
-    """
-    # group rows by sample
-    sample_rows = defaultdict(list)
-    for r in rows:
-        sample_rows[r['samp_name'].strip()].append(r)
-    # compute gaps per sample
-    sample_gap_feats = {}
-    max_len = 0
-    for samp, segs in sample_rows.items():
-        segs_sorted = sorted(segs, key=lambda x: int(x['ref_start'].strip()))
-        prev_end = START_POS
-        feats = []  # list of (start,end,size)
-        for seg in segs_sorted:
-            start = int(seg['ref_start'].strip())
-            if start - prev_end > threshold:
-                size = start - prev_end
-                feats.append((prev_end, start, size))
-            prev_end = max(prev_end, int(seg['ref_end'].strip()))
-        if END_POS - prev_end > threshold:
-            size = END_POS - prev_end
-            feats.append((prev_end, END_POS, size))
-        # sort features by descending size
-        feats_sorted = sorted(feats, key=lambda x: x[2], reverse=True)
-        # extract only (start,end)
-        pos_list = [(s, e) for s, e, _ in feats_sorted]
-        sample_gap_feats[samp] = pos_list
-        max_len = max(max_len, len(pos_list))
-    # pad with out-of-range pairs to equal length
-    pad_pair = (END_POS + 1, END_POS + 1)
-    for samp, pos_list in sample_gap_feats.items():
-        if len(pos_list) < max_len:
-            pos_list.extend([pad_pair] * (max_len - len(pos_list)))
-        sample_gap_feats[samp] = pos_list
-    # final sort: flatten each (start,end) list and compare lex
-    def sample_key(samp):
-        flat = []
-        for start, end in sample_gap_feats[samp]:
-            flat.append(start)
-            flat.append(end)
-        return tuple(flat)
-    sorted_samples = sorted(sample_gap_feats.keys(), key=sample_key)
-    return sorted_samples
-
-
 def create_isoforms_plot(input_file, output_svg):
     # Use TRANSCRIPTS to determine number of samples to display
     total_samples = len(TRANSCRIPTS)
     figure = Figure()
-    plot = IsoformsPlot(figure, total_samples)
+    lineheight = 500 / total_samples if total_samples > 0 else 0
+    if lineheight > 5:
+        lineheight = 5
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
     # add splicing sites display below the genome overview
-    figure.add(SplicingSites(SPLICING_SITES, total_samples=total_samples, lineheight=plot.lineheight), gap=5)
+    figure.add(SplicingSites(SPLICING_SITES, total_samples=total_samples, lineheight=lineheight), gap=5)
     # add a small blank multitrack to create vertical separation between the splicing sites
     # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
     try:
@@ -587,11 +476,9 @@ def create_isoforms_plot(input_file, output_svg):
         label = transcript.get('label', None)
 
         # Create and add transcript line with label
-        transcript_line = TranscriptLine(parts, color, label, lineheight=plot.lineheight)
+        transcript_line = TranscriptLine(parts, color, label, lineheight=lineheight)
         figure.add(transcript_line, gap=3)  # gap between transcripts
 
-    # finalize plot
-    plot.add_xaxis()
     # display with a standard width so the overview is visible
     figure.show(w=900).save_svg(output_svg)
 
