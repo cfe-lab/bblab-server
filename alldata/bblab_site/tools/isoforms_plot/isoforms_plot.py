@@ -672,30 +672,45 @@ class TranscriptLine:
         self.color = color
         self.label = label
         self.lineheight = lineheight
+        self.font_size = 9  # smaller font
+        # If there's a label, increase height to accommodate it
+        if self.label:
+            # Need enough total height to avoid overlap with previous transcript
+            # But position label close to own transcript
+            self.h = self.lineheight + self.font_size + 6  # increased total height
+        else:
+            self.h = self.lineheight
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
-        self.h = lineheight
         self.w = self.b - self.a + 1500  # extend to match XAxis width
 
     def draw(self, x=0, y=0, xscale=1.0):
         d = draw.Group(transform="translate({} {})".format(x * xscale, y))
 
-        # Draw each part of the transcript
+        # Transcript at top
+        transcript_y = 0
+        
+        if self.label:
+            # Label baseline very close to transcript - minimal gap
+            label_baseline_y = self.lineheight + int(self.font_size * 0.5)
+        else:
+            label_baseline_y = None
+
+        # Draw transcript rectangles
         for part in self.parts:
             if len(part) == 2:
                 xstart, xend = part
                 xstart_scaled = (xstart + XOFFSET) * xscale
                 xend_scaled = (xend + XOFFSET) * xscale
                 width = xend_scaled - xstart_scaled
-                d.append(draw.Rectangle(xstart_scaled, 0, width, self.lineheight,
+                d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
                                        fill=self.color, stroke=self.color))
 
-        # Draw label on the right side if present
-        if self.label:
-            label_x = (END_POS + XOFFSET + 50) * xscale  # position to the right of the genome
-            label_y = self.lineheight / 2 + 3  # vertically center with slight offset
-            d.append(draw.Text(text=self.label, font_size=12,
-                             x=label_x, y=label_y,
+        # Draw label text
+        if self.label and label_baseline_y is not None:
+            label_x = (END_POS + XOFFSET + 50) * xscale
+            d.append(draw.Text(text=self.label, font_size=self.font_size,
+                             x=label_x, y=label_baseline_y,
                              font_family='monospace', fill='black'))
 
         return d
@@ -908,7 +923,7 @@ def create_isoforms_plot(input_file, output_svg):
 
         # Create and add transcript line with label
         transcript_line = TranscriptLine(parts, color, label, lineheight=plot.lineheight)
-        figure.add(transcript_line, gap=3)  # small gap between transcripts
+        figure.add(transcript_line, gap=3)  # gap between transcripts
 
     # finalize plot
     plot.add_xaxis()
