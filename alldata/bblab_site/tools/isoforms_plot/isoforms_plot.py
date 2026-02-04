@@ -824,13 +824,13 @@ def create_isoforms_plot(input_file, output_svg):
     add_genome_overview(figure, LANDMARKS)
     # add splicing sites display below the genome overview
     figure.add(SplicingSites(SPLICING_SITES), gap=5)
-    # add a small blank multitrack to create vertical separation between the overview
-    # and the sample tracks (gap value tuned experimentally)
+    # add a small blank multitrack to create vertical separation between the splicing sites
+    # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
     try:
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
     except TypeError:
         # fallback if Track signature differs; attempt without named color
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
     # keep raw counts while building percentages later
     defect_counts = defaultdict(int)
     highlighted_set = set()
