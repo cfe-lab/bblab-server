@@ -665,6 +665,42 @@ class LegendAndPercentages:
         return d
 
 
+class TranscriptLine:
+    """Draws a transcript with its parts and optional label on the right side."""
+    def __init__(self, parts, color, label=None, lineheight=5):
+        self.parts = parts
+        self.color = color
+        self.label = label
+        self.lineheight = lineheight
+        self.a = START_POS + XOFFSET
+        self.b = END_POS + XOFFSET
+        self.h = lineheight
+        self.w = self.b - self.a + 1500  # extend to match XAxis width
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        d = draw.Group(transform="translate({} {})".format(x * xscale, y))
+
+        # Draw each part of the transcript
+        for part in self.parts:
+            if len(part) == 2:
+                xstart, xend = part
+                xstart_scaled = (xstart + XOFFSET) * xscale
+                xend_scaled = (xend + XOFFSET) * xscale
+                width = xend_scaled - xstart_scaled
+                d.append(draw.Rectangle(xstart_scaled, 0, width, self.lineheight,
+                                       fill=self.color, stroke=self.color))
+
+        # Draw label on the right side if present
+        if self.label:
+            label_x = (END_POS + XOFFSET + 50) * xscale  # position to the right of the genome
+            label_y = self.lineheight / 2 + 3  # vertically center with slight offset
+            d.append(draw.Text(text=self.label, font_size=12,
+                             x=label_x, y=label_y,
+                             font_family='monospace', fill='black'))
+
+        return d
+
+
 class IsoformsPlot:
     def __init__(self, figure, tot_samples):
         self.curr_samp_name = ''
@@ -866,20 +902,13 @@ def create_isoforms_plot(input_file, output_svg):
     # Draw each transcript from TRANSCRIPTS variable
     default_color = 'grey'
     for i, transcript in enumerate(TRANSCRIPTS):
-        transcript_name = f"transcript_{i}"
         color = transcript.get('color', default_color)
         parts = transcript.get('parts', [])
+        label = transcript.get('label', None)
 
-        # Draw each part of the transcript
-        for part in parts:
-            if len(part) == 2:
-                xstart, xend = part
-                # Create a multitrack with a single track for this part
-                track = Track(xstart + XOFFSET, xend + XOFFSET, color=color, h=plot.lineheight)
-                plot.curr_multitrack.append(track)
-
-        # Finish this transcript line
-        plot.draw_current_multitrack()
+        # Create and add transcript line with label
+        transcript_line = TranscriptLine(parts, color, label, lineheight=plot.lineheight)
+        figure.add(transcript_line, gap=3)  # small gap between transcripts
 
     # finalize plot
     plot.add_xaxis()
