@@ -87,22 +87,22 @@ GAG_END = 2292
 XOFFSET = 400
 SMALLEST_GAP = 50
 
-# default HXB2 landmarks for the small overview graphic
+# default NL43 landmarks for the small overview graphic
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
 # tat and rev have multiple exons, so we include both parts
 LANDMARKS = [
     {"name": "5'LTR", 'start': 1, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
-    {'name': 'gag', 'start': 790, 'end': GAG_END, 'colour': '#a6cee3', 'frame': 0},
+    {'name': 'gag', 'start': 790, 'end': 2292, 'colour': '#a6cee3', 'frame': 0},
     {'name': 'pol', 'start': 2085, 'end': 5096, 'colour': '#1f78b4', 'frame': 2},
     {'name': 'vif', 'start': 5041, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
-    {'name': 'vpr', 'start': 5559, 'end': 5850, 'colour': '#fdbf6f', 'frame': 2},
-    {'name': 'tat', 'start': 5831, 'end': 6045, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
-    {'name': 'tat', 'start': 8379, 'end': 8469, 'colour': '#b2df8a', 'frame': 0, 'exon': 2},
-    {'name': 'rev', 'start': 5970, 'end': 6045, 'colour': '#c2a5cf', 'frame': 2, 'exon': 1},
-    {'name': 'rev', 'start': 8379, 'end': 8653, 'colour': '#c2a5cf', 'frame': 1, 'exon': 2},
-    {'name': 'vpu', 'start': 6062, 'end': 6310, 'colour': '#ffff99', 'frame': 1},
-    {'name': 'env', 'start': 6225, 'end': 8795, 'colour': '#8dd3c7', 'frame': 2},
-    {'name': 'nef', 'start': 8797, 'end': 9417, 'colour': '#bebada', 'frame': 0},
+    {'name': 'vpr', 'start': 5559, 'end': 5849, 'colour': '#fdbf6f', 'frame': 2},
+    {'name': 'tat', 'start': 5830, 'end': 6044, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
+    {'name': 'tat', 'start': 8369, 'end': 8414, 'colour': '#b2df8a', 'frame': 0, 'exon': 2},
+    {'name': 'rev', 'start': 5970, 'end': 6044, 'colour': '#c2a5cf', 'frame': 2, 'exon': 1},
+    {'name': 'rev', 'start': 8369, 'end': 8643, 'colour': '#c2a5cf', 'frame': 1, 'exon': 2},
+    {'name': 'vpu', 'start': 6062, 'end': 6306, 'colour': '#ffff99', 'frame': 1},
+    {'name': 'env', 'start': 6221, 'end': 8785, 'colour': '#8dd3c7', 'frame': 2},
+    {'name': 'nef', 'start': 8787, 'end': 9407, 'colour': '#bebada', 'frame': 0},
     {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
 ]
 
@@ -135,7 +135,7 @@ def is_truthy(value):
 
 def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     """
-    Draw a simple overview of the reference (HXB2) using the provided
+    Draw a simple overview of the reference (NL43) using the provided
     landmarks list. Each landmark should be a dict with 'start', 'end', 'name'
     and optionally 'colour' and 'frame'. Coordinates are assumed to be in the
     same reference coordinate system as START_POS/END_POS; this function adds
