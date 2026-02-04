@@ -845,10 +845,8 @@ def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
 
 
 def create_isoforms_plot(input_file, output_svg):
-    # read all rows, set up figure and counters
-    lines = list(DictReader(input_file))
-    # total unique samples (across all defects)
-    total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
+    # Use TRANSCRIPTS to determine number of samples to display
+    total_samples = len(TRANSCRIPTS)
     figure = Figure()
     plot = IsoformsPlot(figure, total_samples)
     # add genome overview at the top of the figure so it appears above sample tracks
@@ -862,82 +860,38 @@ def create_isoforms_plot(input_file, output_svg):
     except TypeError:
         # fallback if Track signature differs; attempt without named color
         figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
-    # keep raw counts while building percentages later
-    defect_counts = defaultdict(int)
-    highlighted_set = set()
-    # group and plot by defect category, preserving category order
-    for all_rows_this_defect in sort_csv_lines(lines):
-        defect = DEFECT_TYPE[all_rows_this_defect[0]['defect'].strip()]
-        # within this defect, sort samples by their gap patterns
-        # collect rows for this defect
-        rows = all_rows_this_defect
-        sample_rows = defaultdict(list)
-        for r in rows:
-            sample_rows[r['samp_name'].strip()].append(r)
-        # determine order of samples in this defect
-        sample_order = order_samples_by_gaps(rows)
-        # plot each sample in the defect group
-        for samp in sample_order:
-            segs = sample_rows[samp]
-            segs.sort(key=lambda x: int(x['ref_start'].strip()))
-            for row in segs:
-                xstart = int(row['ref_start'].strip())
-                xend = int(row['ref_end'].strip())
-                highlighted = False
-                if is_truthy(row['is_inverted']):
-                    highlighted_set.add('Inverted Region')
-                    highlighted = 'Inverted Region'
-                if is_truthy(row['is_defective']):
-                    # TODO: incorporate this when we get ranges info from proviral pipeline.
-                    # highlighted_set.add('Defect Region')
-                    # highlighted = 'Defect Region'
-                    pass
-                plot.add_line(samp, xstart, xend, defect, highlighted)
-        # count samples in this defect for percentages
-        defect_counts[defect] += len(sample_order)
 
-    # convert counts to percentages (only include defects that have a defined color)
-    defect_percentages = defaultdict(int)
-    for defect, number in defect_counts.items():
-        if defect not in DEFECT_TO_COLOR:
-            continue
-        defect_percentages[defect] = number / total_samples * 100
+    # Draw each transcript from TRANSCRIPTS variable
+    default_color = 'grey'
+    for i, transcript in enumerate(TRANSCRIPTS):
+        transcript_name = f"transcript_{i}"
+        color = transcript.get('color', default_color)
+        parts = transcript.get('parts', [])
 
-    # Determine whether to move percentages into the legend based on adjacency in the
-    # right-hand percentage sidebar. The sidebar iterates defects in the same order
-    # as defect_percentages.keys(), so use that ordering here.
-    neighbour_flag = False
-    sidebar_entries = list(defect_percentages.keys())
-    total_entries = len(sidebar_entries)
-    if total_entries > 1:
-        # build list of counts for sidebar entries (0 if missing)
-        counts_list = [defect_counts.get(entry, 0) for entry in sidebar_entries]
-        for i in range(total_entries - 1):
-            c1 = counts_list[i]
-            c2 = counts_list[i + 1]
-            # both must be active (count>0) and both have very few samples (<4)
-            if c1 > 0 and c2 > 0 and c1 < 4 and c2 < 4:
-                neighbour_flag = True
-                break
+        # Draw each part of the transcript
+        for part in parts:
+            if len(part) == 2:
+                xstart, xend = part
+                # Create a multitrack with a single track for this part
+                track = Track(xstart + XOFFSET, xend + XOFFSET, color=color, h=plot.lineheight)
+                plot.curr_multitrack.append(track)
+
+        # Finish this transcript line
+        plot.draw_current_multitrack()
 
     # finalize plot
-    plot.draw_current_multitrack()
     plot.add_xaxis()
-    plot.legends_and_percentages(defect_percentages, highlighted_set, force_move_percentages=neighbour_flag)
     # display with a standard width so the overview is visible
     figure.show(w=900).save_svg(output_svg)
 
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("isoforms_csv",
-                        help="Isoforms input file, produced by proviral pipeline")
     parser.add_argument("output_svg",
                         help="Output SVG")
     args = parser.parse_args()
 
-    with open(args.isoforms_csv, 'r') as input_file:
-        create_isoforms_plot(input_file, args.output_svg)
+    create_isoforms_plot(None, args.output_svg)
 
 
 if __name__ == '__main__':
