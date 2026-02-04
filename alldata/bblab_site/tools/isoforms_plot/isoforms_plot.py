@@ -319,16 +319,75 @@ class SplicingSites:
     Draw a horizontal line with vertical ticks at splicing site positions.
     Donor sites have ticks going up, acceptor sites have ticks going down.
     """
-    def __init__(self, splicing_sites, h=30):
+    def __init__(self, splicing_sites, h=60):
         self.splicing_sites = splicing_sites
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
-        self.h = h  # height of the component (increased for labels)
+        self.h = h  # height of the component (increased for multi-level labels)
         self.line_thickness = 2
         self.tick_height = 10
         self.color = 'black'
         self.font_size = 10
+        self.label_spacing = 12  # vertical spacing between label levels
+
+    def _assign_label_levels(self, sites_data, xscale):
+        """
+        Assign vertical levels to labels to avoid overlaps.
+        Returns a dict mapping site index to level (0, 1, 2, ...).
+        """
+        # Estimate character width for monospace font (rough approximation)
+        char_width = self.font_size * 0.6
+        min_spacing = 2  # minimum pixels between labels
+
+        # Build list of (index, x_pos, label_width, site_type)
+        label_info = []
+        for i, site_data in enumerate(sites_data):
+            site, x_pos = site_data
+            site_name = site.get('name', '')
+            label_width = len(site_name) * char_width
+            site_type = site.get('type', 'donor')
+            label_info.append((i, x_pos, label_width, site_type))
+
+        # Sort by x position
+        label_info.sort(key=lambda x: x[1])
+
+        # Separate donors and acceptors (they can overlap since they're on opposite sides)
+        donors = [x for x in label_info if x[3] == 'donor']
+        acceptors = [x for x in label_info if x[3] == 'acceptor']
+
+        levels = {}
+
+        # Assign levels for each group separately
+        for group in [donors, acceptors]:
+            if not group:
+                continue
+
+            # Greedy algorithm: assign each label to the lowest level where it fits
+            level_rightmost = {}  # tracks the rightmost x position at each level
+
+            for idx, x_pos, label_width, site_type in group:
+                label_left = x_pos - label_width / 2
+                label_right = x_pos + label_width / 2
+
+                # Find the lowest level where this label fits
+                level = 0
+                while True:
+                    if level not in level_rightmost:
+                        # This level is empty, use it
+                        level_rightmost[level] = label_right + min_spacing
+                        levels[idx] = level
+                        break
+                    elif label_left >= level_rightmost[level]:
+                        # This label fits at this level
+                        level_rightmost[level] = label_right + min_spacing
+                        levels[idx] = level
+                        break
+                    else:
+                        # Try next level
+                        level += 1
+
+        return levels
 
     def draw(self, x=0, y=0, xscale=1.0):
         a = self.a * xscale
@@ -342,26 +401,36 @@ class SplicingSites:
         d.append(draw.Lines(a, line_y, b, line_y,
                           stroke=self.color, stroke_width=self.line_thickness))
 
-        # Draw vertical ticks at each splicing site
+        # Collect sites data for label positioning
+        sites_data = []
         for site in self.splicing_sites:
             site_pos = site['start']
             # Skip sites outside our display range
             if site_pos < START_POS or site_pos > END_POS:
                 continue
-
             x_pos = (site_pos + XOFFSET) * xscale
+            sites_data.append((site, x_pos))
+
+        # Assign levels to avoid overlaps
+        levels = self._assign_label_levels(sites_data, xscale)
+
+        # Draw ticks and labels
+        for i, (site, x_pos) in enumerate(sites_data):
             site_type = site.get('type', 'donor')
             site_name = site.get('name', '')
+            level = levels.get(i, 0)
 
             # Donor sites: ticks go up; Acceptor sites: ticks go down
             if site_type == 'donor':
                 tick_start = line_y
                 tick_end = line_y + self.tick_height
-                label_y = tick_end + self.font_size - 5  # Place label above the tick
+                # Labels above: higher levels go further up
+                label_y = tick_end + self.font_size - 5 + (level * self.label_spacing)
             else:  # acceptor
                 tick_start = line_y
                 tick_end = line_y - self.tick_height
-                label_y = tick_end - 5  # Place label below the tick
+                # Labels below: higher levels go further down
+                label_y = tick_end - 5 - (level * self.label_spacing)
 
             # Draw tick
             d.append(draw.Lines(x_pos, tick_start, x_pos, tick_end,
