@@ -11,6 +11,8 @@ from math import ceil
 # Multiplier that helps estimating label widths. It is approximate and font-dependent.
 CHAR_WIDTH_FACTOR = 0.6
 
+DOTTED_LINES_WIDTH = 1
+
 
 DEFECT_TO_COLOR = {"5' Defect": "#44AA99",
                    'Hypermutated': "#88CCEE",
@@ -353,7 +355,7 @@ class SplicingSites:
         self.label_spacing = 12  # vertical spacing between label levels
         self.total_samples = total_samples
         self.lineheight = lineheight
-        self.dotted_line_thickness = 1  # thin dotted lines
+        self.dotted_line_thickness = DOTTED_LINES_WIDTH
 
     def _assign_label_levels(self, sites_data, xscale):
         """
@@ -704,8 +706,8 @@ class TranscriptLine:
         for part in self.parts:
             if len(part) == 2:
                 xstart, xend = part
-                xstart_scaled = (xstart + XOFFSET) * xscale
-                xend_scaled = (xend + XOFFSET) * xscale
+                xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH
+                xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH
                 width = xend_scaled - xstart_scaled
                 d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
                                        fill=self.color, stroke=self.color))
