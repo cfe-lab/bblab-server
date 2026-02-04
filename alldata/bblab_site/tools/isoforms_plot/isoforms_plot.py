@@ -7,6 +7,11 @@ import drawsvg as draw
 from collections import defaultdict
 from math import ceil
 
+
+# Multiplier that helps estimating label widths. It is approximate and font-dependent.
+CHAR_WIDTH_FACTOR = 0.6
+
+
 DEFECT_TO_COLOR = {"5' Defect": "#44AA99",
                    'Hypermutated': "#88CCEE",
                    'Intact': "#332288",
@@ -285,10 +290,9 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                     # multiplicative shrink factor per iteration (e.g., 0.90 -> reduce by 10% each step)
                     shrink_factor = 0.90
                     # approximate monospace character width (pixels per font unit)
-                    char_w = 0.6
                     padding = 2
                     avail = w0 - padding
-                    while (font * char_w * len(label)) > avail:
+                    while (font * CHAR_WIDTH_FACTOR * len(label)) > avail:
                         font = font * shrink_factor
                     # vertical offset tuned to visually center text; use float font
                     g.append(draw.Text(text=label, font_size=font,
@@ -341,7 +345,7 @@ class SplicingSites:
         Returns a dict mapping site index to level (0, 1, 2, ...).
         """
         # Estimate character width for monospace font (rough approximation)
-        char_width = self.font_size * 0.6
+        char_width = self.font_size * CHAR_WIDTH_FACTOR
         min_spacing = 2  # minimum pixels between labels
 
         # Build list of (index, x_pos, label_width, site_type)
