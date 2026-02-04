@@ -356,12 +356,12 @@ class SplicingSites:
             # Donor sites: ticks go up; Acceptor sites: ticks go down
             if site_type == 'donor':
                 tick_start = line_y
-                tick_end = line_y - self.tick_height
-                label_y = tick_end - 5  # Place label above the tick
+                tick_end = line_y + self.tick_height
+                label_y = tick_end + self.font_size - 5  # Place label above the tick
             else:  # acceptor
                 tick_start = line_y
-                tick_end = line_y + self.tick_height
-                label_y = tick_end + self.font_size - 5  # Place label below the tick
+                tick_end = line_y - self.tick_height
+                label_y = tick_end - 5  # Place label below the tick
 
             # Draw tick
             d.append(draw.Lines(x_pos, tick_start, x_pos, tick_end,
