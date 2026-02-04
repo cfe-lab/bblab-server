@@ -398,12 +398,14 @@ class SplicingSites:
 
 class TranscriptLine:
     """Draws a transcript with its parts and optional label on the right side."""
-    def __init__(self, parts, color, label=None, lineheight=5):
+    def __init__(self, parts, color, label=None, comment=None, lineheight=5):
         self.parts = parts
         self.color = color
         self.label = label
+        self.comment = comment
         self.lineheight = lineheight
         self.font_size = 9  # smaller font
+        self.comment_font_size = 8  # slightly smaller for comments
         # If there's a label, increase height to accommodate it
         if self.label:
             # Need enough total height to avoid overlap with previous transcript
@@ -446,6 +448,15 @@ class TranscriptLine:
                              font_family='monospace', fill='black',
                              text_anchor='end'))  # right-align text
 
+        # Draw comment text (to the right of transcript, at same height)
+        if self.comment:
+            comment_x = (END_POS + XOFFSET + 10) * xscale  # small gap after transcript end
+            comment_y = transcript_y + self.lineheight / 2 + 3  # vertically centered with transcript
+            d.append(draw.Text(text=self.comment, font_size=self.comment_font_size,
+                             x=comment_x, y=comment_y,
+                             font_family='monospace', fill='gray',
+                             text_anchor='start'))  # left-align comment
+
         return d
 
 
@@ -474,9 +485,10 @@ def create_isoforms_plot(input_file, output_svg):
         color = transcript.get('color', default_color)
         parts = transcript.get('parts', [])
         label = transcript.get('label', None)
+        comment = transcript.get('comment', None)
 
-        # Create and add transcript line with label
-        transcript_line = TranscriptLine(parts, color, label, lineheight=lineheight)
+        # Create and add transcript line with label and comment
+        transcript_line = TranscriptLine(parts, color, label, comment, lineheight=lineheight)
         figure.add(transcript_line, gap=3)  # gap between transcripts
 
     # display with a standard width so the overview is visible
