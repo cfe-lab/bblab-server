@@ -314,6 +314,49 @@ def defect_order(defect):
     return order
 
 
+class SplicingSites:
+    """
+    Draw a horizontal line with vertical ticks at splicing site positions.
+    """
+    def __init__(self, splicing_sites, h=15):
+        self.splicing_sites = splicing_sites
+        self.a = START_POS + XOFFSET
+        self.b = END_POS + XOFFSET
+        self.w = self.b - self.a
+        self.h = h  # height of the component
+        self.line_thickness = 2
+        self.tick_height = 10
+        self.color = 'black'
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        a = self.a * xscale
+        b = self.b * xscale
+        x = x * xscale
+
+        d = draw.Group(transform="translate({} {})".format(x, y))
+
+        # Draw horizontal line (baseline for ticks)
+        line_y = self.h / 2
+        d.append(draw.Lines(a, line_y, b, line_y,
+                          stroke=self.color, stroke_width=self.line_thickness))
+
+        # Draw vertical ticks at each splicing site
+        for site in self.splicing_sites:
+            site_pos = site['start']
+            # Skip sites outside our display range
+            if site_pos < START_POS or site_pos > END_POS:
+                continue
+
+            x_pos = (site_pos + XOFFSET) * xscale
+            # Draw tick extending upward from the line
+            tick_top = line_y - self.tick_height
+            tick_bottom = line_y
+            d.append(draw.Lines(x_pos, tick_bottom, x_pos, tick_top,
+                              stroke=self.color, stroke_width=self.line_thickness))
+
+        return d
+
+
 class XAxis:
     def __init__(self, h=3):
         self.a = START_POS + XOFFSET
@@ -692,6 +735,8 @@ def create_isoforms_plot(input_file, output_svg):
     plot = IsoformsPlot(figure, total_samples)
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
+    # add splicing sites display below the genome overview
+    figure.add(SplicingSites(SPLICING_SITES), gap=5)
     # add a small blank multitrack to create vertical separation between the overview
     # and the sample tracks (gap value tuned experimentally)
     try:
