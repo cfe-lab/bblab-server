@@ -130,12 +130,14 @@ SPLICING_SITES = [
 
 # Information about individual isoforms to be displayed.
 TRANSCRIPTS = [
-    {'parts': [(1, 743), (4913, 5463)]},  # generates vif.
-    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
-    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
-    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
-    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
-    {'parts': [(1, 743), (5777, 6046), (8369, 9999)]},  # generates tat or rev.
+    {'parts': [(1, 743), (4913, 5463)], 'label': 'vif'},
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)], 'label': 'rev'},
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)], 'label': 'tat'},
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)], 'label': 'rev'},
+    {'parts': [(1, 743), (5390, 5463), (5954, 6046), (8369, 9999)], 'label': 'nef'},
+    {'parts': [(1, 743), (5954, 6046), (8369, 9999)], 'label': 'nef'},
+    {'parts': [(1, 743), (5390, 5463), (5954, 6046), (8369, 9999)], 'label': 'nef'},
+    {'parts': [(1, 743), (5777, 6046), (8369, 9999)], 'label': 'tat'},
 ]
 
 def is_truthy(value):
