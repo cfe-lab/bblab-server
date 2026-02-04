@@ -448,10 +448,12 @@ class SplicingSites:
         for site, x_pos in sites_data:
             dotted_start_y = line_y
             dotted_end_y = line_y - dotted_line_length
-            # Create a dotted line using stroke-dasharray
+            # Create a dotted line using round dots
+            # Use stroke-linecap='round' with stroke-dasharray to get round dots
             d.append(draw.Line(x_pos, dotted_start_y, x_pos, dotted_end_y,
-                             stroke='lightgray', stroke_width=self.dotted_line_thickness,
-                             stroke_dasharray='2,3'))  # 2 pixels dash, 3 pixels gap
+                             stroke='lightgray', stroke_width=1.5,
+                             stroke_dasharray='0.5,4',  # very short dash with larger gap = dots
+                             stroke_linecap='round'))  # makes ends round
 
         # Draw ticks and labels
         for i, (site, x_pos) in enumerate(sites_data):
