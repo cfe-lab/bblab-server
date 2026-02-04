@@ -317,16 +317,18 @@ def defect_order(defect):
 class SplicingSites:
     """
     Draw a horizontal line with vertical ticks at splicing site positions.
+    Donor sites have ticks going up, acceptor sites have ticks going down.
     """
-    def __init__(self, splicing_sites, h=15):
+    def __init__(self, splicing_sites, h=30):
         self.splicing_sites = splicing_sites
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
-        self.h = h  # height of the component
+        self.h = h  # height of the component (increased for labels)
         self.line_thickness = 2
         self.tick_height = 10
         self.color = 'black'
+        self.font_size = 10
 
     def draw(self, x=0, y=0, xscale=1.0):
         a = self.a * xscale
@@ -348,11 +350,27 @@ class SplicingSites:
                 continue
 
             x_pos = (site_pos + XOFFSET) * xscale
-            # Draw tick extending upward from the line
-            tick_top = line_y - self.tick_height
-            tick_bottom = line_y
-            d.append(draw.Lines(x_pos, tick_bottom, x_pos, tick_top,
+            site_type = site.get('type', 'donor')
+            site_name = site.get('name', '')
+
+            # Donor sites: ticks go up; Acceptor sites: ticks go down
+            if site_type == 'donor':
+                tick_start = line_y
+                tick_end = line_y - self.tick_height
+                label_y = tick_end - 5  # Place label above the tick
+            else:  # acceptor
+                tick_start = line_y
+                tick_end = line_y + self.tick_height
+                label_y = tick_end + self.font_size - 5  # Place label below the tick
+
+            # Draw tick
+            d.append(draw.Lines(x_pos, tick_start, x_pos, tick_end,
                               stroke=self.color, stroke_width=self.line_thickness))
+
+            # Draw label
+            d.append(draw.Text(text=site_name, font_size=self.font_size,
+                             x=x_pos, y=label_y,
+                             font_family='monospace', center=True, fill=self.color))
 
         return d
 
