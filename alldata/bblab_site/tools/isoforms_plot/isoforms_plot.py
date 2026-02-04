@@ -712,10 +712,12 @@ class TranscriptLine:
 
         # Draw label text
         if self.label and label_baseline_y is not None:
-            label_x = (END_POS + XOFFSET + 50) * xscale
+            # Right-align labels at END_POS
+            label_x = (END_POS + XOFFSET) * xscale
             d.append(draw.Text(text=self.label, font_size=self.font_size,
                              x=label_x, y=label_baseline_y,
-                             font_family='monospace', fill='black'))
+                             font_family='monospace', fill='black',
+                             text_anchor='end'))  # right-align text
 
         return d
 
