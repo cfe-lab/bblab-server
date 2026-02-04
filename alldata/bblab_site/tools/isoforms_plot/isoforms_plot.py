@@ -697,7 +697,7 @@ class TranscriptLine:
 
         # Transcript at top
         transcript_y = 0
-        
+
         if self.label:
             # Label baseline very close to transcript - minimal gap
             label_baseline_y = self.lineheight + int(self.font_size * 0.5)
