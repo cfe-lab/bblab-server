@@ -318,8 +318,9 @@ class SplicingSites:
     """
     Draw a horizontal line with vertical ticks at splicing site positions.
     Donor sites have ticks going up, acceptor sites have ticks going down.
+    Dotted lines extend down from each site through the defects section.
     """
-    def __init__(self, splicing_sites, h=60):
+    def __init__(self, splicing_sites, total_samples=0, lineheight=5, h=60):
         self.splicing_sites = splicing_sites
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
@@ -330,6 +331,9 @@ class SplicingSites:
         self.color = 'black'
         self.font_size = 10
         self.label_spacing = 12  # vertical spacing between label levels
+        self.total_samples = total_samples
+        self.lineheight = lineheight
+        self.dotted_line_thickness = 0.5  # thin dotted lines
 
     def _assign_label_levels(self, sites_data, xscale):
         """
@@ -401,6 +405,10 @@ class SplicingSites:
         d.append(draw.Lines(a, line_y, b, line_y,
                           stroke=self.color, stroke_width=self.line_thickness))
 
+        # Calculate how far down the dotted lines should extend
+        # They should go through all the sample tracks
+        dotted_line_length = self.total_samples * (self.lineheight + 1) + 100  # extra padding
+
         # Collect sites data for label positioning
         sites_data = []
         for site in self.splicing_sites:
@@ -413,6 +421,15 @@ class SplicingSites:
 
         # Assign levels to avoid overlaps
         levels = self._assign_label_levels(sites_data, xscale)
+
+        # Draw dotted vertical lines extending down from baseline for each site
+        for site, x_pos in sites_data:
+            dotted_start_y = line_y
+            dotted_end_y = line_y - dotted_line_length
+            # Create a dotted line using stroke-dasharray
+            d.append(draw.Line(x_pos, dotted_start_y, x_pos, dotted_end_y,
+                             stroke='lightgray', stroke_width=self.dotted_line_thickness,
+                             stroke_dasharray='2,3'))  # 2 pixels dash, 3 pixels gap
 
         # Draw ticks and labels
         for i, (site, x_pos) in enumerate(sites_data):
@@ -823,7 +840,7 @@ def create_isoforms_plot(input_file, output_svg):
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
     # add splicing sites display below the genome overview
-    figure.add(SplicingSites(SPLICING_SITES), gap=5)
+    figure.add(SplicingSites(SPLICING_SITES, total_samples=total_samples, lineheight=plot.lineheight), gap=5)
     # add a small blank multitrack to create vertical separation between the splicing sites
     # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
     try:
