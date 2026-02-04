@@ -10,8 +10,6 @@ import traceback
 from pathlib import Path
 from typing import List, Tuple
 
-import web_output
-import mailer
 import difflib
 
 # Constants
@@ -300,6 +298,7 @@ def _import_plot_module():
 
 def run(csv_data, analysis_id, email_address_string):
     """Orchestrate validation, plotting and notification. Returns generated site HTML."""
+    import web_output
     website = web_output.Site("Isoforms Plot - Results", web_output.SITE_BOXED)
     website.set_footer('go back to <a href="/django/wiki/" >wiki</a>')
 
@@ -392,6 +391,7 @@ def run(csv_data, analysis_id, email_address_string):
 
     # Attach and send email
     try:
+        import mailer
         svg_content = Path(OUTPUT_SVG).read_text(encoding='utf8')
         plot_file = mailer.create_file(short_description, 'svg', svg_content)
         if mailer.send_sfu_email("isoforms_plot", email_address_string, subject_line, msg_body, [plot_file]) == 0:
