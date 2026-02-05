@@ -119,3 +119,15 @@ norecursedirs = [
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+[[tool.mypy.overrides]]
+module = "genetracks"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "genetracks.elements"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "drawsvg"
+ignore_missing_imports = true
