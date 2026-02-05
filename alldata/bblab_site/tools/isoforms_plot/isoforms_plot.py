@@ -247,7 +247,7 @@ class SplicingSites:
     Donor sites have ticks going up, acceptor sites have ticks going down.
     Dotted lines extend down from each site through the transcripts section.
     """
-    def __init__(self, splicing_sites, total_samples=0, lineheight=5, h=60):
+    def __init__(self, splicing_sites, total_samples=0, lineheight=5, h=60, total_height=None):
         self.splicing_sites = splicing_sites
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
@@ -261,6 +261,7 @@ class SplicingSites:
         self.total_samples = total_samples
         self.lineheight = lineheight
         self.dotted_line_thickness = DOTTED_LINES_WIDTH
+        self.total_height = total_height  # total height to extend dotted lines
 
     def _assign_label_levels(self, sites_data, xscale):
         """
@@ -333,8 +334,12 @@ class SplicingSites:
                           stroke=self.color, stroke_width=self.line_thickness))
 
         # Calculate how far down the dotted lines should extend
-        # They should go through all the sample tracks
-        dotted_line_length = self.total_samples * (self.lineheight + 1) + 100  # extra padding
+        # Use provided total_height if available, otherwise calculate
+        if self.total_height is not None:
+            dotted_line_length = self.total_height
+        else:
+            # Fallback: estimate based on total_samples
+            dotted_line_length = self.total_samples * (self.lineheight + 1) + 100
 
         # Collect sites data for label positioning
         sites_data = []
@@ -590,10 +595,45 @@ def create_isoforms_plot(input_file, output_svg):
     lineheight = 500 / total_samples if total_samples > 0 else 0
     if lineheight > 5:
         lineheight = 5
+
+    # Calculate total height of all groups for dotted lines
+    # First, we need to determine the height of each group
+    total_groups_height = 0
+    transcript_index = 0
+    for group_idx, group in enumerate(GROUPS):
+        group_size = group.get('size', 0)
+
+        # Calculate height for this group
+        group_height = 0
+        for i in range(group_size):
+            if transcript_index >= len(TRANSCRIPTS):
+                break
+            transcript = TRANSCRIPTS[transcript_index]
+            label = transcript.get('label', None)
+
+            if i > 0:
+                group_height += 3  # gap between transcripts
+            if label:
+                group_height += lineheight + 9 + 6  # 9 is font_size from GroupWithTranscripts
+            else:
+                group_height += lineheight
+
+            transcript_index += 1
+
+        # Add group height
+        total_groups_height += group_height
+        # Add gap before this group (30 for subsequent groups)
+        if group_idx > 0:
+            total_groups_height += 30
+
+    # Add initial gap and extra padding
+    total_groups_height += 25 + 50  # 25 is initial gap, 50 is extra padding
+
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
-    # add splicing sites display below the genome overview
-    figure.add(SplicingSites(SPLICING_SITES, total_samples=total_samples, lineheight=lineheight), gap=5)
+    # add splicing sites display below the genome overview with calculated height
+    figure.add(SplicingSites(SPLICING_SITES, total_samples=total_samples, lineheight=lineheight,
+                            total_height=total_groups_height), gap=5)
     # add a small blank multitrack to create vertical separation between the splicing sites
     # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
     try:
