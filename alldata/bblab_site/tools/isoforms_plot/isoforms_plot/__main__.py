@@ -6,13 +6,8 @@ from typing import Sequence
 from isoforms_plot import plotter, parser, compiler
 
 
-def main(argv: Sequence[str]) -> int:
-    argparser = ArgumentParser()
-    argparser.add_argument("input_csv", type=Path, help="Input CSV")
-    argparser.add_argument("output_svg", type=Path, help="Output SVG")
-    args = argparser.parse_args(argv)
-
-    parsed = parser.parse(args.input_csv)
+def main_typed(input_csv: Path, output_svg: Path) -> None:
+    parsed = parser.parse(input_csv)
     compiled = compiler.compile(parsed)
 
     plotter.create_isoforms_plot(
@@ -20,9 +15,16 @@ def main(argv: Sequence[str]) -> int:
         compiled['groups'],
         compiled['title'],
         compiled['splicing_sites'],
-        args.output_svg,
+        output_svg,
     )
 
+
+def main(argv: Sequence[str]) -> int:
+    argparser = ArgumentParser()
+    argparser.add_argument("input_csv", type=Path, help="Input CSV")
+    argparser.add_argument("output_svg", type=Path, help="Output SVG")
+    args = argparser.parse_args(argv)
+    main_typed(args.input_csv, args.output_svg)
     return 0
 
 
