@@ -70,7 +70,7 @@ TRANSCRIPTS = [
 # Information about groups.
 GROUPS = [
     {'name': 'My Group 1', 'size': 3},
-    {'name': 'Middle group', 'size': 7},
+    {'name': None, 'size': 7},
     {'name': 'My Last Group', 'size': 2},
 ]
 
@@ -428,26 +428,27 @@ class GroupWithTranscripts:
     def draw(self, x=0, y=0, xscale=1.0):
         d = draw.Group(transform="translate({} {})".format(x * xscale, y))
 
-        # Draw vertical line spanning the entire group height
-        line_x = (1 + XOFFSET - self.line_x_offset) * xscale
-        d.append(draw.Line(line_x, 0, line_x, self.h,
-                          stroke='black', stroke_width=2))
+        # Draw vertical line and label only if group name is not None
+        if self.group_name is not None:
+            # Draw vertical line spanning the entire group height
+            line_x = (1 + XOFFSET - self.line_x_offset) * xscale
+            d.append(draw.Line(line_x, 0, line_x, self.h,
+                              stroke='black', stroke_width=2))
 
-        # Draw group label vertically centered on the line
-        # Position the label to the left of the vertical line
-        # Calculate in pixels: line position minus font height (rotated text width) minus gap
-        line_x = (1 + XOFFSET - self.line_x_offset) * xscale
-        label_x = line_x - self.group_label_font_size - 5  # font_size pixels for text + 5 pixel gap
-        # Position at vertical center of the group
-        label_y = self.h / 2
+            # Draw group label vertically centered on the line
+            # Position the label to the left of the vertical line
+            # Calculate in pixels: line position minus font height (rotated text width) minus gap
+            label_x = line_x - self.group_label_font_size - 5  # font_size pixels for text + 5 pixel gap
+            # Position at vertical center of the group
+            label_y = self.h / 2
 
-        # Use writing-mode='sideways-lr' for vertical text with bottom on right side
-        d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
-                         x=label_x, y=label_y,
-                         font_family='sans-serif', fill='black',
-                         text_anchor='middle',
-                         dominant_baseline='middle',
-                         writing_mode='sideways-lr'))
+            # Use writing-mode='sideways-lr' for vertical text with bottom on right side
+            d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
+                             x=label_x, y=label_y,
+                             font_family='sans-serif', fill='black',
+                             text_anchor='middle',
+                             dominant_baseline='middle',
+                             writing_mode='sideways-lr'))
 
 
         # Draw all transcripts in this group (in reverse order to match expected top-to-bottom display)
