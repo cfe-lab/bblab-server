@@ -504,7 +504,7 @@ def create_isoforms_plot(input_file, output_svg):
         parts = transcript.get('parts', [])
         label = transcript.get('label', None)
         comment = transcript.get('comment', None)
-        
+
         # Track maximum comment width
         if comment:
             comment_width = len(comment) * comment_font_size * 0.6
