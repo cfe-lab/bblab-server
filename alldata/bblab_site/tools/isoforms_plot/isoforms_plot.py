@@ -443,7 +443,7 @@ class GroupWithTranscripts:
         # Use text-anchor='start' so text extends downward (won't get clipped)
         d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
                          x=label_x, y=label_y,
-                         font_family='sans-serif', fill='black',
+                         font_family='monospace', fill='black',
                          text_anchor='start',
                          transform=f'rotate(-90 {label_x} {label_y})'))
 
