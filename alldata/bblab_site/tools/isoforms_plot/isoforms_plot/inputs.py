@@ -75,9 +75,9 @@ def parse(input_file: Path) -> dict:
     with multicsv.open(input_file) as csv_file:
         title_section = csv_file.get("title", None)
         if title_section is None:
-            raise ValueError("Input file must contain a [title] section.")
-
-        title = parse_title(title_section)
+            title = None
+        else:
+            title = parse_title(title_section)
 
     return {
         "title": title,
