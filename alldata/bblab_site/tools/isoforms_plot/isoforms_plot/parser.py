@@ -27,6 +27,11 @@ class Transcript:
     comment: Optional[str]
 
 
+@dataclass(frozen=True)
+class AST:
+    transcripts: Sequence[Transcript]
+
+
 def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
     """
     Parse transcripts from CSV rows.
@@ -83,11 +88,11 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
         )
 
 
-def parse(input_file: Path) -> dict:
+def parse(input_file: Path) -> AST:
     with input_file.open() as fd:
         reader = csv.DictReader(fd)
         transcripts = tuple(read_transcripts(reader))
 
-    return {
-        'transcripts': transcripts,
-    }
+    return AST(
+        transcripts=transcripts,
+    )
