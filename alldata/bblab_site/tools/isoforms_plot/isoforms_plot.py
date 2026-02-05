@@ -413,7 +413,7 @@ class SplicingSites:
             else:  # acceptor
                 tick_start = line_y
                 # Calculate tick end position (going DOWN = subtraction)
-                # Subtract small gap (2px) to move label DOWN and prevent overlap with baseline
+                # Subtract small gap to move label DOWN and prevent overlap with baseline
                 tick_end = line_y - self.tick_height - (level * self.label_spacing) - 1
                 # Position label so tick touches the top edge of text
                 # Adding moves label UP (toward baseline) by half font height
