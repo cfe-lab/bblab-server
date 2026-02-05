@@ -2,8 +2,12 @@
 The job of the compiler is to take parsed inputs and transform them into a form that the plotter can use.
 This is where we do things like:
 - assign transcripts to groups
-- ...
+- convert Fragment objects to tuples
+- resolve "end" (None) to END_POS
 """
+
+from collections import Counter
+from typing import Any
 
 from isoforms_plot.parser import AST
 
@@ -26,43 +30,60 @@ SPLICING_SITES = [
     {"name": "A7", "start": 8369, "type": "acceptor"},
 ]
 
-# Information about individual isoforms to be displayed.
-TRANSCRIPTS = [
-    {"parts": [(1, 743), (4913, END_POS)], "label": "vif"},
-    {"parts": [(1, 743), (5777, 6046), (5954, END_POS)], "label": "vpu/env"},
-    {"parts": [(1, 743), (5390, 5463), (5954, END_POS)]},
-    {"parts": [(1, 743), (4913, 4962), (5390, 5463), (5954, END_POS)]},
-    {"parts": [(1, 743), (5390, 5463), (5954, END_POS)]},
-    {
-        "parts": [(1, 743), (5777, 6046), (8369, END_POS)],
-        "label": "rev",
-        "comment": "(interesting, eh?!)",
-    },
-    {"parts": [(1, 743), (5777, 6046), (8369, END_POS)], "comment": "(3 copies)"},
-    {"parts": [(1, 743), (5777, 6046), (8369, END_POS)], "label": "tat"},
-    {"parts": [(1, 743), (5777, 6046), (8369, END_POS)]},
-    {
-        "parts": [(1, 743), (5390, 5463), (5954, 6046), (8369, END_POS)],
-        "label": "nef",
-        "comment": "(two like this)",
-    },
-    {"parts": [(1, 743), (5954, 6046), (8369, END_POS)]},
-    {"parts": [(1, 743), (5390, 5463), (5954, 6046), (8369, END_POS)]},
-]
 
-# Information about groups.
-GROUPS = [
-    {"name": "My Group 1", "size": 3},
-    {"name": None, "size": 7},
-    {"name": "My Last Group", "size": 2},
-]
+def compile(parsed_inputs: AST) -> dict[str, Any]:
+    """
+    Compile parsed AST into plotter-ready format.
 
+    Transforms:
+    - Fragment(start, end) → (start, end) tuple where end=None becomes END_POS
+    - Transcript objects → dicts with 'parts', 'label', 'comment'
+    - Groups transcripts by their 'group' attribute
+    """
+    # Convert transcripts to plotter format
+    compiled_transcripts = []
+    for transcript in parsed_inputs.transcripts:
+        # Convert fragments to parts
+        parts = []
+        for fragment in transcript.fragments:
+            start = fragment.start
+            end = fragment.end if fragment.end is not None else END_POS
+            parts.append((start, end))
 
-def compile(parsed_inputs: AST):
-    # for now, we just pass everything through without any changes.
+        # Build transcript dict
+        transcript_dict = {"parts": parts}
+        if transcript.label is not None:
+            transcript_dict["label"] = transcript.label
+        if transcript.comment is not None:
+            transcript_dict["comment"] = transcript.comment
+
+        compiled_transcripts.append(transcript_dict)
+
+    # Build groups structure
+    # Preserve order of first appearance
+    groups_order = []
+    seen = set()
+    for transcript in parsed_inputs.transcripts:
+        if transcript.group not in seen:
+            groups_order.append(transcript.group)
+            seen.add(transcript.group)
+
+    # Count transcripts per group
+    group_counts = Counter(t.group for t in parsed_inputs.transcripts)
+
+    # Build groups list
+    compiled_groups = []
+    for group_name in groups_order:
+        compiled_groups.append(
+            {
+                "name": group_name,
+                "size": group_counts[group_name],
+            }
+        )
+
     return {
         "splicing_sites": SPLICING_SITES,
-        "transcripts": TRANSCRIPTS,
-        "groups": GROUPS,
+        "transcripts": compiled_transcripts,
+        "groups": compiled_groups,
         "title": parsed_inputs.title,
     }
