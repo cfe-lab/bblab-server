@@ -622,13 +622,13 @@ def plot(transcripts, groups, title, splicing_sites) -> draw.Drawing:
 
     # Calculate total height of all groups for dotted lines
     # First, we need to determine the height of each group
-    total_groups_height = 0
+    total_groups_height = 0.0
     transcript_index = 0
     for group_idx, group in enumerate(groups):
         group_size = group.get('size', 0)
 
         # Calculate height for this group
-        group_height = 0
+        group_height = 0.0
         for i in range(group_size):
             if transcript_index >= len(transcripts):
                 break
@@ -672,7 +672,7 @@ def plot(transcripts, groups, title, splicing_sites) -> draw.Drawing:
 
     # Draw each transcript from transcripts variable, organized by groups
     default_color = 'grey'
-    max_comment_width = 0
+    max_comment_width = 0.0
     comment_font_size = 8
 
     aggregate_group_size = sum(group.get('size', 0) for group in groups)
@@ -686,7 +686,7 @@ def plot(transcripts, groups, title, splicing_sites) -> draw.Drawing:
         group_size = group.get('size', 0)
 
         # Collect transcript data for this group
-        transcripts_data = []
+        transcripts_data: list[tuple[list, str, str | None, str | None]] = []
         for i in range(group_size):
             if transcript_index >= len(transcripts):
                 break
