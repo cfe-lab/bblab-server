@@ -233,7 +233,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
                 # label at horizontal segment midpoint
                 name = e1[3]
                 x_label = (xA_mid + xB_mid) / 2
-                y_label = y_gap + font_size * 0.5
+                y_label = y_gap + font_size * CHAR_WIDTH_FACTOR
                 g.append(draw.Text(text=name, font_size=font_size,
                                    x=x_label, y=y_label,
                                    font_family='monospace', center=True, fill='black'))
