@@ -17,6 +17,7 @@ RIGHT_PRIMER_START = 9604
 GAG_END = 2292
 XOFFSET = 400
 SMALLEST_GAP = 50
+CANVAS_WIDTH = 900
 
 # default NL43 landmarks for the small overview graphic
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
@@ -149,7 +150,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
             # total height over all frame rows
             self.h = len(frames) * row_h + (len(frames)-1) * gap
             # width covers all items
-            self.w = max((x + w for (_, x, w, _, _, _) in items), default=0)
+            self.w = max((x + w for (_, x, w, _, _, _) in items), default=0) + XOFFSET
 
         def draw(self, x=0, y=0, xscale=1.0):
             g = draw.Group(transform=f"translate({x} {y})")
@@ -415,19 +416,19 @@ class TranscriptLine:
             self.h = self.lineheight
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
-        # Calculate width in logical coordinates (like XAxis does)
+        # Calculate width in logical coordinates
         if self.comment:
             # Estimate comment width in pixels
             comment_width = len(self.comment) * self.comment_font_size * 0.6
             # Estimated xscale: target display width / logical genome width
-            # Assuming display ~900px and genome is END_POS + XOFFSET ≈ 10032
-            estimated_xscale = 900.0 / (END_POS + XOFFSET)
+            # Genome is END_POS + XOFFSET ≈ 10032
+            estimated_xscale = CANVAS_WIDTH / (END_POS + XOFFSET)
             # Convert comment pixel width to logical units
             comment_logical_width = comment_width / estimated_xscale
             # Width in logical coords: genome end + gap + comment + padding
-            self.w = END_POS + XOFFSET + 100 + comment_logical_width
+            self.w = END_POS + comment_logical_width + XOFFSET
         else:
-            self.w = END_POS + XOFFSET + 1500  # match XAxis default
+            self.w = END_POS + XOFFSET
 
     def draw(self, x=0, y=0, xscale=1.0):
         d = draw.Group(transform="translate({} {})".format(x * xscale, y))
@@ -515,9 +516,9 @@ def create_isoforms_plot(input_file, output_svg):
         figure.add(transcript_line, gap=3)  # gap between transcripts
 
     # Calculate figure width to accommodate comments
-    # Use reasonable display width so genome fits on screen (900px)
+    # Use reasonable display width so genome fits on screen
     # Add extra width for comment text (which doesn't scale with xscale)
-    figure_width = 900 + int(max_comment_width) + 100
+    figure_width = CANVAS_WIDTH + int(max_comment_width) + 100
     # display with width that includes comments
     figure.show(w=figure_width).save_svg(output_svg)
 
