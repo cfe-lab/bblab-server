@@ -447,7 +447,7 @@ class GroupWithTranscripts:
 
         # Draw all transcripts in this group (in reverse order to match expected top-to-bottom display)
         current_y = 0
-        for i, (parts, color, label, comment) in enumerate(reversed(self.transcripts_data)):
+        for i, (parts, color, label, comment) in enumerate(self.transcripts_data):
             # Add gap before transcript (except first one)
             if i > 0:
                 current_y += 3
@@ -624,7 +624,7 @@ def create_isoforms_plot(input_file, output_svg):
                 comment_width = len(comment) * comment_font_size * 0.6
                 max_comment_width = max(max_comment_width, comment_width)
 
-            transcripts_data.append((parts, color, label, comment))
+            transcripts_data.insert(0, (parts, color, label, comment))
             transcript_index += 1
 
         # Create and add the group component (contains vertical line and all transcripts)
