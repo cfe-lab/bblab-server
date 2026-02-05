@@ -1,4 +1,3 @@
-from argparse import ArgumentParser
 from genetracks import Figure, Track, Multitrack, Label
 from operator import itemgetter
 import drawsvg as draw
@@ -758,16 +757,3 @@ def create_isoforms_plot(input_file, output_svg):
     figure_width = CANVAS_WIDTH + int(max_comment_width) + 100
     # display with width that includes comments
     figure.show(w=figure_width).save_svg(output_svg)
-
-
-def main():
-    parser = ArgumentParser()
-    parser.add_argument("output_svg",
-                        help="Output SVG")
-    args = parser.parse_args()
-
-    create_isoforms_plot(None, args.output_svg)
-
-
-if __name__ == '__main__':
-    main()
