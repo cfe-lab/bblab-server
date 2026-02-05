@@ -1,50 +1,57 @@
 [title]
-
-
-
 My plot B
 
-[old_data]
-samp_name,run_name,ref_start,ref_end,defect,is_inverted,is_defective
-Intact,Charlottetest,645,9666,Intact,,
-Intact-wgap,Charlottetest,645,2000,Intact,,
-Intact-wgap,Charlottetest,6000,9666,Intact,,
-Hypermut,Charlottetest,645,9666,Hypermut,,
-Hypermut-Inverted,Charlottetest,645,9666,Hypermut,yes,
-Hypermut-toolong,Charlottetest,0,15000,Hypermut,,
-PremStop,Charlottetest,645,9666,Inferred_PrematureStopORInframeDEL_GagNoATG,,
-PremStop-wDefect,Charlottetest,645,9666,Inferred_PrematureStopORInframeDEL_GagNoATG,,
-PremStop-wDefect,Charlottetest,800,3000,Inferred_PrematureStopORInframeDEL_GagNoATG,,yes
-5defect,Charlottetest,645,1000,5DEFECT,,
-5defect,Charlottetest,2000,9666,5DEFECT,,
-PremStop-Defect-wrongorder,Charlottetest,800,3000,Inferred_PrematureStopORInframeDEL_GagNoATG,,yes
-PremStop-Defect-wrongorder,Charlottetest,645,9666,Inferred_PrematureStopORInframeDEL_GagNoATG,,
-Inversion,Charlottetest,645,3000,InternalInversion,,
-Inversion,Charlottetest,3000,6000,InternalInversion,yes,
-Inversion,Charlottetest,6000,9666,InternalInversion,,
-Scrambled,Charlottetest,645,9666,ScramblePlus,,
-Scrambled-wDeletion,Charlottetest,645,3000,ScrambleMinus,,
-Scrambled-wDeletion,Charlottetest,6000,9666,ScrambleMinus,,
-Scrambled-wInversion,Charlottetest,645,4000,ScrambleCheck,,
-Scrambled-wInversion,Charlottetest,4000,7000,ScrambleCheck,yes,
-Scrambled-wInversion,Charlottetest,7000,9666,ScrambleCheck,,
-Chimera,Charlottetest,645,2000,NonHIV,,
-Chimera2,Charlottetest,7000,9666,NonHIV,,
-LargeDeletion1,Charlottetest,645,1000,LargeDeletion,,
-LargeDeletion2,Charlottetest,645,1500,LargeDeletion,,
-LargeDeletion2,Charlottetest,6000,9666,LargeDeletion,,
-LargeDeletion3,Charlottetest,3000,9666,LargeDeletion,,
-LargeDeletion4,Charlottetest,645,2000,LargeDeletion,,
-LargeDeletion4,Charlottetest,3000,4000,LargeDeletion,yes,
-LargeDeletion4,Charlottetest,7000,9666,LargeDeletion,,
-LargeDeletion5,Charlottetest,645,2000,LargeDeletion,,
-LargeDeletion5,Charlottetest,4000,6000,LargeDeletion,,
-LargeDeletion5,Charlottetest,8000,9666,LargeDeletion,,
-5defect-deletionaftergag,Charlottetest,645,3000,5DEFECT,,
-5defect-deletionaftergag,Charlottetest,4000,9666,5DEFECT,,
-Smallgap5,Charlottetest,700,9604,ScrambleCheck,,
-Smallgap3,Charlottetest,666,9560,ScrambleCheck,,
-Smallgapmiddle,Charlottetest,666,3000,ScrambleCheck,,
-Smallgapmiddle,Charlottetest,3040,9604,ScrambleCheck,,
-5defect-smallgap,Charlottetest,645,750,5DEFECT,,
-5defect-smallgap,Charlottetest,795,9604,5DEFECT,,
+[groups]
+My group 1
+My Second Group
+
+[My group 1]
+fragments,label,comment
+1-743; 4913-end,vif,(3)
+1-743; 5390-end,vpr,(15)
+1-743; 4913-4962; 5390-end,vpr,(4)
+1-743; 5390-5463; 5976-end,vpu/env,(4)
+1-743; 5976-end,vpu/env,(1)
+1-743; 4913-4962; 5390-5463; 5976-end,vpu/env,(1)
+1-743; 5390-5463; 5976-6046; 8369-end,nef,(14)
+1-743; 4913-4962; 5390-5463; 5976-6046; 8369-end,nef,(7)
+1-743; 5976-6046; 8369-end,nef,(6)
+1-710; 5976-6046; 8369-end,nef,(2)
+1-743; 4913-4962; 5976-6046; 8369-end,nef,(2)
+1-743; 5390-5463; 5976-6046; 8369-end,nef,(1)
+1-743; 5777-6046; 8369-end,tat,(2)
+1-743; 5390-5463; 5777-6046; 8369-end,tat,(1)
+1-743; 4913-4962; 5390-5463; 5777-6046; 8369-end,tat,(1)
+1-743; 5390-5463; 5960-6046; 8369-end,rev,(3)
+1-743; 5960-6046; 8369-end,rev,(3)
+1-743; 5390-5463; 5954-6046; 8369-end,rev,(2)
+1-743;  5954-6046; 8369-end,rev,(1)
+1-743; 4913-4962; 5390-5463; 5960-6046; 8369-end,rev,(1)
+1-743; 4913-4962; 5390-5463; 5954-6046; 8369-end,rev,(1)
+1-743; 4913-4962; 5390-5463; 5954-end,example user input category,(1)
+
+[My Second Group]
+fragments,label,comment
+1-743; 4913-end,vif,(3)
+1-743; 5390-end,vpr,(15)
+1-743; 4913-4962; 5390-end,vpr,(4)
+1-743; 5390-5463; 5976-end,vpu/env,(4)
+1-743; 5976-end,vpu/env,(1)
+1-743; 4913-4962; 5390-5463; 5976-end,vpu/env,(1)
+1-743; 5390-5463; 5976-6046; 8369-end,nef,(14)
+1-743; 4913-4962; 5390-5463; 5976-6046; 8369-end,nef,(7)
+1-743; 5976-6046; 8369-end,nef,(6)
+1-710; 5976-6046; 8369-end,nef,(2)
+1-743; 4913-4962; 5976-6046; 8369-end,nef,(2)
+1-743; 5390-5463; 5976-6046; 8369-end,nef,(1)
+1-743; 5777-6046; 8369-end,tat,(2)
+1-743; 5390-5463; 5777-6046; 8369-end,tat,(1)
+1-743; 4913-4962; 5390-5463; 5777-6046; 8369-end,tat,(1)
+1-743; 5390-5463; 5960-6046; 8369-end,rev,(3)
+1-743; 5960-6046; 8369-end,rev,(3)
+1-743; 5390-5463; 5954-6046; 8369-end,rev,(2)
+1-743;  5954-6046; 8369-end,rev,(1)
+1-743; 4913-4962; 5390-5463; 5960-6046; 8369-end,rev,(1)
+1-743; 4913-4962; 5390-5463; 5954-6046; 8369-end,rev,(1)
+1-743; 4913-4962; 5390-5463; 5954-end,example user input category,(1)
+
