@@ -7,9 +7,9 @@ This is where we do things like:
 """
 
 from collections import Counter
-from typing import Any
+from typing import Any, Sequence
 
-from isoforms_plot.parser import AST
+from isoforms_plot.parser import AST, Transcript
 
 END_POS = 9632
 
@@ -31,18 +31,11 @@ SPLICING_SITES = [
 ]
 
 
-def compile(parsed_inputs: AST) -> dict[str, Any]:
-    """
-    Compile parsed AST into plotter-ready format.
-
-    Transforms:
-    - Fragment(start, end) → (start, end) tuple where end=None becomes END_POS
-    - Transcript objects → dicts with 'parts', 'label', 'comment'
-    - Groups transcripts by their 'group' attribute
-    """
+def compile_transcripts(parsed_transcripts: Sequence[Transcript]) -> list[dict[str, Any]]:
+    
     # Convert transcripts to plotter format
     compiled_transcripts = []
-    for transcript in parsed_inputs.transcripts:
+    for transcript in parsed_transcripts:
         # Convert fragments to parts
         parts = []
         for fragment in transcript.fragments:
@@ -63,13 +56,13 @@ def compile(parsed_inputs: AST) -> dict[str, Any]:
     # Preserve order of first appearance
     groups_order = []
     seen = set()
-    for transcript in parsed_inputs.transcripts:
+    for transcript in parsed_transcripts:
         if transcript.group not in seen:
             groups_order.append(transcript.group)
             seen.add(transcript.group)
 
     # Count transcripts per group
-    group_counts = Counter(t.group for t in parsed_inputs.transcripts)
+    group_counts = Counter(t.group for t in parsed_transcripts)
 
     # Build groups list
     compiled_groups = []
@@ -80,6 +73,21 @@ def compile(parsed_inputs: AST) -> dict[str, Any]:
                 "size": group_counts[group_name],
             }
         )
+
+    return compiled_transcripts, compiled_groups
+
+
+def compile(parsed_inputs: AST) -> dict[str, Any]:
+    """
+    Compile parsed AST into plotter-ready format.
+
+    Transforms:
+    - Fragment(start, end) → (start, end) tuple where end=None becomes END_POS
+    - Transcript objects → dicts with 'parts', 'label', 'comment'
+    - Groups transcripts by their 'group' attribute
+    """
+
+    compiled_transcripts, compiled_groups = compile_transcripts(parsed_inputs.transcripts)
 
     return {
         "splicing_sites": SPLICING_SITES,
