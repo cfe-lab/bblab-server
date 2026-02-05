@@ -1,0 +1,17 @@
+[project]
+name = "isoforms_plot"
+version = "0.0.0"
+description = "The isoforms plot tool for BBLab web-site"
+requires-python = ">=3.12,<3.13"
+license = { text = "AGPL-3.0" }
+dependencies = [
+  "drawsvg==2.4.0",
+  "genetracks @ git+https://github.com/cfe-lab/genetracks.git@a7f20f644ab86b451e870c9ace0621af8ecae0df",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
