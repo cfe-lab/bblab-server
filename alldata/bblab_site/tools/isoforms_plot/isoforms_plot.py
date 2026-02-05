@@ -260,7 +260,6 @@ class SplicingSites:
         self.label_spacing = 12  # vertical spacing between label levels
         self.total_samples = total_samples
         self.lineheight = lineheight
-        self.dotted_line_thickness = DOTTED_LINES_WIDTH
         self.total_height = total_height  # total height to extend dotted lines
 
     def _assign_label_levels(self, sites_data, xscale):
