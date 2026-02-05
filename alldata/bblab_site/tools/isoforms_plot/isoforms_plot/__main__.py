@@ -9,14 +9,13 @@ from isoforms_plot import plotter, parser, compiler
 def main_typed(input_csv: Path, output_svg: Path) -> None:
     parsed = parser.parse(input_csv)
     compiled = compiler.compile(parsed)
-
-    plotter.create_isoforms_plot(
+    plot = plotter.create_isoforms_plot(
         compiled['transcripts'],
         compiled['groups'],
         compiled['title'],
         compiled['splicing_sites'],
-        output_svg,
     )
+    plot.save_svg(output_svg)
 
 
 def main(argv: Sequence[str]) -> int:

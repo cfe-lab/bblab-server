@@ -612,7 +612,7 @@ class TranscriptLine:
         return d
 
 
-def create_isoforms_plot(transcripts, groups, title, splicing_sites, output_svg):
+def create_isoforms_plot(transcripts, groups, title, splicing_sites) -> draw.Drawing:
     # Use transcripts to determine number of samples to display
     total_samples = len(transcripts)
     figure = Figure()
@@ -714,4 +714,4 @@ def create_isoforms_plot(transcripts, groups, title, splicing_sites, output_svg)
     # Add extra width for comment text (which doesn't scale with xscale)
     figure_width = CANVAS_WIDTH + int(max_comment_width) + 100
     # display with width that includes comments
-    figure.show(w=figure_width).save_svg(output_svg)
+    return figure.show(w=figure_width)
