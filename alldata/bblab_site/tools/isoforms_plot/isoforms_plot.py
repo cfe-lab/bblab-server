@@ -280,7 +280,7 @@ class SplicingSites:
 
     Note: In this coordinate system, ADDITION = UP, SUBTRACTION = DOWN.
     """
-    def __init__(self, splicing_sites, total_samples=0, lineheight=5, h=60, total_height=None):
+    def __init__(self, splicing_sites, total_height, total_samples=0, lineheight=5, h=60):
         self.splicing_sites = splicing_sites
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
@@ -388,12 +388,7 @@ class SplicingSites:
         line_y = self.h / 2
 
         # Calculate how far down the dotted lines should extend
-        # Use provided total_height if available, otherwise calculate
-        if self.total_height is not None:
-            dotted_line_length = self.total_height
-        else:
-            # Fallback: estimate based on total_samples
-            dotted_line_length = self.total_samples * (self.lineheight + 1) + 100
+        dotted_line_length = self.total_height
 
         # Collect sites data for label positioning
         sites_data = []
