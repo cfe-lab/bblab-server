@@ -415,7 +415,19 @@ class TranscriptLine:
             self.h = self.lineheight
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
-        self.w = self.b - self.a + 1500  # extend to match XAxis width
+        # Calculate width in logical coordinates (like XAxis does)
+        if self.comment:
+            # Estimate comment width in pixels
+            comment_width = len(self.comment) * self.comment_font_size * 0.6
+            # Estimated xscale: target display width / logical genome width
+            # Assuming display ~900px and genome is END_POS + XOFFSET ≈ 10032
+            estimated_xscale = 900.0 / (END_POS + XOFFSET)
+            # Convert comment pixel width to logical units
+            comment_logical_width = comment_width / estimated_xscale
+            # Width in logical coords: genome end + gap + comment + padding
+            self.w = END_POS + XOFFSET + 100 + comment_logical_width
+        else:
+            self.w = END_POS + XOFFSET + 1500  # match XAxis default
 
     def draw(self, x=0, y=0, xscale=1.0):
         d = draw.Group(transform="translate({} {})".format(x * xscale, y))
@@ -450,12 +462,16 @@ class TranscriptLine:
 
         # Draw comment text (to the right of transcript, at same height)
         if self.comment:
-            comment_x = (END_POS + XOFFSET + 10) * xscale  # small gap after transcript end
-            comment_y = transcript_y + self.lineheight / 2 + 3  # vertically centered with transcript
+            # Position in logical coordinates: genome end + gap (in logical units)
+            # This will be scaled by xscale along with everything else
+            comment_x = (END_POS + XOFFSET + 100) * xscale
+            # Use middle of transcript for y, and set dominant-baseline to middle for proper centering
+            comment_y = transcript_y + self.lineheight / 2
             d.append(draw.Text(text=self.comment, font_size=self.comment_font_size,
                              x=comment_x, y=comment_y,
                              font_family='monospace', fill='gray',
-                             text_anchor='start'))  # left-align comment
+                             text_anchor='start',  # left-align comment
+                             dominant_baseline='middle'))  # vertically center text
 
         return d
 
@@ -481,18 +497,29 @@ def create_isoforms_plot(input_file, output_svg):
 
     # Draw each transcript from TRANSCRIPTS variable
     default_color = 'grey'
+    max_comment_width = 0
+    comment_font_size = 8
     for i, transcript in enumerate(TRANSCRIPTS):
         color = transcript.get('color', default_color)
         parts = transcript.get('parts', [])
         label = transcript.get('label', None)
         comment = transcript.get('comment', None)
+        
+        # Track maximum comment width
+        if comment:
+            comment_width = len(comment) * comment_font_size * 0.6
+            max_comment_width = max(max_comment_width, comment_width)
 
         # Create and add transcript line with label and comment
         transcript_line = TranscriptLine(parts, color, label, comment, lineheight=lineheight)
         figure.add(transcript_line, gap=3)  # gap between transcripts
 
-    # display with a standard width so the overview is visible
-    figure.show(w=900).save_svg(output_svg)
+    # Calculate figure width to accommodate comments
+    # Use reasonable display width so genome fits on screen (900px)
+    # Add extra width for comment text (which doesn't scale with xscale)
+    figure_width = 900 + int(max_comment_width) + 100
+    # display with width that includes comments
+    figure.show(w=figure_width).save_svg(output_svg)
 
 
 def main():
