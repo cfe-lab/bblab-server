@@ -462,9 +462,9 @@ class TranscriptLine:
 
         # Draw comment text (to the right of transcript, at same height)
         if self.comment:
-            # Position in logical coordinates: genome end + gap (in logical units)
+            # Position in logical coordinates: genome end + small gap (in logical units)
             # This will be scaled by xscale along with everything else
-            comment_x = (END_POS + XOFFSET + 100) * xscale
+            comment_x = (END_POS + XOFFSET + 20) * xscale
             # Use middle of transcript for y, and set dominant-baseline to middle for proper centering
             comment_y = transcript_y + self.lineheight / 2
             d.append(draw.Text(text=self.comment, font_size=self.comment_font_size,
