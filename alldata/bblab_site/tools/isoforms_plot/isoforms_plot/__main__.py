@@ -12,7 +12,7 @@ def main(argv: Sequence[str]) -> int:
                         help="Output SVG")
     args = parser.parse_args(argv)
 
-    plotter.create_isoforms_plot(inputs.TRANSCRIPTS, inputs.GROUPS, inputs.TITLE, args.output_svg)
+    plotter.create_isoforms_plot(inputs.TRANSCRIPTS, inputs.GROUPS, inputs.TITLE, inputs.SPLICING_SITES, args.output_svg)
     return 0
 
 

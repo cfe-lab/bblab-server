@@ -33,23 +33,6 @@ LANDMARKS = [
     {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
 ]
 
-# default positions of splicing sites in NL43.
-SPLICING_SITES = [
-    {'name': 'D1', 'start': 743, 'type': 'donor'},
-    {'name': 'D2', 'start': 4962, 'type': 'donor'},
-    {'name': 'D2b', 'start': 5058, 'type': 'donor'},
-    {'name': 'D3', 'start': 5463, 'type': 'donor'},
-    {'name': 'D4', 'start': 6046, 'type': 'donor'},
-    {'name': 'A1', 'start': 4913, 'type': 'acceptor'},
-    {'name': 'A2', 'start': 5390, 'type': 'acceptor'},
-    {'name': 'A3', 'start': 5777, 'type': 'acceptor'},
-    {'name': 'A4c', 'start': 5936, 'type': 'acceptor'},
-    {'name': 'A4a', 'start': 5954, 'type': 'acceptor'},
-    {'name': 'A4b', 'start': 5960, 'type': 'acceptor'},
-    {'name': 'A5', 'start': 5976, 'type': 'acceptor'},
-    {'name': 'A7', 'start': 8369, 'type': 'acceptor'},
-]
-
 
 class Title:
     """Draws a title at the top of the figure."""
@@ -629,7 +612,7 @@ class TranscriptLine:
         return d
 
 
-def create_isoforms_plot(transcripts, groups, title, output_svg):
+def create_isoforms_plot(transcripts, groups, title, splicing_sites, output_svg):
     # Use transcripts to determine number of samples to display
     total_samples = len(transcripts)
     figure = Figure()
@@ -677,7 +660,7 @@ def create_isoforms_plot(transcripts, groups, title, output_svg):
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
     # add splicing sites display below the genome overview with calculated height
-    figure.add(SplicingSites(SPLICING_SITES, total_samples=total_samples, lineheight=lineheight,
+    figure.add(SplicingSites(splicing_sites, total_samples=total_samples, lineheight=lineheight,
                             total_height=total_groups_height), gap=5)
     # add a small blank multitrack to create vertical separation between the splicing sites
     # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
