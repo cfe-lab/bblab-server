@@ -612,7 +612,7 @@ class TranscriptLine:
         return d
 
 
-def create_isoforms_plot(transcripts, groups, title, splicing_sites) -> draw.Drawing:
+def plot(transcripts, groups, title, splicing_sites) -> draw.Drawing:
     # Use transcripts to determine number of samples to display
     total_samples = len(transcripts)
     figure = Figure()
