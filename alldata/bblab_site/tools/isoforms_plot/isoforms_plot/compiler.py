@@ -54,6 +54,16 @@ def compile_transcripts(
 
         compiled_transcripts.append(transcript_dict)
 
+    # Deduplicate consecutive labels
+    # e.g., gag -> vpr -> vpr -> vpr becomes gag -> vpr -> None -> None
+    prev_label = None
+    for transcript_dict in compiled_transcripts:
+        current_label = transcript_dict.get("label")
+        if current_label is not None and current_label == prev_label:
+            # Remove duplicate consecutive label
+            del transcript_dict["label"]
+        prev_label = current_label if current_label is not None else prev_label
+
     # Build groups structure
     # Preserve order of first appearance
     groups_order = []
