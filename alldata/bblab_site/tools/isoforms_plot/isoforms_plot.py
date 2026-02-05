@@ -390,6 +390,112 @@ class SplicingSites:
         return d
 
 
+class GroupWithTranscripts:
+    """Draws a group of transcripts with a vertical line and label on the left."""
+    def __init__(self, group_name, transcripts_data, lineheight=5):
+        self.group_name = group_name
+        self.transcripts_data = transcripts_data  # list of (parts, color, label, comment)
+        self.lineheight = lineheight
+        self.a = START_POS + XOFFSET
+        self.b = END_POS + XOFFSET
+        self.font_size = 9
+        self.comment_font_size = 8
+        self.line_x_offset = 40  # 40 units to the left of 5'LTR start
+        self.group_label_font_size = 10
+
+        # Calculate total height for all transcripts in the group
+        self.h = 0
+        for i, (parts, color, label, comment) in enumerate(transcripts_data):
+            if i > 0:
+                self.h += 3  # gap between transcripts
+            if label:
+                self.h += lineheight + self.font_size + 6
+            else:
+                self.h += lineheight
+
+        # Calculate width (including comments)
+        max_comment_width = 0
+        for parts, color, label, comment in transcripts_data:
+            if comment:
+                comment_width = len(comment) * self.comment_font_size * 0.6
+                max_comment_width = max(max_comment_width, comment_width)
+
+        estimated_xscale = CANVAS_WIDTH / (END_POS + XOFFSET)
+        comment_logical_width = max_comment_width / estimated_xscale if max_comment_width > 0 else 0
+        self.w = END_POS + XOFFSET + 100 + comment_logical_width
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        d = draw.Group(transform="translate({} {})".format(x * xscale, y))
+
+        # Draw vertical line spanning the entire group height
+        # Position at 5'LTR start (position 1) minus offset, not START_POS
+        line_x = (1 + XOFFSET - self.line_x_offset) * xscale
+        d.append(draw.Line(line_x, 0, line_x, self.h,
+                          stroke='black', stroke_width=2))
+
+        # Draw group label vertically at the middle of the line
+        # Position to the right of the line (since rotated text extends upward from anchor)
+        label_x = line_x + 8
+        label_y = self.h / 2
+        d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
+                         x=label_x, y=label_y,
+                         font_family='sans-serif', fill='black',
+                         text_anchor='middle',
+                         dominant_baseline='middle',
+                         transform=f'rotate(-90 {label_x} {label_y})'))
+
+        # Draw all transcripts in this group
+        current_y = 0
+        for i, (parts, color, label, comment) in enumerate(self.transcripts_data):
+            # Add gap before transcript (except first one)
+            if i > 0:
+                current_y += 3
+
+            transcript_y = current_y
+
+            # Calculate label baseline if needed
+            if label:
+                label_baseline_y = transcript_y + self.lineheight + int(self.font_size * 0.5)
+            else:
+                label_baseline_y = None
+
+            # Draw transcript rectangles
+            for part in parts:
+                if len(part) == 2:
+                    xstart, xend = part
+                    xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH
+                    xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH
+                    width = xend_scaled - xstart_scaled
+                    d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
+                                           fill=color, stroke=color))
+
+            # Draw label text
+            if label and label_baseline_y is not None:
+                label_x = (END_POS + XOFFSET) * xscale
+                d.append(draw.Text(text=label, font_size=self.font_size,
+                                 x=label_x, y=label_baseline_y,
+                                 font_family='monospace', fill='black',
+                                 text_anchor='end'))
+
+            # Draw comment text
+            if comment:
+                comment_x = (END_POS + XOFFSET + 20) * xscale
+                comment_y = transcript_y + self.lineheight / 2
+                d.append(draw.Text(text=comment, font_size=self.comment_font_size,
+                                 x=comment_x, y=comment_y,
+                                 font_family='monospace', fill='gray',
+                                 text_anchor='start',
+                                 dominant_baseline='middle'))
+
+            # Move y position for next transcript
+            if label:
+                current_y += self.lineheight + self.font_size + 6
+            else:
+                current_y += self.lineheight
+
+        return d
+
+
 class TranscriptLine:
     """Draws a transcript with its parts and optional label on the right side."""
     def __init__(self, parts, color, label=None, comment=None, lineheight=5):
@@ -489,24 +595,42 @@ def create_isoforms_plot(input_file, output_svg):
         # fallback if Track signature differs; attempt without named color
         figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
 
-    # Draw each transcript from TRANSCRIPTS variable
+    # Draw each transcript from TRANSCRIPTS variable, organized by groups
     default_color = 'grey'
     max_comment_width = 0
     comment_font_size = 8
-    for i, transcript in enumerate(TRANSCRIPTS):
-        color = transcript.get('color', default_color)
-        parts = transcript.get('parts', [])
-        label = transcript.get('label', None)
-        comment = transcript.get('comment', None)
 
-        # Track maximum comment width
-        if comment:
-            comment_width = len(comment) * comment_font_size * 0.6
-            max_comment_width = max(max_comment_width, comment_width)
+    transcript_index = 0  # Track position in TRANSCRIPTS list
 
-        # Create and add transcript line with label and comment
-        transcript_line = TranscriptLine(parts, color, label, comment, lineheight=lineheight)
-        figure.add(transcript_line, gap=3)  # gap between transcripts
+    for group_idx, group in enumerate(GROUPS):
+        group_name = group.get('name', '')
+        group_size = group.get('size', 0)
+
+        # Collect transcript data for this group
+        transcripts_data = []
+        for i in range(group_size):
+            if transcript_index >= len(TRANSCRIPTS):
+                break
+
+            transcript = TRANSCRIPTS[transcript_index]
+            color = transcript.get('color', default_color)
+            parts = transcript.get('parts', [])
+            label = transcript.get('label', None)
+            comment = transcript.get('comment', None)
+
+            # Track maximum comment width
+            if comment:
+                comment_width = len(comment) * comment_font_size * 0.6
+                max_comment_width = max(max_comment_width, comment_width)
+
+            transcripts_data.append((parts, color, label, comment))
+            transcript_index += 1
+
+        # Create and add the group component (contains vertical line and all transcripts)
+        group_component = GroupWithTranscripts(group_name, transcripts_data, lineheight=lineheight)
+        # Use gap of 100 between groups (for first group, use normal gap after splicing sites)
+        gap_before_group = 100 if group_idx > 0 else 25
+        figure.add(group_component, gap=gap_before_group)
 
     # Calculate figure width to accommodate comments
     # Use reasonable display width so genome fits on screen
