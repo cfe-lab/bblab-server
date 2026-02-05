@@ -446,8 +446,8 @@ class TranscriptLine:
         for part in self.parts:
             if len(part) == 2:
                 xstart, xend = part
-                xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH
-                xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH
+                xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH / 2
+                xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH / 2
                 width = xend_scaled - xstart_scaled
                 d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
                                        fill=self.color, stroke=self.color))
