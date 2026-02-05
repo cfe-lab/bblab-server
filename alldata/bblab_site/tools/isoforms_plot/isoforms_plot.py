@@ -71,6 +71,13 @@ TRANSCRIPTS = [
     {'parts': [(1, 743), (5390, 5463), (5954, 6046), (8369, END_POS)]},
 ]
 
+# Information about groups.
+GROUPS = [
+    {'name': 'My Group 1', 'size': 3},
+    {'name': 'Middle group', 'size': 7},
+    {'name': 'My Last Group', 'size': 2},
+]
+
 def is_truthy(value):
     """
     Check if a value should be interpreted as True.
