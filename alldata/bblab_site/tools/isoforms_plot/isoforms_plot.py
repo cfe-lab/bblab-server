@@ -434,8 +434,9 @@ class GroupWithTranscripts:
                           stroke='black', stroke_width=2))
 
         # Draw group label vertically at the middle of the line
-        # Position to the right of the line (since rotated text extends upward from anchor)
-        label_x = line_x + 8
+        # Use absolute positioning (not scaled) to ensure label is visible
+        # Position to the left of the line
+        label_x = 20  # Fixed position 20 pixels from left edge
         label_y = self.h / 2
         d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
                          x=label_x, y=label_y,
@@ -444,9 +445,9 @@ class GroupWithTranscripts:
                          dominant_baseline='middle',
                          transform=f'rotate(-90 {label_x} {label_y})'))
 
-        # Draw all transcripts in this group
+        # Draw all transcripts in this group (in reverse order to match expected top-to-bottom display)
         current_y = 0
-        for i, (parts, color, label, comment) in enumerate(self.transcripts_data):
+        for i, (parts, color, label, comment) in enumerate(reversed(self.transcripts_data)):
             # Add gap before transcript (except first one)
             if i > 0:
                 current_y += 3
@@ -628,8 +629,8 @@ def create_isoforms_plot(input_file, output_svg):
 
         # Create and add the group component (contains vertical line and all transcripts)
         group_component = GroupWithTranscripts(group_name, transcripts_data, lineheight=lineheight)
-        # Use gap of 100 between groups (for first group, use normal gap after splicing sites)
-        gap_before_group = 100 if group_idx > 0 else 25
+        # Use gap of 30 between groups (for first group, use normal gap after splicing sites)
+        gap_before_group = 30 if group_idx > 0 else 25
         figure.add(group_component, gap=gap_before_group)
 
     # Calculate figure width to accommodate comments
