@@ -327,10 +327,8 @@ class SplicingSites:
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
-        # Draw horizontal line (baseline for ticks)
+        # Position of horizontal line (baseline for ticks)
         line_y = self.h / 2
-        d.append(draw.Lines(a, line_y, b, line_y,
-                          stroke=self.color, stroke_width=self.line_thickness))
 
         # Calculate how far down the dotted lines should extend
         # Use provided total_height if available, otherwise calculate
@@ -363,6 +361,10 @@ class SplicingSites:
                              stroke='lightgray', stroke_width=1.5,
                              stroke_dasharray='0.3,3',
                              stroke_linecap='round'))  # makes ends round
+
+        # Draw the long horizontal line
+        d.append(draw.Lines(a, line_y, b, line_y,
+                          stroke=self.color, stroke_width=self.line_thickness))
 
         # Draw ticks and labels
         for i, (site, x_pos) in enumerate(sites_data):
