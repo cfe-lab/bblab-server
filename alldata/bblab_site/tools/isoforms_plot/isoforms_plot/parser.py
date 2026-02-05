@@ -91,11 +91,9 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
 
 def parse_title(rows: Iterator[Sequence[str]]) -> Optional[str]:
-    memo = tuple(rows)
-    if not memo:
+    nonempty = [row for row in rows if len(row) > 0]
+    if len(nonempty) == 0:
         return None
-
-    nonempty = [row for row in memo if len(row) > 0]
     if len(nonempty) != 1:
         raise ValueError("Title section must contain exactly one non-empty value.")
     if len(nonempty[0]) != 1:
