@@ -52,7 +52,6 @@ GROUPS = [
 def compile(parsed_inputs):
     # for now, we just pass everything through without any changes.
     return {
-        'title': parsed_inputs['title'],
         'splicing_sites': SPLICING_SITES,
         'transcripts': TRANSCRIPTS,
         'groups': GROUPS,
