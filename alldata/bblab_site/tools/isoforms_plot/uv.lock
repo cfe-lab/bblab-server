@@ -1,0 +1,34 @@
+version = 1
+revision = 3
+requires-python = "==3.12.*"
+
+[[package]]
+name = "drawsvg"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7f/ca/a8e5ae0e13d7c874e138c5d0e8313856b91f97359781fd78b0c9e34ae791/drawsvg-2.4.0-py3-none-any.whl", hash = "sha256:85b54044956390f05053bc2651e2414d54a4939b57a2be0a043e5cec2e04f1bb", size = 44062, upload-time = "2024-06-23T02:08:15.649Z" },
+]
+
+[[package]]
+name = "genetracks"
+version = "0.2.dev0"
+source = { git = "https://github.com/cfe-lab/genetracks.git?rev=a7f20f644ab86b451e870c9ace0621af8ecae0df#a7f20f644ab86b451e870c9ace0621af8ecae0df" }
+dependencies = [
+    { name = "drawsvg" },
+]
+
+[[package]]
+name = "isoforms-plot"
+version = "0.0.0"
+source = { editable = "." }
+dependencies = [
+    { name = "drawsvg" },
+    { name = "genetracks" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "drawsvg", specifier = "==2.4.0" },
+    { name = "genetracks", git = "https://github.com/cfe-lab/genetracks.git?rev=a7f20f644ab86b451e870c9ace0621af8ecae0df" },
+]
