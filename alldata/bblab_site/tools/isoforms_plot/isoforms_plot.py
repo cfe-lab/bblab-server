@@ -76,6 +76,35 @@ GROUPS = [
 
 TITLE = "My plot A"
 
+
+class Title:
+    """Draws a title at the top of the figure."""
+    def __init__(self, text):
+        self.text = text
+        self.font_size = 20
+        self.h = 40  # height including padding
+        # Width spans the full display area
+        self.a = START_POS + XOFFSET
+        self.b = END_POS + XOFFSET
+        self.w = self.b - self.a
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        d = draw.Group(transform=f"translate({x * xscale} {y})")
+
+        # Center the title horizontally
+        center_x = ((START_POS + END_POS) / 2 + XOFFSET) * xscale
+        # Position text with some top padding
+        text_y = 25
+
+        d.append(draw.Text(text=self.text, font_size=self.font_size,
+                         x=center_x, y=text_y,
+                         font_family='sans-serif', fill='black',
+                         text_anchor='middle',
+                         font_weight='bold'))
+
+        return d
+
+
 def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     """
     Draw a simple overview of the reference (NL43) using the provided
@@ -248,7 +277,7 @@ class SplicingSites:
     Draw a horizontal line with vertical ticks at splicing site positions.
     Donor sites have ticks going up, acceptor sites have ticks going down.
     Dotted lines extend down from each site through the transcripts section.
-    
+
     Note: In this coordinate system, ADDITION = UP, SUBTRACTION = DOWN.
     """
     def __init__(self, splicing_sites, total_samples=0, lineheight=5, h=60, total_height=None):
@@ -671,6 +700,10 @@ def create_isoforms_plot(input_file, output_svg):
 
     # Add initial gap and extra padding
     total_groups_height += 25 + 50  # 25 is initial gap, 50 is extra padding
+
+    # Add title at the top if TITLE is not None
+    if TITLE is not None:
+        figure.add(Title(TITLE), gap=10)
 
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
