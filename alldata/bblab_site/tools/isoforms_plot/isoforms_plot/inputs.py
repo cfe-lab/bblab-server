@@ -7,6 +7,12 @@
 #  - title
 #
 
+import csv
+from pathlib import Path
+from typing import TextIO
+import multicsv
+
+
 END_POS = 9632
 
 # default positions of splicing sites in NL43.
@@ -49,5 +55,31 @@ GROUPS = [
     {'name': 'My Last Group', 'size': 2},
 ]
 
-TITLE = "My plot A"
+
+def parse_title(title_section: TextIO) -> str:
+    reader = csv.reader(title_section)
+    rows = list(reader)
+    if not rows or not rows[0]:
+        raise ValueError("Title section is empty.")
+
+    nonempty = [cell for cell in rows[0] if cell.strip()]
+    if len(nonempty) != 1:
+        raise ValueError("Title section must contain exactly one non-empty value.")
+
+    nonempty_value = nonempty[0].strip()
+    return nonempty_value
+
+
+def parse(input_file: Path) -> dict:
+
+    with multicsv.open(input_file) as csv_file:
+        title_section = csv_file.get("title", None)
+        if title_section is None:
+            raise ValueError("Input file must contain a [title] section.")
+
+        title = parse_title(title_section)
+
+    return {
+        "title": title,
+    }
 

@@ -1,3 +1,7 @@
+[title]
+My plot B
+
+[old_data]
 samp_name,run_name,ref_start,ref_end,defect,is_inverted,is_defective
 Intact,Charlottetest,645,9666,Intact,,
 Intact-wgap,Charlottetest,645,2000,Intact,,
