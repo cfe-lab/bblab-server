@@ -440,7 +440,7 @@ class GroupWithTranscripts:
         label_x = line_x - self.group_label_font_size - 5  # font_size pixels for text + 5 pixel gap
         # Position at vertical center of the group
         label_y = self.h / 2
-        
+
         # Use writing-mode='sideways-lr' for vertical text with bottom on right side
         d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
                          x=label_x, y=label_y,
