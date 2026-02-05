@@ -9,7 +9,7 @@
 
 import csv
 from pathlib import Path
-from typing import TextIO
+from typing import Optional, TextIO
 import multicsv
 
 
@@ -56,7 +56,7 @@ GROUPS = [
 ]
 
 
-def parse_title(title_section: TextIO) -> str:
+def parse_title(title_section: TextIO) -> Optional[str]:
     reader = csv.reader(title_section)
     rows = list(reader)
     if not rows or not rows[0]:
@@ -67,6 +67,8 @@ def parse_title(title_section: TextIO) -> str:
         raise ValueError("Title section must contain exactly one non-empty value.")
 
     nonempty_value = nonempty[0].strip()
+    if not nonempty_value:
+        return None
     return nonempty_value
 
 
