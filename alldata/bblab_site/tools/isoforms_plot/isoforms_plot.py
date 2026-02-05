@@ -434,18 +434,20 @@ class GroupWithTranscripts:
                           stroke='black', stroke_width=2))
 
         # Draw group label vertically centered on the line
-        label_x = (1 + XOFFSET - self.line_x_offset - 10) * xscale
-        # Calculate label text length (approximate, after rotation this is the vertical extent)
-        label_text_length = len(self.group_name) * self.group_label_font_size * CHAR_WIDTH_FACTOR
-        # Position label so its center aligns with line center: start_position = center - length/2
-        # Ensure label_y is at least 5 pixels from top to avoid clipping
-        label_y = max(5, (self.h / 2) - (label_text_length / 2))
-        # Use text-anchor='start' so text extends downward (won't get clipped)
+        # Position the label to the left of the vertical line
+        # Calculate in pixels: line position minus font height (rotated text width) minus gap
+        line_x = (1 + XOFFSET - self.line_x_offset) * xscale
+        label_x = line_x - self.group_label_font_size - 5  # font_size pixels for text + 5 pixel gap
+        # Position at vertical center of the group
+        label_y = self.h / 2
+        
+        # Use writing-mode='sideways-lr' for vertical text with bottom on right side
         d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
                          x=label_x, y=label_y,
-                         font_family='monospace', fill='black',
-                         text_anchor='start',
-                         transform=f'rotate(-90 {label_x} {label_y})'))
+                         font_family='sans-serif', fill='black',
+                         text_anchor='middle',
+                         dominant_baseline='middle',
+                         writing_mode='sideways-lr'))
 
 
         # Draw all transcripts in this group (in reverse order to match expected top-to-bottom display)
