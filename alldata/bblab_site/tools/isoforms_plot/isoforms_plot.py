@@ -608,7 +608,7 @@ def create_isoforms_plot(input_file, output_svg):
 
     transcript_index = 0  # Track position in TRANSCRIPTS list
 
-    for group_idx, group in enumerate(GROUPS):
+    for group in GROUPS:
         group_name = group.get('name', '')
         group_size = group.get('size', 0)
 
@@ -634,9 +634,7 @@ def create_isoforms_plot(input_file, output_svg):
 
         # Create and add the group component (contains vertical line and all transcripts)
         group_component = GroupWithTranscripts(group_name, transcripts_data, lineheight=lineheight)
-        # Use gap of 30 between groups (for first group, use normal gap after splicing sites)
-        gap_before_group = 30 if group_idx > 0 else 25
-        figure.add(group_component, gap=gap_before_group)
+        figure.add(group_component, gap=30)
 
     # Calculate figure width to accommodate comments
     # Use reasonable display width so genome fits on screen
