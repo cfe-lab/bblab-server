@@ -12,11 +12,7 @@ DOTTED_LINES_WIDTH = 1
 
 START_POS = 638
 END_POS = 9632
-LEFT_PRIMER_END = 666
-RIGHT_PRIMER_START = 9604
-GAG_END = 2292
 XOFFSET = 400
-SMALLEST_GAP = 50
 CANVAS_WIDTH = 900
 
 # default NL43 landmarks for the small overview graphic
@@ -77,16 +73,6 @@ GROUPS = [
     {'name': 'Middle group', 'size': 7},
     {'name': 'My Last Group', 'size': 2},
 ]
-
-def is_truthy(value):
-    """
-    Check if a value should be interpreted as True.
-    Accepts: '1', 'true', 't', 'yes', 'y' (case-insensitive)
-    Rejects: '0', 'false', 'f', 'no', 'n', '' (empty string), and any other value
-    """
-    if not value:
-        return False
-    return value.strip().lower() in ('1', 'true', 't', 'yes', 'y')
 
 def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     """
