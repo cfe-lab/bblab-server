@@ -1,4 +1,4 @@
-from genetracks import Figure, Track, Multitrack, Label
+from genetracks import Figure, Track, Multitrack
 from operator import itemgetter
 import drawsvg as draw
 from collections import defaultdict
