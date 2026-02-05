@@ -30,6 +30,7 @@ class Transcript:
 
 @dataclass(frozen=True)
 class AST:
+    title: Optional[str]
     transcripts: Sequence[Transcript]
 
 
@@ -89,9 +90,30 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
         )
 
 
+def parse_title(rows: Iterator[Sequence[str]]) -> Optional[str]:
+    memo = tuple(rows)
+    if not memo:
+        return None
+
+    nonempty = [row for row in memo if len(row) > 0]
+    if len(nonempty) != 1:
+        raise ValueError("Title section must contain exactly one non-empty value.")
+    if len(nonempty[0]) != 1:
+        raise ValueError("Title section must contain exactly one non-empty value.")
+
+    nonempty_value = nonempty[0][0].strip()
+    if not nonempty_value:
+        return None
+    return nonempty_value
+
+
+
 def parse(input_file: Path) -> AST:
     with multicsv.open(input_file) as csvfile:
         sections = {section.lower(): section for section in csvfile}
+
+        title_section = csvfile[sections['title']] if 'title' in sections else None
+        title = parse_title(csv.reader(title_section)) if title_section is not None else None
 
         transcripts_section = csvfile[sections['transcripts']] if 'transcripts' in sections else None
         if transcripts_section is None:
@@ -101,5 +123,6 @@ def parse(input_file: Path) -> AST:
         transcripts = tuple(read_transcripts(reader))
 
     return AST(
+        title=title,
         transcripts=transcripts,
     )

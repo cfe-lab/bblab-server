@@ -1,4 +1,7 @@
 
+[title]
+My Isoforms Plot Title
+
 [transcripts]
 fragments,label,comment,group
 1-743; 4913-end,vif,(3),My Group 1
