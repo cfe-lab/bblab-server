@@ -469,7 +469,7 @@ class TranscriptLine:
             comment_y = transcript_y + self.lineheight / 2
             d.append(draw.Text(text=self.comment, font_size=self.comment_font_size,
                              x=comment_x, y=comment_y,
-                             font_family='monospace', fill='gray',
+                             font_family='monospace', fill='black',
                              text_anchor='start',  # left-align comment
                              dominant_baseline='middle'))  # vertically center text
 
