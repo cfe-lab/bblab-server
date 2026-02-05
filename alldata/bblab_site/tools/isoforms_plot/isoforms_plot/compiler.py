@@ -6,6 +6,8 @@ This is where we do things like:
 - ...
 """
 
+from isoforms_plot.parser import AST
+
 END_POS = 9632
 
 # default positions of splicing sites in NL43.
@@ -49,10 +51,11 @@ GROUPS = [
 ]
 
 
-def compile(parsed_inputs):
+def compile(parsed_inputs: AST):
     # for now, we just pass everything through without any changes.
     return {
         'splicing_sites': SPLICING_SITES,
         'transcripts': TRANSCRIPTS,
         'groups': GROUPS,
+        'title': parsed_inputs.title,
     }
