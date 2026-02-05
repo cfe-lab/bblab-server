@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.13"
 license = { text = "AGPL-3.0" }
 dependencies = [
   "drawsvg==2.4.0",
+  "multicsv==1.0.5",
   "genetracks @ git+https://github.com/cfe-lab/genetracks.git@a7f20f644ab86b451e870c9ace0621af8ecae0df",
 ]
 
