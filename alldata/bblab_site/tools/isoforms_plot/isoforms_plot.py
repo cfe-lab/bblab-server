@@ -611,6 +611,8 @@ def create_isoforms_plot(input_file, output_svg):
     for group in GROUPS:
         group_name = group.get('name', '')
         group_size = group.get('size', 0)
+        if transcript_index + group_size > len(TRANSCRIPTS):
+            raise RuntimeError("Bad group sizes, more than transcripts.")
 
         # Collect transcript data for this group
         transcripts_data = []
