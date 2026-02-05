@@ -50,31 +50,6 @@ SPLICING_SITES = [
     {'name': 'A7', 'start': 8369, 'type': 'acceptor'},
 ]
 
-# Information about individual isoforms to be displayed.
-TRANSCRIPTS = [
-    {'parts': [(1, 743), (4913, END_POS)], 'label': 'vif'},
-    {'parts': [(1, 743), (5777, 6046), (5954, END_POS)], 'label': 'vpu/env'},
-    {'parts': [(1, 743), (5390, 5463), (5954, END_POS)]},
-    {'parts': [(1, 743), (4913, 4962), (5390, 5463), (5954, END_POS)]},
-    {'parts': [(1, 743), (5390, 5463), (5954, END_POS)]},
-    {'parts': [(1, 743), (5777, 6046), (8369, END_POS)], 'label': 'rev', 'comment': '(interesting, eh?!)'},
-    {'parts': [(1, 743), (5777, 6046), (8369, END_POS)], 'comment': '(3 copies)'},
-    {'parts': [(1, 743), (5777, 6046), (8369, END_POS)], 'label': 'tat'},
-    {'parts': [(1, 743), (5777, 6046), (8369, END_POS)]},
-    {'parts': [(1, 743), (5390, 5463), (5954, 6046), (8369, END_POS)], 'label': 'nef', 'comment': '(two like this)'},
-    {'parts': [(1, 743), (5954, 6046), (8369, END_POS)]},
-    {'parts': [(1, 743), (5390, 5463), (5954, 6046), (8369, END_POS)]},
-]
-
-# Information about groups.
-GROUPS = [
-    {'name': 'My Group 1', 'size': 3},
-    {'name': None, 'size': 7},
-    {'name': 'My Last Group', 'size': 2},
-]
-
-TITLE = "My plot A"
-
 
 class Title:
     """Draws a title at the top of the figure."""
@@ -654,9 +629,9 @@ class TranscriptLine:
         return d
 
 
-def create_isoforms_plot(input_file, output_svg):
-    # Use TRANSCRIPTS to determine number of samples to display
-    total_samples = len(TRANSCRIPTS)
+def create_isoforms_plot(transcripts, groups, title, output_svg):
+    # Use transcripts to determine number of samples to display
+    total_samples = len(transcripts)
     figure = Figure()
     lineheight = 500 / total_samples if total_samples > 0 else 0
     if lineheight > 5:
@@ -666,15 +641,15 @@ def create_isoforms_plot(input_file, output_svg):
     # First, we need to determine the height of each group
     total_groups_height = 0
     transcript_index = 0
-    for group_idx, group in enumerate(GROUPS):
+    for group_idx, group in enumerate(groups):
         group_size = group.get('size', 0)
 
         # Calculate height for this group
         group_height = 0
         for i in range(group_size):
-            if transcript_index >= len(TRANSCRIPTS):
+            if transcript_index >= len(transcripts):
                 break
-            transcript = TRANSCRIPTS[transcript_index]
+            transcript = transcripts[transcript_index]
             label = transcript.get('label', None)
 
             if i > 0:
@@ -695,9 +670,9 @@ def create_isoforms_plot(input_file, output_svg):
     # Add initial gap and extra padding
     total_groups_height += 25 + 50  # 25 is initial gap, 50 is extra padding
 
-    # Add title at the top if TITLE is not None
-    if TITLE is not None:
-        figure.add(Title(TITLE), gap=10)
+    # Add title at the top if title is not None
+    if title is not None:
+        figure.add(Title(title), gap=10)
 
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
@@ -712,28 +687,28 @@ def create_isoforms_plot(input_file, output_svg):
         # fallback if Track signature differs; attempt without named color
         figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
 
-    # Draw each transcript from TRANSCRIPTS variable, organized by groups
+    # Draw each transcript from transcripts variable, organized by groups
     default_color = 'grey'
     max_comment_width = 0
     comment_font_size = 8
 
-    aggregate_group_size = sum(group.get('size', 0) for group in GROUPS)
-    if aggregate_group_size != len(TRANSCRIPTS):
-        raise RuntimeError(f"Bad group sizes: {aggregate_group_size} != {len(TRANSCRIPTS)}")
+    aggregate_group_size = sum(group.get('size', 0) for group in groups)
+    if aggregate_group_size != len(transcripts):
+        raise RuntimeError(f"Bad group sizes: {aggregate_group_size} != {len(transcripts)}")
 
-    transcript_index = 0  # Track position in TRANSCRIPTS list
+    transcript_index = 0  # Track position in transcripts list
 
-    for group in GROUPS:
+    for group in groups:
         group_name = group.get('name', '')
         group_size = group.get('size', 0)
 
         # Collect transcript data for this group
         transcripts_data = []
         for i in range(group_size):
-            if transcript_index >= len(TRANSCRIPTS):
+            if transcript_index >= len(transcripts):
                 break
 
-            transcript = TRANSCRIPTS[transcript_index]
+            transcript = transcripts[transcript_index]
             color = transcript.get('color', default_color)
             parts = transcript.get('parts', [])
             label = transcript.get('label', None)

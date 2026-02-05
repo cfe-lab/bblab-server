@@ -3,6 +3,7 @@ import sys
 from typing import Sequence
 
 from isoforms_plot import plotter
+from isoforms_plot import inputs
 
 
 def main(argv: Sequence[str]) -> int:
@@ -11,7 +12,7 @@ def main(argv: Sequence[str]) -> int:
                         help="Output SVG")
     args = parser.parse_args(argv)
 
-    plotter.create_isoforms_plot(None, args.output_svg)
+    plotter.create_isoforms_plot(inputs.TRANSCRIPTS, inputs.GROUPS, inputs.TITLE, args.output_svg)
     return 0
 
 
