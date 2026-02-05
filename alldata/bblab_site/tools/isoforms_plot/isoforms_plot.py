@@ -74,6 +74,8 @@ GROUPS = [
     {'name': 'My Last Group', 'size': 2},
 ]
 
+TITLE = "My plot A"
+
 def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     """
     Draw a simple overview of the reference (NL43) using the provided
