@@ -11,6 +11,7 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator, Optional, Sequence
+import multicsv
 
 
 @dataclass(frozen=True)
@@ -89,8 +90,14 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
 
 def parse(input_file: Path) -> AST:
-    with input_file.open() as fd:
-        reader = csv.DictReader(fd)
+    with multicsv.open(input_file) as csvfile:
+        sections = {section.lower(): section for section in csvfile}
+
+        transcripts_section = csvfile[sections['transcripts']] if 'transcripts' in sections else None
+        if transcripts_section is None:
+            raise ValueError('Input CSV must contain a "Transcripts" section.')
+
+        reader = csv.DictReader(transcripts_section)
         transcripts = tuple(read_transcripts(reader))
 
     return AST(
