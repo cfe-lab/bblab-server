@@ -396,11 +396,12 @@ class GroupWithTranscripts:
         self.group_name = group_name
         self.transcripts_data = transcripts_data  # list of (parts, color, label, comment)
         self.lineheight = lineheight
-        self.a = START_POS + XOFFSET
+        self.line_x_offset = 40  # 40 units to the left of 5'LTR start
+        # Set component start to include the label area (80 units before 5'LTR start)
+        self.a = 1 + XOFFSET - 80  # Start far enough left to include label
         self.b = END_POS + XOFFSET
         self.font_size = 9
         self.comment_font_size = 8
-        self.line_x_offset = 40  # 40 units to the left of 5'LTR start
         self.group_label_font_size = 10
 
         # Calculate total height for all transcripts in the group
@@ -428,22 +429,24 @@ class GroupWithTranscripts:
         d = draw.Group(transform="translate({} {})".format(x * xscale, y))
 
         # Draw vertical line spanning the entire group height
-        # Position at 5'LTR start (position 1) minus offset, not START_POS
         line_x = (1 + XOFFSET - self.line_x_offset) * xscale
         d.append(draw.Line(line_x, 0, line_x, self.h,
                           stroke='black', stroke_width=2))
 
-        # Draw group label vertically at the middle of the line
-        # Use absolute positioning (not scaled) to ensure label is visible
-        # Position to the left of the line
-        label_x = 20  # Fixed position 20 pixels from left edge
-        label_y = self.h / 2
+        # Draw group label vertically centered on the line
+        label_x = (1 + XOFFSET - self.line_x_offset - 10) * xscale
+        # Calculate label text length (approximate, after rotation this is the vertical extent)
+        label_text_length = len(self.group_name) * self.group_label_font_size * CHAR_WIDTH_FACTOR
+        # Position label so its center aligns with line center: start_position = center - length/2
+        # Ensure label_y is at least 5 pixels from top to avoid clipping
+        label_y = max(5, (self.h / 2) - (label_text_length / 2))
+        # Use text-anchor='start' so text extends downward (won't get clipped)
         d.append(draw.Text(text=self.group_name, font_size=self.group_label_font_size,
                          x=label_x, y=label_y,
                          font_family='sans-serif', fill='black',
-                         text_anchor='middle',
-                         dominant_baseline='middle',
+                         text_anchor='start',
                          transform=f'rotate(-90 {label_x} {label_y})'))
+
 
         # Draw all transcripts in this group (in reverse order to match expected top-to-bottom display)
         current_y = 0
