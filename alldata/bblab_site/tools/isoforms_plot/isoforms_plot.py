@@ -607,13 +607,15 @@ def create_isoforms_plot(input_file, output_svg):
     max_comment_width = 0
     comment_font_size = 8
 
+    aggregate_group_size = sum(group.get('size', 0) for group in GROUPS)
+    if aggregate_group_size != len(TRANSCRIPTS):
+        raise RuntimeError(f"Bad group sizes: {aggregate_group_size} != {len(TRANSCRIPTS)}")
+
     transcript_index = 0  # Track position in TRANSCRIPTS list
 
     for group in GROUPS:
         group_name = group.get('name', '')
         group_size = group.get('size', 0)
-        if transcript_index + group_size > len(TRANSCRIPTS):
-            raise RuntimeError("Bad group sizes, more than transcripts.")
 
         # Collect transcript data for this group
         transcripts_data = []
