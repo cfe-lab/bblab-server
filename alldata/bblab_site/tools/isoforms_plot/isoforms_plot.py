@@ -246,6 +246,8 @@ class SplicingSites:
     Draw a horizontal line with vertical ticks at splicing site positions.
     Donor sites have ticks going up, acceptor sites have ticks going down.
     Dotted lines extend down from each site through the transcripts section.
+    
+    Note: In this coordinate system, ADDITION = UP, SUBTRACTION = DOWN.
     """
     def __init__(self, splicing_sites, total_samples=0, lineheight=5, h=60, total_height=None):
         self.splicing_sites = splicing_sites
@@ -266,6 +268,9 @@ class SplicingSites:
         """
         Assign vertical levels to labels to avoid overlaps.
         Returns a dict mapping site index to level (0, 1, 2, ...).
+
+        For donors: first overlapping label gets highest level (furthest from baseline)
+        For acceptors: first overlapping label gets lowest level (closest to baseline)
         """
         # Estimate character width for monospace font (rough approximation)
         char_width = self.font_size * CHAR_WIDTH_FACTOR
@@ -289,34 +294,55 @@ class SplicingSites:
 
         levels = {}
 
-        # Assign levels for each group separately
-        for group in [donors, acceptors]:
-            if not group:
-                continue
+        # Process donors: labels are to the RIGHT of tick
+        # Process in REVERSE x-order so that when overlaps occur,
+        # the leftmost (first) label gets pushed to higher level
+        if donors:
+            # Sort donors by x-position in REVERSE order (right to left)
+            donors_reversed = sorted(donors, key=lambda x: x[1], reverse=True)
+            level_leftmost = {}  # tracks the leftmost x position at each level
 
-            # Greedy algorithm: assign each label to the lowest level where it fits
-            level_rightmost = {}  # tracks the rightmost x position at each level
-
-            for idx, x_pos, label_width, site_type in group:
-                label_left = x_pos - label_width / 2
-                label_right = x_pos + label_width / 2
+            for idx, x_pos, label_width, site_type in donors_reversed:
+                # Label starts at tick position and extends right
+                label_left = x_pos
+                label_right = x_pos + label_width
 
                 # Find the lowest level where this label fits
                 level = 0
                 while True:
-                    if level not in level_rightmost:
-                        # This level is empty, use it
-                        level_rightmost[level] = label_right + min_spacing
+                    if level not in level_leftmost:
+                        level_leftmost[level] = label_left - min_spacing
                         levels[idx] = level
                         break
-                    elif label_left >= level_rightmost[level]:
-                        # This label fits at this level
-                        level_rightmost[level] = label_right + min_spacing
+                    elif label_right <= level_leftmost[level]:
+                        level_leftmost[level] = label_left - min_spacing
                         levels[idx] = level
                         break
                     else:
-                        # Try next level
                         level += 1
+
+        # Process acceptors: labels are to the LEFT of tick
+        # First overlapping label gets lowest level (staircase going down left-to-right)
+        # For transitive overlaps: find highest level among all overlapping labels
+        if acceptors:
+            placed_labels = []  # list of (label_left, label_right, level, idx)
+
+            for idx, x_pos, label_width, site_type in acceptors:
+                # Label ends at tick position and extends left
+                label_left = x_pos - label_width
+                label_right = x_pos
+
+                # Find all labels this one overlaps with
+                max_overlapping_level = -1
+                for other_left, other_right, other_level, other_idx in placed_labels:
+                    # Check if they overlap
+                    if label_left < other_right + min_spacing and label_right > other_left - min_spacing:
+                        max_overlapping_level = max(max_overlapping_level, other_level)
+
+                # Place at one level above the highest overlapping label
+                level = max_overlapping_level + 1
+                levels[idx] = level
+                placed_labels.append((label_left, label_right, level, idx))
 
         return levels
 
@@ -372,17 +398,29 @@ class SplicingSites:
             site_name = site.get('name', '')
             level = levels.get(i, 0)
 
-            # Donor sites: ticks go up; Acceptor sites: ticks go down
+            # Donor sites: ticks go UP (addition); Acceptor sites: ticks go DOWN (subtraction)
+            # Ticks extend all the way to the label's level
             if site_type == 'donor':
                 tick_start = line_y
-                tick_end = line_y + self.tick_height
-                # Labels above: higher levels go further up
-                label_y = tick_end + self.font_size - 5 + (level * self.label_spacing)
+                # Calculate tick end position (going UP = addition)
+                tick_end = line_y + self.tick_height + (level * self.label_spacing)
+                # Position label so tick touches the bottom edge of text
+                # Subtracting moves label DOWN (toward baseline) by half font height
+                label_y = tick_end - self.font_size / 2
+                # Label to the right of tick, with small gap
+                label_x = x_pos + 3
+                text_anchor = 'start'
             else:  # acceptor
                 tick_start = line_y
-                tick_end = line_y - self.tick_height
-                # Labels below: higher levels go further down
-                label_y = tick_end - 5 - (level * self.label_spacing)
+                # Calculate tick end position (going DOWN = subtraction)
+                tick_end = line_y - self.tick_height - (level * self.label_spacing)
+                # Position label so tick touches the top edge of text
+                # Adding moves label UP (toward baseline) by half font height
+                # Subtract small gap (2px) to move label DOWN and prevent overlap with baseline
+                label_y = tick_end + self.font_size / 2 - 2
+                # Label to the left of tick, with small gap
+                label_x = x_pos - 3
+                text_anchor = 'end'
 
             # Draw tick
             d.append(draw.Lines(x_pos, tick_start, x_pos, tick_end,
@@ -390,8 +428,10 @@ class SplicingSites:
 
             # Draw label
             d.append(draw.Text(text=site_name, font_size=self.font_size,
-                             x=x_pos, y=label_y,
-                             font_family='monospace', center=True, fill=self.color))
+                             x=label_x, y=label_y,
+                             font_family='monospace', fill=self.color,
+                             text_anchor=text_anchor,
+                             dominant_baseline='middle'))
 
         return d
 
