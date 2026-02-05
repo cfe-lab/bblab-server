@@ -3,8 +3,7 @@ from pathlib import Path
 import sys
 from typing import Sequence
 
-from isoforms_plot import plotter
-from isoforms_plot import parser
+from isoforms_plot import plotter, parser, compiler
 
 
 def main(argv: Sequence[str]) -> int:
@@ -14,9 +13,16 @@ def main(argv: Sequence[str]) -> int:
     args = argparser.parse_args(argv)
 
     parsed = parser.parse(args.input_csv)
-    title = parsed["title"]
+    compiled = compiler.compile(parsed)
 
-    plotter.create_isoforms_plot(parser.TRANSCRIPTS, parser.GROUPS, title, parser.SPLICING_SITES, args.output_svg)
+    plotter.create_isoforms_plot(
+        compiled['transcripts'],
+        compiled['groups'],
+        compiled['title'],
+        compiled['splicing_sites'],
+        args.output_svg,
+    )
+
     return 0
 
 
