@@ -419,7 +419,7 @@ class TranscriptLine:
         # Calculate width in logical coordinates
         if self.comment:
             # Estimate comment width in pixels
-            comment_width = len(self.comment) * self.comment_font_size * 0.6
+            comment_width = len(self.comment) * self.comment_font_size * CHAR_WIDTH_FACTOR
             # Estimated xscale: target display width / logical genome width
             # Genome is END_POS + XOFFSET ≈ 10032
             estimated_xscale = CANVAS_WIDTH / (END_POS + XOFFSET)
