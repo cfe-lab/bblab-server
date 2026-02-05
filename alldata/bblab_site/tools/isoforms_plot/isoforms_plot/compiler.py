@@ -31,8 +31,10 @@ SPLICING_SITES = [
 ]
 
 
-def compile_transcripts(parsed_transcripts: Sequence[Transcript]) -> list[dict[str, Any]]:
-    
+def compile_transcripts(
+    parsed_transcripts: Sequence[Transcript],
+) -> list[dict[str, Any]]:
+
     # Convert transcripts to plotter format
     compiled_transcripts = []
     for transcript in parsed_transcripts:
@@ -87,7 +89,9 @@ def compile(parsed_inputs: AST) -> dict[str, Any]:
     - Groups transcripts by their 'group' attribute
     """
 
-    compiled_transcripts, compiled_groups = compile_transcripts(parsed_inputs.transcripts)
+    compiled_transcripts, compiled_groups = compile_transcripts(
+        parsed_inputs.transcripts
+    )
 
     return {
         "splicing_sites": SPLICING_SITES,
