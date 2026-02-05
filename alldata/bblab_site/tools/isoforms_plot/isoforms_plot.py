@@ -417,7 +417,7 @@ class GroupWithTranscripts:
         max_comment_width = 0
         for parts, color, label, comment in transcripts_data:
             if comment:
-                comment_width = len(comment) * self.comment_font_size * 0.6
+                comment_width = len(comment) * self.comment_font_size * CHAR_WIDTH_FACTOR
                 max_comment_width = max(max_comment_width, comment_width)
 
         estimated_xscale = CANVAS_WIDTH / (END_POS + XOFFSET)
@@ -621,7 +621,7 @@ def create_isoforms_plot(input_file, output_svg):
 
             # Track maximum comment width
             if comment:
-                comment_width = len(comment) * comment_font_size * 0.6
+                comment_width = len(comment) * comment_font_size * CHAR_WIDTH_FACTOR
                 max_comment_width = max(max_comment_width, comment_width)
 
             transcripts_data.insert(0, (parts, color, label, comment))
