@@ -412,7 +412,7 @@ class SplicingSites:
             # Draw label with same colour as tick
             d.append(draw.Text(text=site_name, font_size=self.font_size,
                              x=label_x, y=label_y,
-                             font_family='monospace', fill=self.color,
+                             font_family='monospace', fill=tick_colour,
                              text_anchor=text_anchor,
                              dominant_baseline='middle'))
 
