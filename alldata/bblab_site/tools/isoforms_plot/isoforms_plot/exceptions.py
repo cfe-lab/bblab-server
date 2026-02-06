@@ -350,3 +350,32 @@ class InvalidFragmentEndError(ValueError):
             f"Fragments must end at a donor site or use 'end' keyword. "
             f"Valid end positions: {valid_ends_str}."
         )
+
+
+AnyError = (
+    MissingFragmentsError |
+    InvalidDashPatternError |
+    EmptyFragmentError |
+    NotIntegerStartError |
+    NotPositiveStartError |
+    NotIntegerEndError |
+    NotPositiveEndError |
+    EndLessThanStartError |
+    TitleSectionTooManyNonEmptyValuesError |
+    TitleSectionTooManyColumnsError |
+    MissingDonorNameError |
+    MissingDonorPositionError |
+    InvalidDonorPositionError |
+    MissingAcceptorNameError |
+    MissingAcceptorPositionError |
+    InvalidAcceptorPositionError |
+    MissingTranscriptsSectionError |
+    MissingDonorsSectionError |
+    MissingAcceptorsSectionError |
+    DuplicateDonorNameError |
+    DuplicateAcceptorNameError |
+    EmptyTranscriptError |
+    OverlappingFragmentsError |
+    InvalidFragmentStartError |
+    InvalidFragmentEndError
+)
