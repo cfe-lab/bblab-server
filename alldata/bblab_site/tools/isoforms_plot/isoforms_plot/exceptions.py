@@ -7,6 +7,10 @@ Compile Errors: Raised during compilation when semantic constraints are violated
 
 from typing import Dict, Sequence
 
+# ============================================================================
+# PARSE ERRORS - Raised by parser.py when input format is invalid
+# ============================================================================
+
 
 class MissingFragmentsError(ValueError):
     """Raised when a transcript row has no fragments field."""
