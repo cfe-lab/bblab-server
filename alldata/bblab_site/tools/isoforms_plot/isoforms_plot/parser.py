@@ -247,28 +247,24 @@ def parse(input_file: Path) -> AST:
         if any(len(matches) > 1 for matches in multisections.values()):
             raise ex.MultipleSectionsWithSameNameError(multisections=multisections)
 
-        sections = {section.lower(): section for section in csvfile}
+        sections = {section.lower(): csvfile[section] for section in csvfile}
 
-        title_section = csvfile[sections["title"]] if "title" in sections else None
+        title_section = sections.get("title")
         title = (
             parse_title(csv.reader(title_section))
             if title_section is not None
             else None
         )
 
-        transcripts_section = (
-            csvfile[sections["transcripts"]] if "transcripts" in sections else None
-        )
+        transcripts_section = sections.get("transcripts")
         if transcripts_section is None:
             raise ex.MissingTranscriptsSectionError(sections=sections)
 
-        donors_section = csvfile[sections["donors"]] if "donors" in sections else None
+        donors_section = sections.get("donors")
         if donors_section is None:
             raise ex.MissingDonorsSectionError(sections=sections)
 
-        acceptors_section = (
-            csvfile[sections["acceptors"]] if "acceptors" in sections else None
-        )
+        acceptors_section = sections.get("acceptors")
         if acceptors_section is None:
             raise ex.MissingAcceptorsSectionError(sections=sections)
 
