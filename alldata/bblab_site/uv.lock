@@ -53,6 +53,7 @@ dependencies = [
     { name = "markdown" },
     { name = "mod-wsgi" },
     { name = "more-itertools" },
+    { name = "multicsv" },
     { name = "mysqlclient" },
     { name = "numpy" },
     { name = "oauthlib" },
@@ -117,6 +118,7 @@ requires-dist = [
     { name = "markdown", specifier = "==3.6" },
     { name = "mod-wsgi", specifier = "==5.0.2" },
     { name = "more-itertools", specifier = "==10.6.0" },
+    { name = "multicsv", specifier = "==1.0.5" },
     { name = "mysqlclient", specifier = "==2.2.7" },
     { name = "numpy", specifier = "==2.2.2" },
     { name = "oauthlib", specifier = "==3.2.2" },
@@ -478,6 +480,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/88/3b/7fa1fe835e2e93fd6d7b52b2f95ae810cf5ba133e1845f726f5a992d62c2/more-itertools-10.6.0.tar.gz", hash = "sha256:2cd7fad1009c31cc9fb6a035108509e6547547a7a738374f10bd49a09eb3ee3b", size = 125009, upload-time = "2025-01-14T16:22:47.626Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/23/62/0fe302c6d1be1c777cab0616e6302478251dfbf9055ad426f5d0def75c89/more_itertools-10.6.0-py3-none-any.whl", hash = "sha256:6eb054cb4b6db1473f6e15fcc676a08e4732548acd47c708f0e179c2c7c01e89", size = 63038, upload-time = "2025-01-14T16:22:46.014Z" },
+]
+
+[[package]]
+name = "multicsv"
+version = "1.0.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/9e/7a41248690b0f912ef67dc3de16e080f7b3018055aba6d501aa0491b02a3/multicsv-1.0.5.tar.gz", hash = "sha256:5220e1ad45fa7bebf6c76c66d36aae8d79ac5dfcd3b1073bb30130e991a37aac", size = 20930, upload-time = "2025-10-20T22:31:59.957Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f4/86/3157ecdd7818be0d9772de2b2dacc8c15eb441bddedb0537c2da7fcddee2/multicsv-1.0.5-py2.py3-none-any.whl", hash = "sha256:0cf83ff324e67675df2e33a7ffed4731f35918874661a8ff4e07b30b8dd0adf1", size = 23424, upload-time = "2025-10-20T22:31:58.913Z" },
 ]
 
 [[package]]
