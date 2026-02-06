@@ -311,6 +311,52 @@
 			margin-top: 10px;
 			line-height: 1.5;
 		}
+
+		.user-manual {
+			background: white;
+			border: 2px solid #e0e0e0;
+			border-radius: 12px;
+			padding: 35px;
+			margin: 30px 0;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+		}
+
+		.user-manual h2 {
+			color: #667eea;
+			margin-top: 0;
+			font-size: 1.9em;
+			margin-bottom: 20px;
+			border-bottom: 3px solid #667eea;
+			padding-bottom: 10px;
+		}
+
+		.user-manual p {
+			color: #444;
+			line-height: 1.75;
+			margin: 16px 0;
+			font-size: 1.02em;
+		}
+
+		.user-manual p:first-of-type {
+			font-size: 1.08em;
+			color: #333;
+			font-weight: 500;
+		}
+
+		.user-manual strong {
+			color: #667eea;
+			font-weight: 600;
+		}
+
+		.user-manual code {
+			background: #f0f4ff;
+			padding: 2px 6px;
+			border-radius: 3px;
+			font-family: 'Courier New', monospace;
+			font-size: 0.92em;
+			color: #5568d3;
+			border: 1px solid #d1d9f5;
+		}
 	</style>
 </head>
 {% endblock %}
@@ -385,12 +431,35 @@
 
 			<div class="file-name-display" id="fileNameDisplay"></div>
 		</div>
-
-		<div class="info-note">
-			<strong>💡 Tip:</strong> Your CSV should include sections for transcripts, donors, and acceptors.
-			Download the example to see the required format.
-		</div>
 	</form>
+
+	<div class="user-manual">
+		<h2>📖 How CSV Input Works</h2>
+		
+		<p>
+			Your CSV is best thought of as a <strong>small, structured description of splicing</strong>: first you declare the splice sites you care about, then you describe each transcript as a <strong>path that jumps between those sites</strong>. This design is intentional: it keeps the plot consistent across many isoforms, prevents "almost-the-same coordinate" typos from silently creating misleading pictures, and makes it easy to compare transcripts because all boundaries line up on the same declared landmarks.
+		</p>
+
+		<p>
+			The file is organized into <strong>named sections</strong>. Each section begins with a bracketed header like <code>[transcripts]</code>, and then contains a normal CSV table with a header row. Three sections are required: <strong><code>[transcripts]</code></strong>, <strong><code>[donors]</code></strong>, and <strong><code>[acceptors]</code></strong>. A <strong><code>[title]</code></strong> section is optional and exists purely to give the figure a human-readable title (useful when you're saving or sharing plots).
+		</p>
+
+		<p>
+			In <strong><code>[donors]</code></strong> and <strong><code>[acceptors]</code></strong>, you define the splice sites that transcripts are allowed to connect to. Each site has a <strong>name</strong> (a short identifier you'll recognize on the plot), a <strong>position</strong> (an integer coordinate along the reference), and an optional <strong>colour</strong>. Colours are a way to visually tag related splice sites (for example, to emphasize alternative splicing patterns or highlight families of sites) so that the diagram communicates structure at a glance instead of forcing the viewer to read every coordinate.
+		</p>
+
+		<p>
+			In <strong><code>[transcripts]</code></strong>, each row describes one transcript as a series of <strong>fragments</strong>. Conceptually, a fragment is an exon-like block: it begins at a splice acceptor (or the very start of the reference) and ends at a splice donor (or the end of the reference). The key idea is that <strong>fragment boundaries are not arbitrary</strong>—they must match the splice sites you declared. This turns your input from "a pile of coordinates" into a coherent splicing map where every transcript is assembled from the same set of well-defined cut points, which is exactly what makes isoforms comparable in a single figure.
+		</p>
+
+		<p>
+			Transcripts can optionally include a <strong>label</strong>, a <strong>group</strong>, and a <strong>comment</strong>. Labels help identify a transcript (e.g., a gene name or isoform name) without cluttering the drawing. Groups let you cluster related transcripts into blocks so the figure reads as "families" rather than a flat list; the goal is to help viewers understand patterns (e.g., "these are all variants of the same class") before they inspect details. Comments are free-form notes that appear alongside the transcript, useful for short metadata like sample IDs, counts, or brief annotations.
+		</p>
+
+		<p>
+			A final practical principle: if you find yourself wanting a transcript fragment to start or end at a position that isn't currently allowed, that's a sign you should <strong>add the corresponding splice site</strong> to the donors/acceptors list instead of forcing a one-off boundary. Doing so keeps the whole dataset internally consistent and makes the plot easier to read and trust—both for you and for anyone you share it with.
+		</p>
+	</div>
 </div>
 
 <script>
