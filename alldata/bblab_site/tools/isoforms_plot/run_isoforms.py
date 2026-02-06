@@ -46,7 +46,7 @@ def get_default_csv() -> str:
 # -- Main runner ----------------------------------------------------------
 
 
-def run(csv_data, analysis_id="", email_address_string=""):
+def run(csv_data):
     """Orchestrate plotting. Returns generated site HTML."""
     import web_output
 
