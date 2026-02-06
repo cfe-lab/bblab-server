@@ -553,8 +553,6 @@ class TranscriptLine:
             self.h = self.lineheight + self.font_size + 6  # increased total height
         else:
             self.h = self.lineheight
-        self.a = START_POS + XOFFSET
-        self.b = END_POS + XOFFSET
         # Calculate width in logical coordinates
         if self.comment:
             # Estimate comment width in pixels
