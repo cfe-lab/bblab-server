@@ -298,7 +298,7 @@ class EmptyTranscriptError(ValueError):
     def __init__(self, transcript_index: int) -> None:
         self.transcript_index = transcript_index
         super().__init__(
-            f"Transcript at index {transcript_index} has no fragments. "
+            f"Transcript at index {transcript_index + 1} has no fragments. "
             f"Each transcript must have at least one fragment."
         )
 
@@ -318,9 +318,9 @@ class OverlappingFragmentsError(ValueError):
         self.current_fragment = current_fragment
         self.next_fragment = next_fragment
         super().__init__(
-            f"Overlapping fragments in transcript {transcript_index}: "
-            f"fragment {fragment_index} {current_fragment} overlaps with "
-            f"fragment {fragment_index + 1} {next_fragment}. "
+            f"Overlapping fragments in transcript {transcript_index + 1}: "
+            f"fragment {fragment_index + 1} {current_fragment} overlaps with "
+            f"fragment {fragment_index + 2} {next_fragment}. "
             f"Fragment end ({current_fragment[1]}) must be less than next fragment start ({next_fragment[0]})."
         )
 
@@ -341,7 +341,7 @@ class InvalidFragmentStartError(ValueError):
         self.valid_starts = valid_starts
         valid_starts_str = ", ".join(map(str, sorted(valid_starts)))
         super().__init__(
-            f"Invalid fragment start in transcript {transcript_index}, fragment {fragment_index}: "
+            f"Invalid fragment start in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
             f"position {start_position} is not a valid start position. "
             f"Fragments must start at position 1 or at an acceptor site. "
             f"Valid start positions: {valid_starts_str}."
@@ -364,7 +364,7 @@ class InvalidFragmentEndError(ValueError):
         self.valid_ends = valid_ends
         valid_ends_str = ", ".join(map(str, sorted(valid_ends)))
         super().__init__(
-            f"Invalid fragment end in transcript {transcript_index}, fragment {fragment_index}: "
+            f"Invalid fragment end in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
             f"position {end_position} is not a valid end position. "
             f"Fragments must end at a donor site or use 'end' keyword. "
             f"Valid end positions: {valid_ends_str}."
@@ -413,7 +413,7 @@ class ConflictingFragmentColoursError(ValueError):
         self.start_colour = start_colour
         self.end_colour = end_colour
         super().__init__(
-            f"Conflicting colours for fragment in transcript {transcript_index}, fragment {fragment_index}: "
+            f"Conflicting colours for fragment in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
             f"fragment {start_position}-{end_position} touches splice sites with different colours. "
             f"Start position {start_position} has colour '{start_colour}', "
             f"end position {end_position} has colour '{end_colour}'. "
