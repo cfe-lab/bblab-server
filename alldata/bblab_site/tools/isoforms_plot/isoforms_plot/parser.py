@@ -117,6 +117,14 @@ def parse(input_file: Path) -> AST:
         if transcripts_section is None:
             raise ValueError('Input CSV must contain a "Transcripts" section.')
 
+        donors_section = csvfile[sections['donors']] if 'donors' in sections else None
+        if donors_section is None:
+            raise ValueError('Input CSV must contain a "Donors" section.')
+
+        acceptors_section = csvfile[sections['acceptors']] if 'acceptors' in sections else None
+        if acceptors_section is None:
+            raise ValueError('Input CSV must contain an "Acceptors" section.')
+
         reader = csv.DictReader(transcripts_section)
         transcripts = tuple(read_transcripts(reader))
 
