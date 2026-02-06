@@ -171,7 +171,9 @@ class MissingDonorPositionError(ValueError):
 class InvalidDonorPositionError(ValueError):
     """Raised when a donor position is not a valid integer."""
 
-    def __init__(self, position_str: str, donor_name: str, row: Dict[str, object]) -> None:
+    def __init__(
+        self, position_str: str, donor_name: str, row: Dict[str, object]
+    ) -> None:
         self.position_str = position_str
         self.donor_name = donor_name
         self.row = row
@@ -245,6 +247,19 @@ class MissingAcceptorsSectionError(ValueError):
         super().__init__(
             f"Missing required [acceptors] section in CSV file. "
             f"Found sections: {list(sections.keys())}"
+        )
+
+
+class MultipleSectionsWithSameNameError(ValueError):
+    """Raised when CSV file contains multiple sections with the same name (case-insensitive)."""
+
+    def __init__(self, multisections: Dict[str, Sequence[str]]) -> None:
+        self.multisections = multisections
+        duplicates = {
+            name: matches for name, matches in multisections.items() if len(matches) > 1
+        }
+        super().__init__(
+            f"Multiple sections with the same name found (case-insensitive): {duplicates}"
         )
 
 
@@ -357,29 +372,29 @@ class InvalidFragmentEndError(ValueError):
 
 
 AnyError = (
-    MissingFragmentsError |
-    InvalidDashPatternError |
-    EmptyFragmentError |
-    NotIntegerStartError |
-    NotPositiveStartError |
-    NotIntegerEndError |
-    NotPositiveEndError |
-    EndLessThanStartError |
-    TitleSectionTooManyNonEmptyValuesError |
-    TitleSectionTooManyColumnsError |
-    MissingDonorNameError |
-    MissingDonorPositionError |
-    InvalidDonorPositionError |
-    MissingAcceptorNameError |
-    MissingAcceptorPositionError |
-    InvalidAcceptorPositionError |
-    MissingTranscriptsSectionError |
-    MissingDonorsSectionError |
-    MissingAcceptorsSectionError |
-    DuplicateDonorNameError |
-    DuplicateAcceptorNameError |
-    EmptyTranscriptError |
-    OverlappingFragmentsError |
-    InvalidFragmentStartError |
-    InvalidFragmentEndError
+    MissingFragmentsError
+    | InvalidDashPatternError
+    | EmptyFragmentError
+    | NotIntegerStartError
+    | NotPositiveStartError
+    | NotIntegerEndError
+    | NotPositiveEndError
+    | EndLessThanStartError
+    | TitleSectionTooManyNonEmptyValuesError
+    | TitleSectionTooManyColumnsError
+    | MissingDonorNameError
+    | MissingDonorPositionError
+    | InvalidDonorPositionError
+    | MissingAcceptorNameError
+    | MissingAcceptorPositionError
+    | InvalidAcceptorPositionError
+    | MissingTranscriptsSectionError
+    | MissingDonorsSectionError
+    | MissingAcceptorsSectionError
+    | DuplicateDonorNameError
+    | DuplicateAcceptorNameError
+    | EmptyTranscriptError
+    | OverlappingFragmentsError
+    | InvalidFragmentStartError
+    | InvalidFragmentEndError
 )

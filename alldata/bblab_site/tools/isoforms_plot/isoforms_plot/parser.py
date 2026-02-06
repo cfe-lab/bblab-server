@@ -238,6 +238,15 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
 
 def parse(input_file: Path) -> AST:
     with multicsv.open(input_file) as csvfile:
+        multisections = {
+            section.lower(): [
+                other for other in csvfile[section] if other.lower() == section.lower()
+            ]
+            for section in csvfile
+        }
+        if any(len(matches) > 1 for matches in multisections.values()):
+            raise ex.MultipleSectionsWithSameNameError(multisections=multisections)
+
         sections = {section.lower(): section for section in csvfile}
 
         title_section = csvfile[sections["title"]] if "title" in sections else None
