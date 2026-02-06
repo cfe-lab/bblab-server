@@ -37,6 +37,7 @@ dependencies = [
   "django-nyt==1.4.1",
   "django-sekizai==4.1.0",
   "drawsvg==2.4.0",
+  "multicsv==1.0.5",
   "genetracks @ git+https://github.com/cfe-lab/genetracks.git@a7f20f644ab86b451e870c9ace0621af8ecae0df",
   "html5lib==1.1",
   "httplib2==0.20.4",
