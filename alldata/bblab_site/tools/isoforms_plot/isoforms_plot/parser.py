@@ -240,7 +240,7 @@ def parse(input_file: Path) -> AST:
     with multicsv.open(input_file) as csvfile:
         multisections = {
             section.lower(): [
-                other for other in csvfile[section] if other.lower() == section.lower()
+                other for other in csvfile if other.lower() == section.lower()
             ]
             for section in csvfile
         }
