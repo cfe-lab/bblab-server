@@ -33,12 +33,14 @@ class Transcript:
 class Donor:
     name: str
     position: int
+    colour: Optional[str]
 
 
 @dataclass(frozen=True)
 class Acceptor:
     name: str
     position: int
+    colour: Optional[str]
 
 
 @dataclass(frozen=True)
@@ -183,6 +185,7 @@ def read_donors(reader: csv.DictReader) -> Iterator[Donor]:
     Expected CSV columns:
     - name: Name of the donor site (e.g., "D1", "D2")
     - position: Integer position of the donor site
+    - colour: Optional colour (e.g., "red", "blue"). Must not be grey, black, or white.
     """
     for row in reader:
         if not row:
@@ -190,6 +193,7 @@ def read_donors(reader: csv.DictReader) -> Iterator[Donor]:
 
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
+        colour = (row.get("colour") or "").strip() or None
 
         if not name:
             raise ex.MissingDonorNameError(row=row)
@@ -203,7 +207,15 @@ def read_donors(reader: csv.DictReader) -> Iterator[Donor]:
                 position_str=position_str, donor_name=name, row=row
             )
 
-        yield Donor(name=name, position=position)
+        # Validate colour if provided
+        if colour:
+            colour_lower = colour.lower()
+            if colour_lower in ["grey", "gray", "black", "white"]:
+                raise ex.InvalidSpliceSiteColourError(
+                    site_type="donor", site_name=name, colour=colour, row=row
+                )
+
+        yield Donor(name=name, position=position, colour=colour)
 
 
 def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
@@ -213,6 +225,7 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
     Expected CSV columns:
     - name: Name of the acceptor site (e.g., "A1", "A2")
     - position: Integer position of the acceptor site
+    - colour: Optional colour (e.g., "red", "blue"). Must not be grey, black, or white.
     """
     for row in reader:
         if not row:
@@ -220,6 +233,7 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
 
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
+        colour = (row.get("colour") or "").strip() or None
 
         if not name:
             raise ex.MissingAcceptorNameError(row=row)
@@ -233,7 +247,15 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
                 position_str=position_str, acceptor_name=name, row=row
             )
 
-        yield Acceptor(name=name, position=position)
+        # Validate colour if provided
+        if colour:
+            colour_lower = colour.lower()
+            if colour_lower in ["grey", "gray", "black", "white"]:
+                raise ex.InvalidSpliceSiteColourError(
+                    site_type="acceptor", site_name=name, colour=colour, row=row
+                )
+
+        yield Acceptor(name=name, position=position, colour=colour)
 
 
 def parse(input_file: Path) -> AST:

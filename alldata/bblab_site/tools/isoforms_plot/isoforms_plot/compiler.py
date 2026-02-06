@@ -8,12 +8,15 @@ This is where we do things like:
 
 from collections import Counter
 from dataclasses import dataclass
-from typing import Literal, Optional, Sequence, Tuple
+from typing import Literal, Optional, Sequence, Tuple, TypeAlias
 
 from isoforms_plot.parser import AST, Transcript
 import isoforms_plot.exceptions as ex
 
 END_POS = 9632
+
+# Allow any string for splice site colours
+SpliceSiteColour: TypeAlias = str
 
 
 @dataclass(frozen=True)
@@ -21,11 +24,19 @@ class CompiledSplicingSite:
     name: str
     start: int
     type: Literal["donor", "acceptor"]
+    colour: Optional[SpliceSiteColour]
+
+
+@dataclass(frozen=True)
+class CompiledFragment:
+    start: int
+    end: int
+    colour: Optional[SpliceSiteColour]
 
 
 @dataclass(frozen=True)
 class CompiledTranscript:
-    parts: Sequence[Tuple[int, int]]
+    parts: Sequence[CompiledFragment]
     label: Optional[str]
     comment: Optional[str]
 
@@ -48,6 +59,8 @@ def compile_transcripts(
     parsed_transcripts: Sequence[Transcript],
     valid_starts: set[int],
     valid_ends: set[int],
+    acceptor_colours: dict[int, Optional[str]],
+    donor_colours: dict[int, Optional[str]],
 ) -> Tuple[Sequence[CompiledTranscript], Sequence[CompiledGroup]]:
 
     # Validate transcripts have fragments
@@ -58,15 +71,43 @@ def compile_transcripts(
     # Convert transcripts to plotter format
     compiled_transcripts = []
     for i, transcript in enumerate(parsed_transcripts):
-        # Convert fragments to parts
-        parts = tuple(
-            (fragment.start, fragment.end if fragment.end is not None else END_POS)
-            for fragment in transcript.fragments
-        )
+        # Convert fragments to CompiledFragment objects with colours
+        compiled_parts = []
+        for j, fragment in enumerate(transcript.fragments):
+            start = fragment.start
+            end = fragment.end if fragment.end is not None else END_POS
+
+            # Determine fragment colour based on splice sites it touches
+            start_colour = acceptor_colours.get(start)
+            end_colour = donor_colours.get(end)
+
+            # Check for conflicting colours
+            if (
+                start_colour is not None
+                and end_colour is not None
+                and start_colour != end_colour
+            ):
+                raise ex.ConflictingFragmentColoursError(
+                    transcript_index=i,
+                    fragment_index=j,
+                    start_position=start,
+                    end_position=end,
+                    start_colour=start_colour,
+                    end_colour=end_colour,
+                )
+
+            # Fragment adopts colour from either end (they match or only one is coloured)
+            fragment_colour = start_colour or end_colour
+
+            compiled_parts.append(
+                CompiledFragment(start=start, end=end, colour=fragment_colour)
+            )
+
+        parts_tuple = tuple(compiled_parts)
 
         # Validate fragment start/end positions
-        for j, part in enumerate(parts):
-            start, end = part
+        for j, part in enumerate(parts_tuple):
+            start, end = part.start, part.end
             if start not in valid_starts:
                 raise ex.InvalidFragmentStartError(
                     transcript_index=i,
@@ -83,20 +124,20 @@ def compile_transcripts(
                 )
 
         # Validate fragments don't overlap
-        for j in range(len(parts) - 1):
-            current = parts[j]
-            next_part = parts[j + 1]
-            if current[1] >= next_part[0]:
+        for j in range(len(parts_tuple) - 1):
+            current = parts_tuple[j]
+            next_part = parts_tuple[j + 1]
+            if current.end >= next_part.start:
                 raise ex.OverlappingFragmentsError(
                     transcript_index=i,
                     fragment_index=j,
-                    current_fragment=current,
-                    next_fragment=next_part,
+                    current_fragment=(current.start, current.end),
+                    next_fragment=(next_part.start, next_part.end),
                 )
 
         compiled_transcripts.append(
             CompiledTranscript(
-                parts=parts,
+                parts=parts_tuple,
                 label=transcript.label,
                 comment=transcript.comment,
             )
@@ -189,20 +230,42 @@ def compile(parsed_inputs: AST) -> Compiled:
     valid_starts = {1} | {acceptor.position for acceptor in parsed_inputs.acceptors}
     valid_ends = {END_POS} | {donor.position for donor in parsed_inputs.donors}
 
+    # Build colour mappings for splice sites (position -> colour)
+    # Position 1 and END_POS have no associated colour (None)
+    acceptor_colours: dict[int, Optional[str]] = {1: None}
+    for acceptor in parsed_inputs.acceptors:
+        acceptor_colours[acceptor.position] = acceptor.colour
+
+    donor_colours: dict[int, Optional[str]] = {END_POS: None}
+    for donor in parsed_inputs.donors:
+        donor_colours[donor.position] = donor.colour
+
     compiled_transcripts, compiled_groups = compile_transcripts(
-        parsed_inputs.transcripts, valid_starts, valid_ends
+        parsed_inputs.transcripts,
+        valid_starts,
+        valid_ends,
+        acceptor_colours,
+        donor_colours,
     )
 
     # Convert donors and acceptors to splicing sites
     splicing_sites = []
     for donor in parsed_inputs.donors:
         splicing_sites.append(
-            CompiledSplicingSite(name=donor.name, start=donor.position, type="donor")
+            CompiledSplicingSite(
+                name=donor.name,
+                start=donor.position,
+                type="donor",
+                colour=donor.colour,
+            )
         )
     for acceptor in parsed_inputs.acceptors:
         splicing_sites.append(
             CompiledSplicingSite(
-                name=acceptor.name, start=acceptor.position, type="acceptor"
+                name=acceptor.name,
+                start=acceptor.position,
+                type="acceptor",
+                colour=acceptor.colour,
             )
         )
 

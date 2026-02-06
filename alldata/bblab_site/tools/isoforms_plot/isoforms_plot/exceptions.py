@@ -5,7 +5,7 @@ Parse Errors: Raised during CSV parsing when input format is invalid.
 Compile Errors: Raised during compilation when semantic constraints are violated.
 """
 
-from typing import Dict, Sequence
+from typing import Any, Dict, Sequence
 
 # ============================================================================
 # PARSE ERRORS - Raised by parser.py when input format is invalid
@@ -368,6 +368,50 @@ class InvalidFragmentEndError(ValueError):
             f"position {end_position} is not a valid end position. "
             f"Fragments must end at a donor site or use 'end' keyword. "
             f"Valid end positions: {valid_ends_str}."
+        )
+
+
+class InvalidSpliceSiteColourError(ValueError):
+    """Raised when a splice site colour is grey, black, or white."""
+
+    def __init__(
+        self, site_type: str, site_name: str, colour: str, row: Dict[str, Any]
+    ) -> None:
+        self.site_type = site_type
+        self.site_name = site_name
+        self.colour = colour
+        self.row = row
+        super().__init__(
+            f"Invalid colour '{colour}' for {site_type} '{site_name}'. "
+            f"Splice site colours must not be grey, gray, black, or white. "
+            f"Row data: {row}"
+        )
+
+
+class ConflictingFragmentColoursError(ValueError):
+    """Raised when a fragment touches two splice sites with different colours."""
+
+    def __init__(
+        self,
+        transcript_index: int,
+        fragment_index: int,
+        start_position: int,
+        end_position: int,
+        start_colour: str,
+        end_colour: str,
+    ) -> None:
+        self.transcript_index = transcript_index
+        self.fragment_index = fragment_index
+        self.start_position = start_position
+        self.end_position = end_position
+        self.start_colour = start_colour
+        self.end_colour = end_colour
+        super().__init__(
+            f"Conflicting colours for fragment in transcript {transcript_index}, fragment {fragment_index}: "
+            f"fragment {start_position}-{end_position} touches splice sites with different colours. "
+            f"Start position {start_position} has colour '{start_colour}', "
+            f"end position {end_position} has colour '{end_colour}'. "
+            f"A fragment cannot have two different colours."
         )
 
 

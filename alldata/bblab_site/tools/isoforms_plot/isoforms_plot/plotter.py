@@ -381,6 +381,9 @@ class SplicingSites:
             site_name = site.name
             level = levels.get(i, 0)
 
+            # Determine tick colour: black if no colour specified, otherwise use the site's colour
+            tick_colour = 'black' if site.colour is None else site.colour
+
             # Donor sites: ticks go UP (addition); Acceptor sites: ticks go DOWN (subtraction)
             # Ticks extend all the way to the label's level
             if site_type == 'donor':
@@ -405,11 +408,11 @@ class SplicingSites:
                 label_x = x_pos - 3
                 text_anchor = 'end'
 
-            # Draw tick
+            # Draw tick with colour
             d.append(draw.Lines(x_pos, tick_start, x_pos, tick_end,
-                              stroke=self.color, stroke_width=self.line_thickness))
+                              stroke=tick_colour, stroke_width=self.line_thickness))
 
-            # Draw label
+            # Draw label with same colour as tick
             d.append(draw.Text(text=site_name, font_size=self.font_size,
                              x=label_x, y=label_y,
                              font_family='monospace', fill=self.color,
@@ -497,13 +500,14 @@ class GroupWithTranscripts:
 
             # Draw transcript rectangles
             for part in parts:
-                if len(part) == 2:
-                    xstart, xend = part
-                    xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH
-                    xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH
-                    width = xend_scaled - xstart_scaled
-                    d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
-                                           fill=color, stroke=color))
+                xstart, xend = part.start, part.end
+                part_colour = part.colour or color
+
+                xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH
+                xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH
+                width = xend_scaled - xstart_scaled
+                d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
+                                       fill=part_colour, stroke=part_colour))
 
             # Draw label text
             if label and label_baseline_y is not None:
@@ -579,13 +583,14 @@ class TranscriptLine:
 
         # Draw transcript rectangles
         for part in self.parts:
-            if len(part) == 2:
-                xstart, xend = part
-                xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH / 2
-                xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH / 2
-                width = xend_scaled - xstart_scaled
-                d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
-                                       fill=self.color, stroke=self.color))
+            xstart, xend = part.start, part.end
+            part_colour = part.colour or self.color
+
+            xstart_scaled = (xstart + XOFFSET) * xscale + DOTTED_LINES_WIDTH / 2
+            xend_scaled = (xend + XOFFSET) * xscale - DOTTED_LINES_WIDTH / 2
+            width = xend_scaled - xstart_scaled
+            d.append(draw.Rectangle(xstart_scaled, transcript_y, width, self.lineheight,
+                                   fill=part_colour, stroke=part_colour))
 
         # Draw label text
         if self.label and label_baseline_y is not None:
