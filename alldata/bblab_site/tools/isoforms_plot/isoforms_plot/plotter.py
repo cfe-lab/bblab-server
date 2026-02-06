@@ -41,7 +41,7 @@ class Title:
         self.font_size = 20
         self.h = 40  # height including padding
         # Width spans the full display area
-        self.a = START_POS + XOFFSET
+        self.a = XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
 
@@ -49,7 +49,7 @@ class Title:
         d = draw.Group(transform=f"translate({x * xscale} {y})")
 
         # Center the title horizontally
-        center_x = ((START_POS + END_POS) / 2 + XOFFSET) * xscale
+        center_x = (END_POS / 2 + XOFFSET) * xscale
         # Position text with some top padding
         text_y = 25
 
