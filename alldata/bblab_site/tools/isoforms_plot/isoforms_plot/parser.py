@@ -197,17 +197,13 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
 
 def parse_title(rows: Iterator[Sequence[str]]) -> Optional[str]:
-    nonempty = [row for row in rows if len(row) > 0]
-    if len(nonempty) == 0:
+    nonempty_values = [value.strip() for row in rows for value in row if value.strip()]
+    if len(nonempty_values) == 0:
         return None
-    if len(nonempty) > 1:
-        raise ex.TitleSectionTooManyNonEmptyValuesError(nonempty=nonempty)
-    if len(nonempty[0]) != 1:
-        raise ex.TitleSectionTooManyColumnsError(row=nonempty[0])
+    if len(nonempty_values) > 1:
+        raise ex.TitleSectionTooManyNonEmptyValuesError(nonempty=nonempty_values)
 
-    nonempty_value = nonempty[0][0].strip()
-    if not nonempty_value:
-        return None
+    nonempty_value = nonempty_values[0]
     return nonempty_value
 
 
