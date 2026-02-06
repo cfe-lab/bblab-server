@@ -213,9 +213,9 @@
 			box-shadow: 0 4px 20px rgba(86, 171, 47, 0.15);
 			border: 2px solid #56ab2f;
 			border-radius: 12px;
-			/* Wider than normal sections but with gaps */
-			width: 90%;
-			max-width: none;
+			/* Wider than normal sections but scales with zoom */
+			width: calc(80% - 40px);
+			max-width: 1800px;
 		}
 
 		.results-section h2 {
