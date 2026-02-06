@@ -239,7 +239,8 @@ class SplicingSites:
     """
     def __init__(self, splicing_sites, total_height, total_samples=0, lineheight=5, h=60):
         self.splicing_sites = splicing_sites
-        self.a = START_POS + XOFFSET
+        self.start = min(START_POS, min(site.start for site in splicing_sites))
+        self.a = self.start + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
         self.h = h  # height of the component (increased for multi-level labels)
@@ -352,7 +353,7 @@ class SplicingSites:
         for site in self.splicing_sites:
             site_pos = site.start
             # Skip sites outside our display range
-            if site_pos < START_POS or site_pos > END_POS:
+            if site_pos < self.start or site_pos > self.b:
                 continue
             x_pos = (site_pos + XOFFSET) * xscale
             sites_data.append((site, x_pos))
@@ -416,7 +417,7 @@ class SplicingSites:
                              dominant_baseline='middle'))
 
         # Draw the long horizontal line
-        d.append(draw.Lines(a, line_y, b, line_y,
+        d.append(draw.Lines(a - self.line_thickness / 2, line_y, b + self.line_thickness / 2, line_y,
                           stroke=self.color, stroke_width=self.line_thickness))
 
         return d
