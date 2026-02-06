@@ -624,8 +624,8 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
     # First, we need to determine the height of each group
     total_groups_height = 0.0
     transcript_index = 0
-    for group_idx, group in enumerate(groups):
-        group_size = group.get('size', 0)
+    for group in groups:
+        group_size = group.size
 
         # Calculate height for this group
         group_height = 0.0
@@ -633,7 +633,7 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
             if transcript_index >= len(transcripts):
                 break
             transcript = transcripts[transcript_index]
-            label = transcript.get('label', None)
+            label = transcript.label
 
             if i > 0:
                 group_height += 3  # gap between transcripts
@@ -646,12 +646,9 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
 
         # Add group height
         total_groups_height += group_height
-        # Add gap before this group (30 for subsequent groups)
-        if group_idx > 0:
-            total_groups_height += 30
 
     # Add initial gap and extra padding
-    total_groups_height += 25 + 50  # 25 is initial gap, 50 is extra padding
+    total_groups_height += 30 + 25 + 50  # 25 is initial gap, 50 is extra padding
 
     # Add title at the top if title is not None
     if title is not None:
@@ -675,15 +672,15 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
     max_comment_width = 0.0
     comment_font_size = 8
 
-    aggregate_group_size = sum(group.get('size', 0) for group in groups)
+    aggregate_group_size = sum(group.size for group in groups)
     if aggregate_group_size != len(transcripts):
         raise RuntimeError(f"Bad group sizes: {aggregate_group_size} != {len(transcripts)}")
 
     transcript_index = 0  # Track position in transcripts list
 
     for group in groups:
-        group_name = group.get('name', '')
-        group_size = group.get('size', 0)
+        group_name = group.name
+        group_size = group.size
 
         # Collect transcript data for this group
         transcripts_data: list[tuple[list, str, str | None, str | None]] = []
@@ -692,10 +689,10 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
                 break
 
             transcript = transcripts[transcript_index]
-            color = transcript.get('color', default_color)
-            parts = transcript.get('parts', [])
-            label = transcript.get('label', None)
-            comment = transcript.get('comment', None)
+            color = default_color
+            parts = transcript.parts
+            label = transcript.label
+            comment = transcript.comment
 
             # Track maximum comment width
             if comment:

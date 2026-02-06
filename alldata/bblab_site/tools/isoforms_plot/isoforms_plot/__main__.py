@@ -10,10 +10,10 @@ def main_typed(input_csv: Path, output_svg: Path) -> None:
     parsed = parser.parse(input_csv)
     compiled = compiler.compile(parsed)
     plot = plotter.plot(
-        compiled['transcripts'],
-        compiled['groups'],
-        compiled['splicing_sites'],
-        compiled['title'],
+        compiled.transcripts,
+        compiled.groups,
+        compiled.splicing_sites,
+        compiled.title,
     )
     plot.save_svg(output_svg)
 

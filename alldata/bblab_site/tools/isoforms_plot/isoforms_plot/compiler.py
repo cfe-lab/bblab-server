@@ -45,6 +45,14 @@ class CompiledGroup:
     size: int
 
 
+@dataclass(frozen=True)
+class Compiled:
+    transcripts: Sequence[CompiledTranscript]
+    groups: Sequence[CompiledGroup]
+    splicing_sites: Sequence[dict[str, Any]]
+    title: Optional[str]
+
+
 def compile_transcripts(
     parsed_transcripts: Sequence[Transcript],
 ) -> Tuple[Sequence[CompiledTranscript], Sequence[CompiledGroup]]:
@@ -53,30 +61,39 @@ def compile_transcripts(
     compiled_transcripts = []
     for transcript in parsed_transcripts:
         # Convert fragments to parts
-        parts = []
-        for fragment in transcript.fragments:
-            start = fragment.start
-            end = fragment.end if fragment.end is not None else END_POS
-            parts.append((start, end))
+        parts = tuple(
+            (fragment.start, fragment.end if fragment.end is not None else END_POS)
+            for fragment in transcript.fragments
+        )
 
-        # Build transcript dict
-        transcript_dict = {"parts": parts}
-        if transcript.label is not None:
-            transcript_dict["label"] = transcript.label
-        if transcript.comment is not None:
-            transcript_dict["comment"] = transcript.comment
-
-        compiled_transcripts.append(transcript_dict)
+        compiled_transcripts.append(
+            CompiledTranscript(
+                parts=parts,
+                label=transcript.label,
+                comment=transcript.comment,
+            )
+        )
 
     # Deduplicate consecutive labels
     # e.g., gag -> vpr -> vpr -> vpr becomes gag -> vpr -> None -> None
     prev_label = None
-    for transcript_dict in compiled_transcripts:
-        current_label = transcript_dict.get("label")
+    deduplicated_transcripts = []
+    for transcript in compiled_transcripts:
+        current_label = transcript.label
         if current_label is not None and current_label == prev_label:
             # Remove duplicate consecutive label
-            del transcript_dict["label"]
+            deduplicated_transcripts.append(
+                CompiledTranscript(
+                    parts=transcript.parts,
+                    label=None,
+                    comment=transcript.comment,
+                )
+            )
+        else:
+            deduplicated_transcripts.append(transcript)
         prev_label = current_label if current_label is not None else prev_label
+
+    compiled_transcripts = deduplicated_transcripts
 
     # Build groups structure
     # Preserve order of first appearance
@@ -91,35 +108,31 @@ def compile_transcripts(
     group_counts = Counter(t.group for t in parsed_transcripts)
 
     # Build groups list
-    compiled_groups = []
-    for group_name in groups_order:
-        compiled_groups.append(
-            {
-                "name": group_name,
-                "size": group_counts[group_name],
-            }
-        )
+    compiled_groups = [
+        CompiledGroup(name=group_name, size=group_counts[group_name])
+        for group_name in groups_order
+    ]
 
     return compiled_transcripts, compiled_groups
 
 
-def compile(parsed_inputs: AST) -> dict[str, Any]:
+def compile(parsed_inputs: AST) -> Compiled:
     """
     Compile parsed AST into plotter-ready format.
 
     Transforms:
     - Fragment(start, end) → (start, end) tuple where end=None becomes END_POS
-    - Transcript objects → dicts with 'parts', 'label', 'comment'
-    - Groups transcripts by their 'group' attribute
+    - Transcript objects → CompiledTranscript dataclasses
+    - Groups transcripts by their 'group' attribute into CompiledGroup dataclasses
     """
 
     compiled_transcripts, compiled_groups = compile_transcripts(
         parsed_inputs.transcripts
     )
 
-    return {
-        "splicing_sites": SPLICING_SITES,
-        "transcripts": compiled_transcripts,
-        "groups": compiled_groups,
-        "title": parsed_inputs.title,
-    }
+    return Compiled(
+        transcripts=compiled_transcripts,
+        groups=compiled_groups,
+        splicing_sites=SPLICING_SITES,
+        title=parsed_inputs.title,
+    )
