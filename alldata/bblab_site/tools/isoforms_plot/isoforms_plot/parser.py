@@ -81,7 +81,11 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
             fragment_str = fragment_str.strip()
             if not fragment_str:
-                continue
+                raise ex.EmptyFragmentError(
+                    fragment_str=fragment_str,
+                    previous_str=previous_str,
+                    next_str=next_str,
+                )
 
             # Split on hyphen to get start and end
             parts = fragment_str.split("-", 1)

@@ -31,6 +31,19 @@ class InvalidDashPatternError(ValueError):
         )
 
 
+class EmptyFragmentError(ValueError):
+    """Raised when a fragment string is empty after stripping."""
+
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Empty fragment string found.\n"
+            f"Context: ...{previous_str}|HERE|{next_str}..."
+        )
+
+
 class NotIntegerStartError(ValueError):
     """Raised when fragment start position is not a valid integer."""
 
