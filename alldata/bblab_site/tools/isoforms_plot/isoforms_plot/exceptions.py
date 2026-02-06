@@ -5,13 +5,13 @@ Parse Errors: Raised during CSV parsing when input format is invalid.
 Compile Errors: Raised during compilation when semantic constraints are violated.
 """
 
-from typing import Any, Dict, Sequence
+from typing import Dict, Sequence
 
 
 class MissingFragmentsError(ValueError):
     """Raised when a transcript row has no fragments field."""
 
-    def __init__(self, row: Dict[str, Any]) -> None:
+    def __init__(self, row: Dict[str, object]) -> None:
         self.row = row
         super().__init__(
             f"Missing 'fragments' field in transcript row. Row data: {row}"
@@ -148,7 +148,7 @@ class TitleSectionTooManyColumnsError(ValueError):
 class MissingDonorNameError(ValueError):
     """Raised when a donor row has no name field."""
 
-    def __init__(self, row: Dict[str, Any]) -> None:
+    def __init__(self, row: Dict[str, object]) -> None:
         self.row = row
         super().__init__(f"Missing 'name' field in donor row. Row data: {row}")
 
@@ -156,7 +156,7 @@ class MissingDonorNameError(ValueError):
 class MissingDonorPositionError(ValueError):
     """Raised when a donor row has no position field."""
 
-    def __init__(self, donor_name: str, row: Dict[str, Any]) -> None:
+    def __init__(self, donor_name: str, row: Dict[str, object]) -> None:
         self.donor_name = donor_name
         self.row = row
         super().__init__(
@@ -167,7 +167,7 @@ class MissingDonorPositionError(ValueError):
 class InvalidDonorPositionError(ValueError):
     """Raised when a donor position is not a valid integer."""
 
-    def __init__(self, position_str: str, donor_name: str, row: Dict[str, Any]) -> None:
+    def __init__(self, position_str: str, donor_name: str, row: Dict[str, object]) -> None:
         self.position_str = position_str
         self.donor_name = donor_name
         self.row = row
@@ -180,7 +180,7 @@ class InvalidDonorPositionError(ValueError):
 class MissingAcceptorNameError(ValueError):
     """Raised when an acceptor row has no name field."""
 
-    def __init__(self, row: Dict[str, Any]) -> None:
+    def __init__(self, row: Dict[str, object]) -> None:
         self.row = row
         super().__init__(f"Missing 'name' field in acceptor row. Row data: {row}")
 
@@ -188,7 +188,7 @@ class MissingAcceptorNameError(ValueError):
 class MissingAcceptorPositionError(ValueError):
     """Raised when an acceptor row has no position field."""
 
-    def __init__(self, acceptor_name: str, row: Dict[str, Any]) -> None:
+    def __init__(self, acceptor_name: str, row: Dict[str, object]) -> None:
         self.acceptor_name = acceptor_name
         self.row = row
         super().__init__(
@@ -200,7 +200,7 @@ class InvalidAcceptorPositionError(ValueError):
     """Raised when an acceptor position is not a valid integer."""
 
     def __init__(
-        self, position_str: str, acceptor_name: str, row: Dict[str, Any]
+        self, position_str: str, acceptor_name: str, row: Dict[str, object]
     ) -> None:
         self.position_str = position_str
         self.acceptor_name = acceptor_name
