@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Literal, Optional, Sequence, Tuple
 
 from isoforms_plot.parser import AST, Transcript
+import isoforms_plot.exceptions as ex
 
 END_POS = 9632
 
@@ -47,14 +48,31 @@ def compile_transcripts(
     parsed_transcripts: Sequence[Transcript],
 ) -> Tuple[Sequence[CompiledTranscript], Sequence[CompiledGroup]]:
 
+    # Validate transcripts have fragments
+    for i, transcript in enumerate(parsed_transcripts):
+        if not transcript.fragments:
+            raise ex.EmptyTranscriptError(transcript_index=i)
+
     # Convert transcripts to plotter format
     compiled_transcripts = []
-    for transcript in parsed_transcripts:
+    for i, transcript in enumerate(parsed_transcripts):
         # Convert fragments to parts
         parts = tuple(
             (fragment.start, fragment.end if fragment.end is not None else END_POS)
             for fragment in transcript.fragments
         )
+
+        # Validate fragments don't overlap
+        for j in range(len(parts) - 1):
+            current = parts[j]
+            next_part = parts[j + 1]
+            if current[1] >= next_part[0]:
+                raise ex.OverlappingFragmentsError(
+                    transcript_index=i,
+                    fragment_index=j,
+                    current_fragment=current,
+                    next_fragment=next_part,
+                )
 
         compiled_transcripts.append(
             CompiledTranscript(
@@ -111,11 +129,39 @@ def compile(parsed_inputs: AST) -> Compiled:
     Compile parsed AST into plotter-ready format.
 
     Transforms:
-    - Fragment(start, end) → (start, end) tuple where end=None becomes END_POS
-    - Transcript objects → CompiledTranscript dataclasses
+    - Fragment(start, end) to (start, end) tuple where end=None becomes END_POS
+    - Transcript objects to CompiledTranscript dataclasses
     - Groups transcripts by their 'group' attribute into CompiledGroup dataclasses
-    - Donor/Acceptor objects → CompiledSplicingSite dataclasses
+    - Donor/Acceptor objects to CompiledSplicingSite dataclasses
+
+    Validates:
+    - No duplicate donor names
+    - No duplicate acceptor names
+    - Transcripts have at least one fragment
+    - Fragments within transcripts do not overlap
     """
+
+    # Validate donor names are unique
+    donor_names = [donor.name for donor in parsed_inputs.donors]
+    donor_name_counts = Counter(donor_names)
+    for name, count in donor_name_counts.items():
+        if count > 1:
+            positions = [
+                donor.position for donor in parsed_inputs.donors if donor.name == name
+            ]
+            raise ex.DuplicateDonorNameError(name=name, positions=positions)
+
+    # Validate acceptor names are unique
+    acceptor_names = [acceptor.name for acceptor in parsed_inputs.acceptors]
+    acceptor_name_counts = Counter(acceptor_names)
+    for name, count in acceptor_name_counts.items():
+        if count > 1:
+            positions = [
+                acceptor.position
+                for acceptor in parsed_inputs.acceptors
+                if acceptor.name == name
+            ]
+            raise ex.DuplicateAcceptorNameError(name=name, positions=positions)
 
     compiled_transcripts, compiled_groups = compile_transcripts(
         parsed_inputs.transcripts

@@ -1,24 +1,18 @@
-#
-# This file is responsible for parsing of:
-#  - splicing sites
-#  - transcripts
-#  - groups
-#  - title
-#
+"""
+This file is responsible for parsing of:
+  - splicing sites
+  - transcripts
+  - groups
+  - title
+"""
 
 import csv
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator, Optional, Sequence
 import multicsv
-
-
-class InvalidFragmentError(ValueError):
-    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
-        self.fragment_str = fragment_str
-        self.previous_str = previous_str
-        self.next_str = next_str
-        super().__init__(f"Invalid fragment string: '{fragment_str}'. Expected format 'start-end'.")
+from itertools import accumulate
+import isoforms_plot.exceptions as ex
 
 
 @dataclass(frozen=True)
@@ -73,34 +67,82 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
         # Parse fragments field
         fragments_str = row.get("fragments", "").strip()
         if not fragments_str:
-            continue  # Skip rows with no fragments
+            raise ex.MissingFragmentsError(row=row)
 
         fragments = []
         previous_str = ""
-        for fragment_str in fragments_str.split(";"):
+        split_fragments = fragments_str.split(";")
+        accumulated_splits = accumulate(
+            split_fragments, lambda acc, this_fragment: ";".join([acc, this_fragment])
+        )
+
+        for fragment_str, previous_str in zip(split_fragments, accumulated_splits):
+            next_str = fragments_str[len(previous_str) :]
+
             fragment_str = fragment_str.strip()
             if not fragment_str:
-                previous_str += fragment_str + ";"
                 continue
 
             # Split on hyphen to get start and end
             parts = fragment_str.split("-", 1)
             if len(parts) != 2:
-                next_str = fragments_str[len(previous_str):]
-                raise InvalidFragmentError(fragment_str=fragment_str, previous_str=previous_str, next_str=next_str)
+                raise ex.InvalidDashPatternError(
+                    fragment_str=fragment_str,
+                    previous_str=previous_str,
+                    next_str=next_str,
+                )
 
             start_str, end_str = parts
-            start = int(start_str.strip())
+            start_str = start_str.strip()
+            try:
+                start = int(start_str)
+            except BaseException:
+                raise ex.NotIntegerStartError(
+                    start_str=start_str,
+                    fragment_str=fragment_str,
+                    previous_str=previous_str,
+                    next_str=next_str,
+                )
+
+            if start < 1:
+                raise ex.NotPositiveStartError(
+                    start=start,
+                    fragment_str=fragment_str,
+                    previous_str=previous_str,
+                    next_str=next_str,
+                )
 
             # Handle "end" keyword (case-insensitive)
             end_str = end_str.strip()
             if end_str.lower() == "end":
                 end = None
             else:
-                end = int(end_str)
+                try:
+                    end = int(end_str)
+                except BaseException:
+                    raise ex.NotIntegerEndError(
+                        end_str=end_str,
+                        fragment_str=fragment_str,
+                        previous_str=previous_str,
+                        next_str=next_str,
+                    )
+                if end < 1:
+                    raise ex.NotPositiveEndError(
+                        end=end,
+                        fragment_str=fragment_str,
+                        previous_str=previous_str,
+                        next_str=next_str,
+                    )
+                if end < start:
+                    raise ex.EndLessThanStartError(
+                        start=start,
+                        end=end,
+                        fragment_str=fragment_str,
+                        previous_str=previous_str,
+                        next_str=next_str,
+                    )
 
             fragments.append(Fragment(start=start, end=end))
-            previous_str += fragment_str + ";"
 
         # Extract optional fields, converting empty strings to None
         label = (row.get("label") or "").strip() or None
@@ -119,10 +161,10 @@ def parse_title(rows: Iterator[Sequence[str]]) -> Optional[str]:
     nonempty = [row for row in rows if len(row) > 0]
     if len(nonempty) == 0:
         return None
-    if len(nonempty) != 1:
-        raise ValueError("Title section must contain exactly one non-empty value.")
+    if len(nonempty) > 1:
+        raise ex.TitleSectionTooManyNonEmptyValuesError(nonempty=nonempty)
     if len(nonempty[0]) != 1:
-        raise ValueError("Title section must contain exactly one non-empty value.")
+        raise ex.TitleSectionTooManyColumnsError(row=nonempty[0])
 
     nonempty_value = nonempty[0][0].strip()
     if not nonempty_value:
@@ -139,17 +181,22 @@ def read_donors(reader: csv.DictReader) -> Iterator[Donor]:
     - position: Integer position of the donor site
     """
     for row in reader:
+        if not row:
+            continue  # Skip empty rows
+
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
 
-        if not name or not position_str:
-            continue  # Skip rows with missing data
+        if not name:
+            raise ex.MissingDonorNameError(row=row)
+        if not position_str:
+            raise ex.MissingDonorPositionError(donor_name=name, row=row)
 
         try:
             position = int(position_str)
         except ValueError:
-            raise ValueError(
-                f"Invalid position '{position_str}' for donor '{name}'. Expected an integer."
+            raise ex.InvalidDonorPositionError(
+                position_str=position_str, donor_name=name, row=row
             )
 
         yield Donor(name=name, position=position)
@@ -164,17 +211,22 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
     - position: Integer position of the acceptor site
     """
     for row in reader:
+        if not row:
+            continue  # Skip empty rows
+
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
 
-        if not name or not position_str:
-            continue  # Skip rows with missing data
+        if not name:
+            raise ex.MissingAcceptorNameError(row=row)
+        if not position_str:
+            raise ex.MissingAcceptorPositionError(acceptor_name=name, row=row)
 
         try:
             position = int(position_str)
         except ValueError:
-            raise ValueError(
-                f"Invalid position '{position_str}' for acceptor '{name}'. Expected an integer."
+            raise ex.InvalidAcceptorPositionError(
+                position_str=position_str, acceptor_name=name, row=row
             )
 
         yield Acceptor(name=name, position=position)
@@ -195,17 +247,17 @@ def parse(input_file: Path) -> AST:
             csvfile[sections["transcripts"]] if "transcripts" in sections else None
         )
         if transcripts_section is None:
-            raise ValueError('Input CSV must contain a "Transcripts" section.')
+            raise ex.MissingTranscriptsSectionError(sections=sections)
 
         donors_section = csvfile[sections["donors"]] if "donors" in sections else None
         if donors_section is None:
-            raise ValueError('Input CSV must contain a "Donors" section.')
+            raise ex.MissingDonorsSectionError(sections=sections)
 
         acceptors_section = (
             csvfile[sections["acceptors"]] if "acceptors" in sections else None
         )
         if acceptors_section is None:
-            raise ValueError('Input CSV must contain an "Acceptors" section.')
+            raise ex.MissingAcceptorsSectionError(sections=sections)
 
         reader = csv.DictReader(transcripts_section)
         transcripts = tuple(read_transcripts(reader))
