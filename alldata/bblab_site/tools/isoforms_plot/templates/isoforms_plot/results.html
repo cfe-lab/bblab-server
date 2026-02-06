@@ -1,0 +1,334 @@
+{% extends "tool_base.html" %}
+{% load static %}
+
+{% block head %}
+<head>
+    <link rel="stylesheet" href="{% static "usc_style.css" %}"/>
+    <title>Isoforms Plot Generator</title>
+    <style>
+        .tool-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-section h1 {
+            margin: 0 0 15px 0;
+            font-size: 2.2em;
+            font-weight: 600;
+        }
+
+        .hero-section p {
+            margin: 0;
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .quick-start {
+            background: #fff;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .quick-start h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .quick-start p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(86, 171, 47, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(86, 171, 47, 0.5);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 20px;
+            position: relative;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .upload-section {
+            background: white;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f9fafb;
+        }
+
+        /* Results section styling */
+        .results-section {
+            background: white;
+            border: 2px solid #56ab2f;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 4px 20px rgba(86, 171, 47, 0.15);
+        }
+
+        .results-section h2 {
+            color: #56ab2f;
+            margin-top: 0;
+            font-size: 1.8em;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .plot-container {
+            background: #fafafa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            background: white;
+            padding: 10px;
+        }
+
+        /* Error section styling */
+        .error-section {
+            background: white;
+            border: 2px solid #e74c3c;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 4px 20px rgba(231, 76, 60, 0.15);
+        }
+
+        .error-section h2 {
+            color: #e74c3c;
+            margin-top: 0;
+            font-size: 1.8em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            color: #c33;
+        }
+
+        .error-message strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .help-text {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            color: #555;
+        }
+
+        .tech-details {
+            margin-top: 20px;
+        }
+
+        .tech-details summary {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 500;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            user-select: none;
+        }
+
+        .tech-details summary:hover {
+            background: #e9ecef;
+        }
+
+        .tech-details pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            overflow: auto;
+            font-size: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+{% endblock %}
+
+{% block content %}
+<div class="tool-container">
+    <div class="hero-section">
+        <h1>🧬 Isoforms Plot Generator</h1>
+        <p>Visualize transcript isoforms with splice sites and fragment structures</p>
+    </div>
+
+    <div class="quick-start">
+        <h2>⚡ Quick Start</h2>
+        <p>Try it now with our example data - no upload required!</p>
+        <div class="action-buttons">
+            <a href="{% url 'use_example' %}" class="btn-primary">🎨 Generate Example Plot</a>
+            <a href="{% url 'download_default' %}" class="btn-secondary">⬇️ Download Example CSV</a>
+        </div>
+    </div>
+
+    <div class="divider"><span>OR UPLOAD YOUR OWN DATA</span></div>
+
+    <div class="upload-section">
+        <h3 style="margin-top:0; color:#333;">Upload Your CSV File</h3>
+        <p style="color:#666; margin-bottom:20px;">Go back to the main page to upload a new file</p>
+        <div class="action-buttons">
+            <a href="{% url 'index' %}" class="btn-primary">📁 Upload New File</a>
+        </div>
+    </div>
+
+    {% if error_message %}
+    <div class="error-section">
+        <h2>⚠️ Processing Error</h2>
+        <div class="error-message">
+            <strong>Error Details:</strong>
+            {{ error_message }}
+        </div>
+        {% if error_details %}
+        <div class="help-text">
+            <strong>💡 Common Issues:</strong>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                <li>Invalid colour names (only use: red, blue, green, orange, purple, cyan, magenta, yellow, pink, brown, lime, navy)</li>
+                <li>Missing or malformed CSV sections (transcripts, donors, acceptors)</li>
+                <li>Incorrect column formatting</li>
+            </ul>
+        </div>
+        <details class="tech-details">
+            <summary>🔍 Show Technical Details</summary>
+            <pre>{{ error_details }}</pre>
+        </details>
+        {% endif %}
+    </div>
+    {% elif svg_path %}
+    <div class="results-section">
+        <h2>✅ Your Plot is Ready!</h2>
+        <div class="plot-container">
+            <img src="{{ svg_path }}" alt="Isoforms Plot" />
+        </div>
+        <div class="action-buttons">
+            <a href="{{ svg_path }}" download="isoforms.svg" class="btn-success">
+                💾 Download SVG
+            </a>
+            <a href="{% url 'index' %}" class="btn-primary">
+                🔄 Create Another Plot
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

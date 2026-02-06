@@ -27,21 +27,29 @@ def download_default(request):
 # This function activates the cgi script.
 def use_example(request):
     """Generate plot using the default example CSV."""
-    if request.method == "POST":
-        from . import run_isoforms
+    from . import run_isoforms
 
-        # Get default CSV content
-        csv_content = run_isoforms.get_default_csv()
-        csv_data = StringIO(csv_content)
+    # Get default CSV content
+    csv_content = run_isoforms.get_default_csv()
+    csv_data = StringIO(csv_content)
 
-        # Generate plot
-        output_t = run_isoforms.run(csv_data)
-        template = Template(output_t)
+    # Generate plot
+    result = run_isoforms.run(csv_data)
 
-        context = RequestContext(request)
-        return HttpResponse(template.render(context))
+    context = {}
+    if request.user.is_authenticated:
+        context["user_authenticated"] = True
+        context["username"] = request.user.username
+
+    if result["success"]:
+        context["svg_path"] = result["svg_path"]
     else:
-        return HttpResponse("Please use the form to submit data.")
+        context["error_message"] = result["error_message"]
+        context["error_details"] = result.get("error_details")
+
+    return render(
+        request, "isoforms_plot/templates/isoforms_plot/results.html", context
+    )
 
 
 def results(request):
@@ -52,10 +60,21 @@ def results(request):
         # Run actual calculation (by passing data)
         from . import run_isoforms
 
-        output_t = run_isoforms.run(csv_data)
-        template = Template(output_t)
+        result = run_isoforms.run(csv_data)
 
-        context = RequestContext(request)
-        return HttpResponse(template.render(context))
+        context = {}
+        if request.user.is_authenticated:
+            context["user_authenticated"] = True
+            context["username"] = request.user.username
+
+        if result["success"]:
+            context["svg_path"] = result["svg_path"]
+        else:
+            context["error_message"] = result["error_message"]
+            context["error_details"] = result.get("error_details")
+
+        return render(
+            request, "isoforms_plot/templates/isoforms_plot/results.html", context
+        )
     else:
         return HttpResponse("Please use the form to submit data.")

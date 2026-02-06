@@ -204,10 +204,7 @@
 	<div class="quick-start">
 		<h2>⚡ Quick Start</h2>
 		<p>Try it now with our example data - no upload required!</p>
-		<form method="post" action="use_example/" style="display:inline;">
-			{% csrf_token %}
-			<button type="submit" class="btn-primary">🎨 Generate Example Plot</button>
-		</form>
+		<a href="use_example/" class="btn-primary">🎨 Generate Example Plot</a>
 		<div style="margin-top:15px;">
 			<a href="{% url 'download_default' %}" class="btn-secondary">⬇️ Download Example CSV</a>
 		</div>
