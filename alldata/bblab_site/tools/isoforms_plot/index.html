@@ -371,18 +371,16 @@
 	{# Results section - shown right after hero when results are available #}
 	{% if error_message %}
 	<div class="error-section">
-		<h2>⚠️ Processing Error</h2>
+		<h2>⚠️ Error</h2>
 		<div class="error-message">
-			<strong>Error Details:</strong>
 			{{ error_message }}
 		</div>
 		{% if error_details %}
 		<div class="help-text">
-			<strong>💡 Common Issues:</strong>
+			<strong>💡 Common Issues</strong>
 			<ul style="margin: 10px 0 0 0; padding-left: 20px;">
-				<li>Invalid colour names (only use: red, blue, green, orange, purple, cyan, magenta, yellow, pink,
-					brown, lime, navy)</li>
-				<li>Missing or malformed CSV sections (transcripts, donors, acceptors)</li>
+				<li>Invalid colour names (allowed: red, blue, green, orange, purple, cyan, magenta, yellow, pink, brown, lime, navy)</li>
+				<li>Missing or malformed CSV sections</li>
 				<li>Incorrect column formatting</li>
 			</ul>
 		</div>
@@ -394,7 +392,7 @@
 	</div>
 	{% elif svg_path %}
 	<div class="results-section">
-		<h2>✅ Your Plot is Ready!</h2>
+		<h2>✅ Plot Generated</h2>
 		<div class="plot-container">
 			<img src="{{ svg_path }}" alt="Isoforms Plot" />
 		</div>
@@ -408,27 +406,25 @@
 
 	<div class="quick-start">
 		<h2>⚡ Quick Start</h2>
-		<p>Try it now with our example data - no upload required!</p>
+		<p>Try the example data first</p>
 		<a href="{% url 'use_example' %}" class="btn-primary">🎨 Generate Example Plot</a>
 		<div style="margin-top:15px;">
 			<a href="{% url 'download_default' %}" class="btn-secondary">⬇️ Download Example CSV</a>
 		</div>
 	</div>
 
-	<div class="divider"><span>OR UPLOAD YOUR OWN DATA</span></div>
+	<div class="divider"><span>OR UPLOAD YOUR DATA</span></div>
 
 	<form enctype="multipart/form-data" id="mainForm" name="mainForm" method="post" action="{% url 'results' %}">
 		{% csrf_token %}
 
 		<div class="upload-section">
-			<h3 style="margin-top:0; color:#333;">Upload Your CSV File</h3>
-			<p style="color:#666; margin-bottom:10px;">Select a CSV file to generate your plot</p>
-
 			<div class="file-input-wrapper">
-				<label for="file" class="file-input-label">📁 Choose CSV File</label>
+				<label for="file" class="file-input-label">📁 Choose File</label>
 				<input type="file" name="file" id="file" accept=".csv" required>
 			</div>
 
+			<h4 style="margin-top:0; color:#333;">Can drag & drop a file here</h4>
 			<div class="file-name-display" id="fileNameDisplay"></div>
 		</div>
 	</form>
@@ -468,7 +464,7 @@
 		const form = document.getElementById('mainForm');
 
 		if (e.target.files.length > 0) {
-			fileDisplay.textContent = '📄 ' + e.target.files[0].name + ' - Generating plot...';
+			fileDisplay.textContent = '📄 ' + e.target.files[0].name;
 			fileDisplay.style.color = '#667eea';
 			fileDisplay.style.fontWeight = '500';
 
