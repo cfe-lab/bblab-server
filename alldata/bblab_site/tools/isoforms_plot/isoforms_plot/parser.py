@@ -13,6 +13,14 @@ from typing import Iterator, Optional, Sequence
 import multicsv
 
 
+class InvalidFragmentError(ValueError):
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(f"Invalid fragment string: '{fragment_str}'. Expected format 'start-end'.")
+
+
 @dataclass(frozen=True)
 class Fragment:
     start: int
@@ -68,17 +76,18 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             continue  # Skip rows with no fragments
 
         fragments = []
+        previous_str = ""
         for fragment_str in fragments_str.split(";"):
             fragment_str = fragment_str.strip()
             if not fragment_str:
+                previous_str += fragment_str + ";"
                 continue
 
             # Split on hyphen to get start and end
             parts = fragment_str.split("-", 1)
             if len(parts) != 2:
-                raise ValueError(
-                    f"Invalid fragment format: '{fragment_str}'. Expected 'start-end' format."
-                )
+                next_str = fragments_str[len(previous_str):]
+                raise InvalidFragmentError(fragment_str=fragment_str, previous_str=previous_str, next_str=next_str)
 
             start_str, end_str = parts
             start = int(start_str.strip())
@@ -91,6 +100,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
                 end = int(end_str)
 
             fragments.append(Fragment(start=start, end=end))
+            previous_str += fragment_str + ";"
 
         # Extract optional fields, converting empty strings to None
         label = (row.get("label") or "").strip() or None
