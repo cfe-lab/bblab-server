@@ -208,12 +208,14 @@
 
 		.results-section {
 			background: white;
+			padding: 30px;
+			margin: 40px auto 30px auto;
+			box-shadow: 0 4px 20px rgba(86, 171, 47, 0.15);
 			border: 2px solid #56ab2f;
 			border-radius: 12px;
-			padding: 30px;
-			margin-top: 40px;
-			margin-bottom: 30px;
-			box-shadow: 0 4px 20px rgba(86, 171, 47, 0.15);
+			/* Wider than normal sections but with gaps */
+			width: 95%;
+			max-width: none;
 		}
 
 		.results-section h2 {
@@ -224,21 +226,24 @@
 			margin-bottom: 25px;
 		}
 
+		.results-content-wrapper {
+			max-width: 900px;
+			margin: 0 auto;
+		}
+
 		.plot-container {
 			background: #fafafa;
-			border: 2px solid #e0e0e0;
-			border-radius: 10px;
-			padding: 20px;
-			margin: 20px 0;
+			padding: 15px;
+			margin: 20px;
 			text-align: center;
 		}
 
 		.plot-container img {
+			width: 100%;
 			max-width: 100%;
 			height: auto;
-			border-radius: 6px;
-			background: white;
-			padding: 10px;
+			display: block;
+			margin: 0 auto;
 		}
 
 		.error-section {
@@ -390,20 +395,29 @@
 		</details>
 		{% endif %}
 	</div>
-	{% elif svg_path %}
-	<div class="results-section">
+	{% endif %}
+</div>
+
+{# Results section - outside tool-container to allow wider width #}
+{% if svg_path %}
+<div class="results-section">
+	<div class="results-content-wrapper">
 		<h2>✅ Plot Generated</h2>
-		<div class="plot-container">
-			<img src="{{ svg_path }}" alt="Isoforms Plot" />
-		</div>
+	</div>
+	<div class="plot-container">
+		<img src="{{ svg_path }}" alt="Isoforms Plot" />
+	</div>
+	<div class="results-content-wrapper">
 		<div class="action-buttons">
 			<a href="{{ svg_path }}" download="isoforms.svg" class="btn-success">
 				💾 Download SVG
 			</a>
 		</div>
 	</div>
-	{% endif %}
+</div>
+{% endif %}
 
+<div class="tool-container">
 	<div class="quick-start">
 		<h2>⚡ Quick Start</h2>
 		<p>Try the example data first</p>
