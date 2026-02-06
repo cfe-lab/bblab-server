@@ -8,28 +8,18 @@ This is where we do things like:
 
 from collections import Counter
 from dataclasses import dataclass
-from typing import Any, Optional, Sequence, Tuple
+from typing import Literal, Optional, Sequence, Tuple
 
 from isoforms_plot.parser import AST, Transcript
 
 END_POS = 9632
 
-# default positions of splicing sites in NL43.
-SPLICING_SITES = [
-    {"name": "D1", "start": 743, "type": "donor"},
-    {"name": "D2", "start": 4962, "type": "donor"},
-    {"name": "D2b", "start": 5058, "type": "donor"},
-    {"name": "D3", "start": 5463, "type": "donor"},
-    {"name": "D4", "start": 6046, "type": "donor"},
-    {"name": "A1", "start": 4913, "type": "acceptor"},
-    {"name": "A2", "start": 5390, "type": "acceptor"},
-    {"name": "A3", "start": 5777, "type": "acceptor"},
-    {"name": "A4c", "start": 5936, "type": "acceptor"},
-    {"name": "A4a", "start": 5954, "type": "acceptor"},
-    {"name": "A4b", "start": 5960, "type": "acceptor"},
-    {"name": "A5", "start": 5976, "type": "acceptor"},
-    {"name": "A7", "start": 8369, "type": "acceptor"},
-]
+
+@dataclass(frozen=True)
+class CompiledSplicingSite:
+    name: str
+    start: int
+    type: Literal["donor", "acceptor"]
 
 
 @dataclass(frozen=True)
@@ -49,7 +39,7 @@ class CompiledGroup:
 class Compiled:
     transcripts: Sequence[CompiledTranscript]
     groups: Sequence[CompiledGroup]
-    splicing_sites: Sequence[dict[str, Any]]
+    splicing_sites: Sequence[CompiledSplicingSite]
     title: Optional[str]
 
 
@@ -124,15 +114,29 @@ def compile(parsed_inputs: AST) -> Compiled:
     - Fragment(start, end) → (start, end) tuple where end=None becomes END_POS
     - Transcript objects → CompiledTranscript dataclasses
     - Groups transcripts by their 'group' attribute into CompiledGroup dataclasses
+    - Donor/Acceptor objects → CompiledSplicingSite dataclasses
     """
 
     compiled_transcripts, compiled_groups = compile_transcripts(
         parsed_inputs.transcripts
     )
 
+    # Convert donors and acceptors to splicing sites
+    splicing_sites = []
+    for donor in parsed_inputs.donors:
+        splicing_sites.append(
+            CompiledSplicingSite(name=donor.name, start=donor.position, type="donor")
+        )
+    for acceptor in parsed_inputs.acceptors:
+        splicing_sites.append(
+            CompiledSplicingSite(
+                name=acceptor.name, start=acceptor.position, type="acceptor"
+            )
+        )
+
     return Compiled(
         transcripts=compiled_transcripts,
         groups=compiled_groups,
-        splicing_sites=SPLICING_SITES,
+        splicing_sites=splicing_sites,
         title=parsed_inputs.title,
     )

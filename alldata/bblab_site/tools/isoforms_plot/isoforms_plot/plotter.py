@@ -268,9 +268,9 @@ class SplicingSites:
         label_info = []
         for i, site_data in enumerate(sites_data):
             site, x_pos = site_data
-            site_name = site.get('name', '')
+            site_name = site.name
             label_width = len(site_name) * char_width
-            site_type = site.get('type', 'donor')
+            site_type = site.type
             label_info.append((i, x_pos, label_width, site_type))
 
         # Sort by x position
@@ -350,7 +350,7 @@ class SplicingSites:
         # Collect sites data for label positioning
         sites_data = []
         for site in self.splicing_sites:
-            site_pos = site['start']
+            site_pos = site.start
             # Skip sites outside our display range
             if site_pos < START_POS or site_pos > END_POS:
                 continue
@@ -377,8 +377,8 @@ class SplicingSites:
 
         # Draw ticks and labels
         for i, (site, x_pos) in enumerate(sites_data):
-            site_type = site.get('type', 'donor')
-            site_name = site.get('name', '')
+            site_type = site.type
+            site_name = site.name
             level = levels.get(i, 0)
 
             # Donor sites: ticks go UP (addition); Acceptor sites: ticks go DOWN (subtraction)
