@@ -255,9 +255,9 @@ class MultipleSectionsWithSameNameError(ValueError):
 
     def __init__(self, multisections: Dict[str, Sequence[str]]) -> None:
         self.multisections = multisections
-        duplicates = {
-            name: matches for name, matches in multisections.items() if len(matches) > 1
-        }
+        duplicates = [
+            matches for name, matches in multisections.items() if len(matches) > 1
+        ]
         super().__init__(
             f"Multiple sections with the same name found (case-insensitive): {duplicates}"
         )
