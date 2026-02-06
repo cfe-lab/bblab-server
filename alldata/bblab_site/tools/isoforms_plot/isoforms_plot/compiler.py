@@ -7,7 +7,8 @@ This is where we do things like:
 """
 
 from collections import Counter
-from typing import Any, Sequence
+from dataclasses import dataclass
+from typing import Any, Optional, Sequence, Tuple
 
 from isoforms_plot.parser import AST, Transcript
 
@@ -31,9 +32,22 @@ SPLICING_SITES = [
 ]
 
 
+@dataclass(frozen=True)
+class CompiledTranscript:
+    parts: Sequence[Tuple[int, int]]
+    label: Optional[str]
+    comment: Optional[str]
+
+
+@dataclass(frozen=True)
+class CompiledGroup:
+    name: Optional[str]
+    size: int
+
+
 def compile_transcripts(
     parsed_transcripts: Sequence[Transcript],
-) -> list[dict[str, Any]]:
+) -> Tuple[Sequence[CompiledTranscript], Sequence[CompiledGroup]]:
 
     # Convert transcripts to plotter format
     compiled_transcripts = []
