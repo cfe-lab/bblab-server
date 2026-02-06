@@ -372,18 +372,24 @@ class InvalidFragmentEndError(ValueError):
 
 
 class InvalidSpliceSiteColourError(ValueError):
-    """Raised when a splice site colour is grey, black, or white."""
+    """Raised when a splice site has an invalid colour (not in the allowed list)."""
 
     def __init__(
-        self, site_type: str, site_name: str, colour: str, row: Dict[str, Any]
+        self,
+        site_type: str,
+        site_name: str,
+        colour: str,
+        allowed_colours: Sequence[str],
+        row: Dict[str, Any],
     ) -> None:
         self.site_type = site_type
         self.site_name = site_name
         self.colour = colour
+        self.allowed_colours = allowed_colours
         self.row = row
         super().__init__(
             f"Invalid colour '{colour}' for {site_type} '{site_name}'. "
-            f"Splice site colours must not be grey, gray, black, or white. "
+            f"Allowed colours are: {', '.join(allowed_colours)}. "
             f"Row data: {row}"
         )
 

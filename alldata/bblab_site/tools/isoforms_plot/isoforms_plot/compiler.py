@@ -8,15 +8,12 @@ This is where we do things like:
 
 from collections import Counter
 from dataclasses import dataclass
-from typing import Literal, Optional, Sequence, Tuple, TypeAlias
+from typing import Literal, Optional, Sequence, Tuple
 
-from isoforms_plot.parser import AST, Transcript
+from isoforms_plot.parser import AST, Transcript, SpliceSiteColour
 import isoforms_plot.exceptions as ex
 
 END_POS = 9632
-
-# Allow any string for splice site colours
-SpliceSiteColour: TypeAlias = str
 
 
 @dataclass(frozen=True)

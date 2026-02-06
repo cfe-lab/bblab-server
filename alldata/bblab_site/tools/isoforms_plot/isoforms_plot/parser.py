@@ -9,10 +9,43 @@ This file is responsible for parsing of:
 import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Optional, Sequence
+from typing import Iterator, Literal, Optional, Sequence, TypeAlias
 import multicsv
 from itertools import accumulate
 import isoforms_plot.exceptions as ex
+
+
+SpliceSiteColour: TypeAlias = Literal[
+    "red",
+    "blue",
+    "green",
+    "orange",
+    "purple",
+    "cyan",
+    "magenta",
+    "yellow",
+    "pink",
+    "brown",
+    "lime",
+    "navy",
+]
+
+
+# Predefined list of allowed splice site colours
+ALLOWED_COLOURS: tuple[SpliceSiteColour, ...] = (
+    "red",
+    "blue",
+    "green",
+    "orange",
+    "purple",
+    "cyan",
+    "magenta",
+    "yellow",
+    "pink",
+    "brown",
+    "lime",
+    "navy",
+)
 
 
 @dataclass(frozen=True)
@@ -33,14 +66,14 @@ class Transcript:
 class Donor:
     name: str
     position: int
-    colour: Optional[str]
+    colour: Optional[SpliceSiteColour]
 
 
 @dataclass(frozen=True)
 class Acceptor:
     name: str
     position: int
-    colour: Optional[str]
+    colour: Optional[SpliceSiteColour]
 
 
 @dataclass(frozen=True)
@@ -209,10 +242,13 @@ def read_donors(reader: csv.DictReader) -> Iterator[Donor]:
 
         # Validate colour if provided
         if colour:
-            colour_lower = colour.lower()
-            if colour_lower in ["grey", "gray", "black", "white"]:
+            if colour not in ALLOWED_COLOURS:
                 raise ex.InvalidSpliceSiteColourError(
-                    site_type="donor", site_name=name, colour=colour, row=row
+                    site_type="donor",
+                    site_name=name,
+                    colour=colour,
+                    allowed_colours=ALLOWED_COLOURS,
+                    row=row,
                 )
 
         yield Donor(name=name, position=position, colour=colour)
@@ -249,10 +285,13 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
 
         # Validate colour if provided
         if colour:
-            colour_lower = colour.lower()
-            if colour_lower in ["grey", "gray", "black", "white"]:
+            if colour not in ALLOWED_COLOURS:
                 raise ex.InvalidSpliceSiteColourError(
-                    site_type="acceptor", site_name=name, colour=colour, row=row
+                    site_type="acceptor",
+                    site_name=name,
+                    colour=colour,
+                    allowed_colours=ALLOWED_COLOURS,
+                    row=row,
                 )
 
         yield Acceptor(name=name, position=position, colour=colour)
