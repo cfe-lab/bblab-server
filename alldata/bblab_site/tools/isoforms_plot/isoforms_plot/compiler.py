@@ -46,6 +46,8 @@ class Compiled:
 
 def compile_transcripts(
     parsed_transcripts: Sequence[Transcript],
+    valid_starts: set[int],
+    valid_ends: set[int],
 ) -> Tuple[Sequence[CompiledTranscript], Sequence[CompiledGroup]]:
 
     # Validate transcripts have fragments
@@ -61,6 +63,24 @@ def compile_transcripts(
             (fragment.start, fragment.end if fragment.end is not None else END_POS)
             for fragment in transcript.fragments
         )
+
+        # Validate fragment start/end positions
+        for j, part in enumerate(parts):
+            start, end = part
+            if start not in valid_starts:
+                raise ex.InvalidFragmentStartError(
+                    transcript_index=i,
+                    fragment_index=j,
+                    start_position=start,
+                    valid_starts=sorted(valid_starts),
+                )
+            if end not in valid_ends:
+                raise ex.InvalidFragmentEndError(
+                    transcript_index=i,
+                    fragment_index=j,
+                    end_position=end,
+                    valid_ends=sorted(valid_ends),
+                )
 
         # Validate fragments don't overlap
         for j in range(len(parts) - 1):
@@ -138,6 +158,8 @@ def compile(parsed_inputs: AST) -> Compiled:
     - No duplicate donor names
     - No duplicate acceptor names
     - Transcripts have at least one fragment
+    - Fragment starts are at position 1 or an acceptor site
+    - Fragment ends are at END_POS or a donor site
     - Fragments within transcripts do not overlap
     """
 
@@ -163,8 +185,12 @@ def compile(parsed_inputs: AST) -> Compiled:
             ]
             raise ex.DuplicateAcceptorNameError(name=name, positions=positions)
 
+    # Build sets of valid start and end positions
+    valid_starts = {1} | {acceptor.position for acceptor in parsed_inputs.acceptors}
+    valid_ends = {END_POS} | {donor.position for donor in parsed_inputs.donors}
+
     compiled_transcripts, compiled_groups = compile_transcripts(
-        parsed_inputs.transcripts
+        parsed_inputs.transcripts, valid_starts, valid_ends
     )
 
     # Convert donors and acceptors to splicing sites

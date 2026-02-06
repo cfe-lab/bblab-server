@@ -291,3 +291,47 @@ class OverlappingFragmentsError(ValueError):
             f"fragment {fragment_index + 1} {next_fragment}. "
             f"Fragment end ({current_fragment[1]}) must be less than next fragment start ({next_fragment[0]})."
         )
+
+
+class InvalidFragmentStartError(ValueError):
+    """Raised when a fragment starts at a position that is not 1 or an acceptor site."""
+
+    def __init__(
+        self,
+        transcript_index: int,
+        fragment_index: int,
+        start_position: int,
+        valid_starts: Sequence[int],
+    ) -> None:
+        self.transcript_index = transcript_index
+        self.fragment_index = fragment_index
+        self.start_position = start_position
+        self.valid_starts = valid_starts
+        super().__init__(
+            f"Invalid fragment start in transcript {transcript_index}, fragment {fragment_index}: "
+            f"position {start_position} is not a valid start position. "
+            f"Fragments must start at position 1 or at an acceptor site. "
+            f"Valid start positions: {sorted(valid_starts)}"
+        )
+
+
+class InvalidFragmentEndError(ValueError):
+    """Raised when a fragment ends at a position that is not END_POS or a donor site."""
+
+    def __init__(
+        self,
+        transcript_index: int,
+        fragment_index: int,
+        end_position: int,
+        valid_ends: Sequence[int],
+    ) -> None:
+        self.transcript_index = transcript_index
+        self.fragment_index = fragment_index
+        self.end_position = end_position
+        self.valid_ends = valid_ends
+        super().__init__(
+            f"Invalid fragment end in transcript {transcript_index}, fragment {fragment_index}: "
+            f"position {end_position} is not a valid end position. "
+            f"Fragments must end at a donor site or use 'end' keyword. "
+            f"Valid end positions: {sorted(valid_ends)}"
+        )
