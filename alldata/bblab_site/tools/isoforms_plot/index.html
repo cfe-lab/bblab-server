@@ -183,11 +183,6 @@
 			box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 		}
 
-		.file-input-label::before {
-			content: "📁";
-			margin-right: 8px;
-		}
-
 		input[type="file"] {
 			position: absolute;
 			opacity: 0;
@@ -217,6 +212,7 @@
 			border-radius: 12px;
 			padding: 30px;
 			margin-top: 40px;
+			margin-bottom: 30px;
 			box-shadow: 0 4px 20px rgba(86, 171, 47, 0.15);
 		}
 
@@ -251,6 +247,7 @@
 			border-radius: 12px;
 			padding: 30px;
 			margin-top: 40px;
+			margin-bottom: 30px;
 			box-shadow: 0 4px 20px rgba(231, 76, 60, 0.15);
 		}
 
@@ -325,57 +322,7 @@
 		<p>Visualize transcript isoforms with splice sites and fragment structures</p>
 	</div>
 
-	<div class="quick-start">
-		<h2>⚡ Quick Start</h2>
-		<p>Try it now with our example data - no upload required!</p>
-		<a href="use_example/" class="btn-primary">🎨 Generate Example Plot</a>
-		<div style="margin-top:15px;">
-			<a href="{% url 'download_default' %}" class="btn-secondary">⬇️ Download Example CSV</a>
-		</div>
-	</div>
-
-	<div class="divider"><span>OR UPLOAD YOUR OWN DATA</span></div>
-
-	{% if show_results %}
-	{# Results page - show simplified upload section #}
-	<div class="upload-section">
-		<h3 style="margin-top:0; color:#333;">Upload Your CSV File</h3>
-		<p style="color:#666; margin-bottom:20px;">Go back to the main page to upload a new file</p>
-		<div class="action-buttons">
-			<a href="{% url 'index' %}" class="btn-primary">📁 Upload New File</a>
-		</div>
-	</div>
-	{% else %}
-	{# Main page - show full upload form #}
-	<form enctype="multipart/form-data" id="mainForm" name="mainForm" method="post" action="results/">
-		{% csrf_token %}
-
-		<div class="upload-section">
-			<h3 style="margin-top:0; color:#333;">Upload Your CSV File</h3>
-			<p style="color:#666; margin-bottom:10px;">Select a CSV file containing your isoforms data</p>
-
-			<div class="file-input-wrapper">
-				<label for="file" class="file-input-label">Choose CSV File</label>
-				<input type="file" name="file" id="file" accept=".csv" required>
-			</div>
-
-			<div class="file-name-display" id="fileNameDisplay"></div>
-
-			<div style="margin-top:25px;">
-				<button type="submit" class="btn-primary" id="submitBtn">
-					Generate Plot
-				</button>
-			</div>
-		</div>
-
-		<div class="info-note">
-			<strong>💡 Tip:</strong> Your CSV should include sections for transcripts, donors, and acceptors.
-			Download the example to see the required format.
-		</div>
-	</form>
-	{% endif %}
-
-	{# Results section - shown only when results are available #}
+	{# Results section - shown right after hero when results are available #}
 	{% if error_message %}
 	<div class="error-section">
 		<h2>⚠️ Processing Error</h2>
@@ -409,32 +356,58 @@
 			<a href="{{ svg_path }}" download="isoforms.svg" class="btn-success">
 				💾 Download SVG
 			</a>
-			<a href="{% url 'index' %}" class="btn-primary">
-				🔄 Create Another Plot
-			</a>
 		</div>
 	</div>
 	{% endif %}
+
+	<div class="quick-start">
+		<h2>⚡ Quick Start</h2>
+		<p>Try it now with our example data - no upload required!</p>
+		<a href="{% url 'use_example' %}" class="btn-primary">🎨 Generate Example Plot</a>
+		<div style="margin-top:15px;">
+			<a href="{% url 'download_default' %}" class="btn-secondary">⬇️ Download Example CSV</a>
+		</div>
+	</div>
+
+	<div class="divider"><span>OR UPLOAD YOUR OWN DATA</span></div>
+
+	<form enctype="multipart/form-data" id="mainForm" name="mainForm" method="post" action="{% url 'results' %}">
+		{% csrf_token %}
+
+		<div class="upload-section">
+			<h3 style="margin-top:0; color:#333;">Upload Your CSV File</h3>
+			<p style="color:#666; margin-bottom:10px;">Select a CSV file to generate your plot</p>
+
+			<div class="file-input-wrapper">
+				<label for="file" class="file-input-label">📁 Choose CSV File</label>
+				<input type="file" name="file" id="file" accept=".csv" required>
+			</div>
+
+			<div class="file-name-display" id="fileNameDisplay"></div>
+		</div>
+
+		<div class="info-note">
+			<strong>💡 Tip:</strong> Your CSV should include sections for transcripts, donors, and acceptors.
+			Download the example to see the required format.
+		</div>
+	</form>
 </div>
 
-{% if not show_results %}
 <script>
 	document.getElementById('file').addEventListener('change', function (e) {
 		const fileDisplay = document.getElementById('fileNameDisplay');
+		const form = document.getElementById('mainForm');
+
 		if (e.target.files.length > 0) {
-			fileDisplay.textContent = '📄 ' + e.target.files[0].name;
+			fileDisplay.textContent = '📄 ' + e.target.files[0].name + ' - Generating plot...';
 			fileDisplay.style.color = '#667eea';
 			fileDisplay.style.fontWeight = '500';
+
+			// Auto-submit the form when file is selected
+			form.submit();
 		} else {
 			fileDisplay.textContent = '';
 		}
 	});
-
-	document.getElementById('mainForm').addEventListener('submit', function () {
-		const btn = document.getElementById('submitBtn');
-		btn.disabled = true;
-		btn.textContent = 'Generating...';
-	});
 </script>
-{% endif %}
 {% endblock %}
