@@ -371,10 +371,6 @@ class SplicingSites:
                              stroke_dasharray='0,3',
                              stroke_linecap='round'))  # makes ends round
 
-        # Draw the long horizontal line
-        d.append(draw.Lines(a, line_y, b, line_y,
-                          stroke=self.color, stroke_width=self.line_thickness))
-
         # Draw ticks and labels
         for i, (site, x_pos) in enumerate(sites_data):
             site_type = site.type
@@ -418,6 +414,10 @@ class SplicingSites:
                              font_family='monospace', fill=self.color,
                              text_anchor=text_anchor,
                              dominant_baseline='middle'))
+
+        # Draw the long horizontal line
+        d.append(draw.Lines(a, line_y, b, line_y,
+                          stroke=self.color, stroke_width=self.line_thickness))
 
         return d
 
