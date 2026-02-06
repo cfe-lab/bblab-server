@@ -13,6 +13,16 @@ def index(request):
     return render(request, "isoforms_plot/index.html", context)
 
 
+def download_default(request):
+    """Provide the default CSV file for download."""
+    from . import run_isoforms
+    csv_content = run_isoforms.get_default_csv()
+    
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="example_isoforms.csv"'
+    return response
+
+
 # This function activates the cgi script.
 def results(request):
     if request.method == 'POST':
@@ -22,8 +32,8 @@ def results(request):
         # Read file
         csv_data = StringIO(request.FILES['file'].read().decode("utf-8"))
 
-        email_address = data['emailAddress']
-        desc = data['analysisID']
+        email_address = data.get('emailAddress', '')
+        desc = data.get('analysisID', '')
 
         # Run actual calulation (by passing data)
         from . import run_isoforms
