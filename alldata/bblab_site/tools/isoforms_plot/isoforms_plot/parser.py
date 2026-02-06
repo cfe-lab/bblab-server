@@ -247,7 +247,7 @@ def parse(input_file: Path) -> AST:
         if any(len(matches) > 1 for matches in multisections.values()):
             raise ex.MultipleSectionsWithSameNameError(multisections=multisections)
 
-        sections = {section.lower(): csvfile[section] for section in csvfile}
+        sections = {name.lower(): value for name, value in csvfile.items()}
 
         title_section = sections.get("title")
         title = (
