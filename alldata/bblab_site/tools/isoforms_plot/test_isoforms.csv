@@ -26,3 +26,22 @@ fragments,label,comment,group
 1-743; 4913-4962; 5390-5463; 5960-6046; 8369-end,rev,(1),My last group
 1-743; 4913-4962; 5390-5463; 5954-6046; 8369-end,rev,(1),My last group
 1-743; 4913-4962; 5390-5463; 5954-end,example user input category,(1),My last group
+
+[donors]
+name,position
+D1,743
+D2,4962
+D2b,5058
+D3,5463
+D4,6046
+
+[acceptors]
+name,position
+A1,4913
+A2,5390
+A3,5777
+A4c,5936
+A4a,5954
+A4b,5960
+A5,5976
+A7,8369
