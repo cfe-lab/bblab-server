@@ -139,16 +139,6 @@ class TitleSectionTooManyNonEmptyValuesError(ValueError):
         )
 
 
-class TitleSectionTooManyColumnsError(ValueError):
-    """Raised when [title] section row has multiple columns."""
-
-    def __init__(self, row: Sequence[str]) -> None:
-        self.row = row
-        super().__init__(
-            f"Title section row should have exactly one column, but found {len(row)}: {row}"
-        )
-
-
 class MissingDonorNameError(ValueError):
     """Raised when a donor row has no name field."""
 
@@ -431,7 +421,6 @@ AnyError = (
     | NotPositiveEndError
     | EndLessThanStartError
     | TitleSectionTooManyNonEmptyValuesError
-    | TitleSectionTooManyColumnsError
     | MissingDonorNameError
     | MissingDonorPositionError
     | InvalidDonorPositionError
