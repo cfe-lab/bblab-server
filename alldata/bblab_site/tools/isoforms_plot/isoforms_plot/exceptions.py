@@ -307,11 +307,12 @@ class InvalidFragmentStartError(ValueError):
         self.fragment_index = fragment_index
         self.start_position = start_position
         self.valid_starts = valid_starts
+        valid_starts_str = ", ".join(map(str, sorted(valid_starts)))
         super().__init__(
             f"Invalid fragment start in transcript {transcript_index}, fragment {fragment_index}: "
             f"position {start_position} is not a valid start position. "
             f"Fragments must start at position 1 or at an acceptor site. "
-            f"Valid start positions: {sorted(valid_starts)}"
+            f"Valid start positions: {valid_starts_str}."
         )
 
 
@@ -329,9 +330,10 @@ class InvalidFragmentEndError(ValueError):
         self.fragment_index = fragment_index
         self.end_position = end_position
         self.valid_ends = valid_ends
+        valid_ends_str = ", ".join(map(str, sorted(valid_ends)))
         super().__init__(
             f"Invalid fragment end in transcript {transcript_index}, fragment {fragment_index}: "
             f"position {end_position} is not a valid end position. "
             f"Fragments must end at a donor site or use 'end' keyword. "
-            f"Valid end positions: {sorted(valid_ends)}"
+            f"Valid end positions: {valid_ends_str}."
         )
