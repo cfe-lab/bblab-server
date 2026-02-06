@@ -9,7 +9,7 @@ This file is responsible for parsing of:
 import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Literal, Optional, Sequence, TypeAlias
+from typing import Iterator, Literal, Optional, Sequence, TypeAlias, TextIO
 import multicsv
 from itertools import accumulate
 import isoforms_plot.exceptions as ex
@@ -297,8 +297,15 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
         yield Acceptor(name=name, position=position, colour=colour)
 
 
-def parse(input_file: Path) -> AST:
-    with multicsv.open(input_file) as csvfile:
+def open_csv_file(input: Path | TextIO) -> multicsv.MultiCSVFile:
+    if isinstance(input, Path):
+        return multicsv.open(input)
+    else:
+        return multicsv.wrap(input)
+
+
+def parse(input: Path | TextIO) -> AST:
+    with open_csv_file(input) as csvfile:
         multisections = {
             section.lower(): [
                 other for other in csvfile if other.lower() == section.lower()
