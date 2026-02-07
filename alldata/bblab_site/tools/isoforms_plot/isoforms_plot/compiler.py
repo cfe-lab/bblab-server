@@ -6,7 +6,7 @@ This is where we do things like:
 - resolve "end" (None) to END_POS
 """
 
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Literal, Optional, Sequence, Tuple
 
@@ -164,14 +164,18 @@ def compile_transcripts(
     # Build groups structure
     # Preserve order of first appearance
     groups_order = []
-    seen = set()
+    group_counts = defaultdict(int)
+    last_group = None
+    last_group_count = 0
     for transcript in parsed_transcripts:
-        if transcript.group not in seen:
+        if transcript.group != last_group:
+            group_counts[last_group] = last_group_count
+            last_group = transcript.group
             groups_order.append(transcript.group)
-            seen.add(transcript.group)
+            last_group_count = 0
+        last_group_count += 1
 
-    # Count transcripts per group
-    group_counts = Counter(t.group for t in parsed_transcripts)
+    group_counts[last_group] = last_group_count  # for the final group
 
     # Build groups list
     compiled_groups = [
