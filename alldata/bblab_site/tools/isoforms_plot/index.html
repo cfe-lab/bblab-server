@@ -213,8 +213,7 @@
 			border: 2px solid #56ab2f;
 			border-radius: 12px;
 			/* Wider than normal sections but scales with zoom */
-			width: calc(80% - 40px);
-			max-width: 1800px;
+			width: calc(min(1800px, max(80% - 40px, 900px)));
 		}
 
 		.results-section h2 {
@@ -226,7 +225,6 @@
 		}
 
 		.results-content-wrapper {
-			max-width: 900px;
 			margin: 0 auto;
 		}
 
