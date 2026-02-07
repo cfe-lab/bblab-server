@@ -4,13 +4,13 @@ My Isoforms Plot Title
 
 [transcripts]
 fragments,label,comment,group
-1-743; 4913-end,vif,(3),My Group 1
-1-743; 5390-end,vpr,(15),My Group 1
-1-743; 4913-4962; 5390-end,vpr,(4),My Group 1
-1-743; 5390-5463; 5976-end,vpu/env,(4),My Group 1
-1-743; 5976-end,vpu/env,(1),My Group 1
-1-743; 4913-4962; 5390-5463; 5976-end,vpu/env,(1),My Group 1
-1-743; 5390-5463; 5976-6046; 8369-end,nef,(14),My Group 1
+1-743; 4913-end,vif,(3),My First Group
+1-743; 5390-end,vpr,(15),My First Group
+1-743; 4913-4962; 5390-end,vpr,(4),My First Group
+1-743; 5390-5463; 5976-end,vpu/env,(4),My First Group
+1-743; 5976-end,vpu/env,(1),My First Group
+1-743; 4913-4962; 5390-5463; 5976-end,vpu/env,(1),My First Group
+1-743; 5390-5463; 5976-6046; 8369-end,nef,(14),My First Group
 1-743; 4913-4962; 5390-5463; 5976-6046; 8369-end,nef,(7)
 1-743; 5976-6046; 8369-end,nef,(6)
 1-710; 5976-6046; 8369-end,nef,(2)
