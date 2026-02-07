@@ -624,54 +624,7 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
     if lineheight > 5:
         lineheight = 5
 
-    # Calculate total height of all groups for dotted lines
-    # First, we need to determine the height of each group
-    total_groups_height = 0.0
-    transcript_index = 0
-    for group in groups:
-        group_size = group.size
-
-        # Calculate height for this group
-        group_height = 0.0
-        for i in range(group_size):
-            if transcript_index >= len(transcripts):
-                break
-            transcript = transcripts[transcript_index]
-            label = transcript.label
-
-            if i > 0:
-                group_height += 3  # gap between transcripts
-            if label:
-                group_height += lineheight + 9 + 6  # 9 is font_size from GroupWithTranscripts
-            else:
-                group_height += lineheight
-
-            transcript_index += 1
-
-        # Add group height
-        total_groups_height += group_height
-
-    # Add initial gap and extra padding
-    total_groups_height += 30 + 25 + 50  # 25 is initial gap, 50 is extra padding
-
-    # Add title at the top if title is not None
-    if title is not None:
-        figure.add(Title(title), gap=10)
-
-    # add genome overview at the top of the figure so it appears above sample tracks
-    add_genome_overview(figure, LANDMARKS)
-    # add splicing sites display below the genome overview with calculated height
-    figure.add(SplicingSites(splicing_sites, total_samples=total_samples, lineheight=lineheight,
-                            total_height=total_groups_height), gap=5)
-    # add a small blank multitrack to create vertical separation between the splicing sites
-    # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
-    try:
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
-    except TypeError:
-        # fallback if Track signature differs; attempt without named color
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
-
-    # Draw each transcript from transcripts variable, organized by groups
+    # Build all group components first to get their exact heights
     default_color = 'grey'
     max_comment_width = 0.0
     comment_font_size = 8
@@ -680,7 +633,8 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
     if aggregate_group_size != len(transcripts):
         raise RuntimeError(f"Bad group sizes: {aggregate_group_size} != {len(transcripts)}")
 
-    transcript_index = 0  # Track position in transcripts list
+    transcript_index = 0
+    group_components = []
 
     for group in groups:
         group_name = group.name
@@ -706,8 +660,48 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
             transcripts_data.insert(0, (parts, color, label, comment))
             transcript_index += 1
 
-        # Create and add the group component (contains vertical line and all transcripts)
+        # Create the group component
         group_component = GroupWithTranscripts(group_name, transcripts_data, lineheight=lineheight)
+        group_components.append(group_component)
+
+    # Calculate total height for dotted lines using actual component heights
+    # Dotted lines start at the baseline (line_y) within SplicingSites component
+    # and extend downward through all components that come after
+    total_dotted_height = 0.0
+
+    # Gap after SplicingSites
+    total_dotted_height += 5
+
+    # Multitrack spacer (gap + height)
+    total_dotted_height += 25  # gap before multitrack
+    total_dotted_height += 2   # multitrack height
+
+    # Add all group heights and their gaps
+    for i, group_comp in enumerate(group_components):
+        total_dotted_height += 30  # gap before each group
+        total_dotted_height += group_comp.h  # actual height of the group
+
+    total_dotted_height += 1  # extra padding at the bottom to ensure lines extend beyond last group
+
+    # Add title at the top if title is not None
+    if title is not None:
+        figure.add(Title(title), gap=10)
+
+    # add genome overview at the top of the figure so it appears above sample tracks
+    add_genome_overview(figure, LANDMARKS)
+    # add splicing sites display below the genome overview with calculated height
+    figure.add(SplicingSites(splicing_sites, total_samples=total_samples, lineheight=lineheight,
+                            total_height=total_dotted_height), gap=5)
+    # add a small blank multitrack to create vertical separation between the splicing sites
+    # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
+    try:
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
+    except TypeError:
+        # fallback if Track signature differs; attempt without named color
+        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
+
+    # Add all pre-created group components to the figure
+    for group_component in group_components:
         figure.add(group_component, gap=30)
 
     # Calculate figure width to accommodate comments
