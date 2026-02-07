@@ -361,6 +361,14 @@
 			color: #5568d3;
 			border: 1px solid #d1d9f5;
 		}
+
+		.user-manual h3 {
+			color: #667eea;
+			font-size: 1.3em;
+			margin-top: 28px;
+			margin-bottom: 12px;
+			font-weight: 600;
+		}
 	</style>
 </head>
 {% endblock %}
@@ -444,29 +452,60 @@
 
 	<div class="user-manual">
 		<h2>📖 How CSV Input Works</h2>
-		
+
 		<p>
-			Your CSV is best thought of as a <strong>small, structured description of splicing</strong>: first you declare the splice sites you care about, then you describe each transcript as a <strong>path that jumps between those sites</strong>. This design is intentional: it keeps the plot consistent across many isoforms, prevents "almost-the-same coordinate" typos from silently creating misleading pictures, and makes it easy to compare transcripts because all boundaries line up on the same declared landmarks.
+			The CSV is a <strong>structured description of splicing</strong>: splice sites are declared first, then each transcript is described as a <em>path that connects those sites</em>. All fragment boundaries must correspond to declared splice sites.
 		</p>
 
 		<p>
-			The file is organized into <strong>named sections</strong>. Each section begins with a bracketed header like <code>[transcripts]</code>, and then contains a normal CSV table with a header row. Three sections are required: <strong><code>[transcripts]</code></strong>, <strong><code>[donors]</code></strong>, and <strong><code>[acceptors]</code></strong>. A <strong><code>[title]</code></strong> section is optional and exists purely to give the figure a human-readable title (useful when you're saving or sharing plots).
+			The file is organized into <strong>named sections</strong>. Each section begins with a bracketed header like <code>[transcripts]</code>, followed by a CSV table with a header row. Three sections are required: <code>[transcripts]</code>, <code>[donors]</code>, and <code>[acceptors]</code>. The optional <code>[title]</code> section provides a title that appears at the top of the plot.
+		</p>
+
+		<h3>Splice Sites</h3>
+		<p>
+			In <code>[donors]</code> and <code>[acceptors]</code>, each row defines one splice site with three fields: <code>name</code> (the label shown below the genome map), <code>position</code> (integer coordinate, marked by a small vertical tick), and <code>colour</code> (optional). When a colour is specified, all fragments touching that splice site inherit that colour. Allowed colours: <em><a style="color: red">red</a>, <a style="color: blue">blue</a>, <a style="color: green">green</a>, <a style="color: orange">orange</a>, <a style="color: purple">purple</a>, <a style="color: cyan">cyan</a>, <a style="color: magenta">magenta</a>, <a style="color: yellow">yellow</a>, <a style="color: pink">pink</a>, <a style="color: brown">brown</a>, <a style="color: lime">lime</a>, <a style="color: navy">navy</a></em>.
 		</p>
 
 		<p>
-			In <strong><code>[donors]</code></strong> and <strong><code>[acceptors]</code></strong>, you define the splice sites that transcripts are allowed to connect to. Each site has a <strong>name</strong> (a short identifier you'll recognize on the plot), a <strong>position</strong> (an integer coordinate along the reference), and an optional <strong>colour</strong>. Colours are a way to visually tag related splice sites (for example, to emphasize alternative splicing patterns or highlight families of sites) so that the diagram communicates structure at a glance instead of forcing the viewer to read every coordinate.
+			Splice site names must be unique within each category (all donor names must be distinct, and all acceptor names must be distinct). Positions can be any positive integer. If two splice sites at different positions need to be visually grouped, assign them the same colour.
+		</p>
+
+		<h3>Transcripts</h3>
+		<p>
+			In <code>[transcripts]</code>, each row describes one transcript. The required <code>fragments</code> field lists exon-like blocks in <code>start-end</code> format, separated by semicolons (e.g., <code>1-200; 500-800; 1000-end</code>). Fragments can start at position 1 or any declared acceptor, and must end at a declared donor or the keyword <code>end</code>. The keyword <code>end</code> is case-insensitive and represents the final position on the reference sequence. Fragment boundaries <em>must</em> match declared splice sites—arbitrary coordinates will be rejected.
 		</p>
 
 		<p>
-			In <strong><code>[transcripts]</code></strong>, each row describes one transcript as a series of <strong>fragments</strong>. Conceptually, a fragment is an exon-like block: it begins at a splice acceptor (or the very start of the reference) and ends at a splice donor (or the end of the reference). The key idea is that <strong>fragment boundaries are not arbitrary</strong>—they must match the splice sites you declared. This turns your input from "a pile of coordinates" into a coherent splicing map where every transcript is assembled from the same set of well-defined cut points, which is exactly what makes isoforms comparable in a single figure.
+			Three optional fields control how transcripts appear: <code>label</code>, <code>group</code>, and <code>comment</code>. The <code>label</code> appears at the right side above the transcript (typically a gene or isoform name). The <code>group</code> field clusters related transcripts visually—transcripts sharing the same group name are drawn as a block, marked by a vertical line on the left edge of the plot. The <code>comment</code> appears on the right side of the transcript (commonly used for read counts or sample metadata).
 		</p>
 
 		<p>
-			Transcripts can optionally include a <strong>label</strong>, a <strong>group</strong>, and a <strong>comment</strong>. Labels help identify a transcript (e.g., a gene name or isoform name) without cluttering the drawing. Groups let you cluster related transcripts into blocks so the figure reads as "families" rather than a flat list; the goal is to help viewers understand patterns (e.g., "these are all variants of the same class") before they inspect details. Comments are free-form notes that appear alongside the transcript, useful for short metadata like sample IDs, counts, or brief annotations.
+			Fragments within a single transcript must not overlap. If fragment <em>A</em> ends at position 500 and fragment <em>B</em> starts at position 500, they will be rejected as overlapping. Fragment <em>B</em> must start at a position <em>after</em> fragment <em>A</em>'s end position. Fragments are displayed in the order they appear in the CSV.
 		</p>
 
+		<h3>Colours and Conflicts</h3>
 		<p>
-			A final practical principle: if you find yourself wanting a transcript fragment to start or end at a position that isn't currently allowed, that's a sign you should <strong>add the corresponding splice site</strong> to the donors/acceptors list instead of forcing a one-off boundary. Doing so keeps the whole dataset internally consistent and makes the plot easier to read and trust—both for you and for anyone you share it with.
+			When a fragment touches two splice sites with different colours (one at the start, one at the end), the tool will reject the input with a conflict error. Each fragment can have only one colour. To resolve this, either remove one of the colours from the splice sites, or adjust the fragment boundaries so they don't span conflicting colours.
+		</p>
+
+		<h3>Label Deduplication</h3>
+		<p>
+			When multiple consecutive transcripts have the same label, the tool automatically removes duplicate labels to avoid clutter. For example, if three transcripts in a row all have label <code>gag</code>, only the first one will display the label. This behaviour applies only to consecutive transcripts—if a different label appears in between, the repeated label will be shown again.
+		</p>
+
+		<h3>Groups and Visual Organization</h3>
+		<p>
+			The group field organizes transcripts into visual blocks. All transcripts with the same group value are drawn together, separated from other groups by spacing. A vertical bar on the left marks each group. Groups appear in the order they first occur in the CSV (preserve the order of first appearance). If a transcript has no group specified (empty or omitted), it's treated as belonging to its own unnamed group.
+		</p>
+
+		<h3>Common Mistakes</h3>
+		<p>
+			If a needed position is missing from the donors/acceptors sections, add it there rather than attempting to use an undeclared position. Fragment ranges must use integers for both start and end (except for the <code>end</code> keyword). Negative numbers and zero are not allowed. Whitespace around fragment ranges is ignored, so <code>1-200</code>, <code>1 - 200</code>, and <code> 1-200 </code> are all equivalent.
+		</p>
+
+		<h3>Technical Details</h3>
+		<p>
+			The <code>end</code> keyword is internally mapped to position 9632, which is displayed as the rightmost point on the genome map. Section headers are case-insensitive (<code>[transcripts]</code>, <code>[TRANSCRIPTS]</code>, and <code>[Transcripts]</code> are all equivalent), but duplicate section headers (even with different casing) will be rejected. CSV parsing follows standard rules: fields can be quoted to include commas or newlines.
 		</p>
 	</div>
 </div>
