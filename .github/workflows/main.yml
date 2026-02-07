@@ -39,7 +39,7 @@ jobs:
           context: .
           file: ./bblab.dockerfile
           target: bblab-site
-          push: ${{ github.ref == 'refs/heads/master' }}
+          push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
             ghcr.io/cfe-lab/bblab-site:${{ steps.gitver.outputs.version }}
             ghcr.io/cfe-lab/bblab-site:latest
