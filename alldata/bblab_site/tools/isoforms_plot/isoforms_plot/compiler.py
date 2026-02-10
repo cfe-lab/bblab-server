@@ -13,7 +13,7 @@ from typing import Literal, Optional, Sequence, Tuple
 from isoforms_plot.parser import AST, Transcript, SpliceSiteColour
 import isoforms_plot.exceptions as ex
 
-END_POS = 9632
+END_POS = 9719
 
 
 @dataclass(frozen=True)

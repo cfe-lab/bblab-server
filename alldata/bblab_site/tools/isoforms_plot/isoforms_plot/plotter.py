@@ -9,7 +9,6 @@ CHAR_WIDTH_FACTOR = 0.6
 
 DOTTED_LINES_WIDTH = 1
 
-END_POS = 9632
 XOFFSET = 400
 CANVAS_WIDTH = 900
 
@@ -32,6 +31,8 @@ LANDMARKS = [
     {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 0}
 ]
 
+END_POSS = [lm['end'] for lm in LANDMARKS if isinstance(lm['end'], int)]
+END_POS = max(END_POSS, default=1)
 
 class Title:
     """Draws a title at the top of the figure."""
