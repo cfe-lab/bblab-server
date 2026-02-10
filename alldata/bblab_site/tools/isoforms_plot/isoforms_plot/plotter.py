@@ -15,22 +15,22 @@ XOFFSET = 400
 CANVAS_WIDTH = 900
 
 # default NL43 landmarks for the small overview graphic
-# assigned to three frames (0/1/2) so overlapping genes stack vertically
-# tat and rev have multiple exons, so we include both parts
+# assigned to frames so overlapping genes stack vertically
+# tat and rev have multiple exons at different vertical positions
 LANDMARKS = [
     {"name": "5'LTR", 'start': 1, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
     {'name': 'gag', 'start': 790, 'end': 2292, 'colour': '#a6cee3', 'frame': 0},
     {'name': 'pol', 'start': 2085, 'end': 5096, 'colour': '#1f78b4', 'frame': 2},
     {'name': 'vif', 'start': 5041, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
     {'name': 'vpr', 'start': 5559, 'end': 5849, 'colour': '#fdbf6f', 'frame': 2},
-    {'name': 'tat', 'start': 5830, 'end': 6044, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
-    {'name': 'tat', 'start': 8369, 'end': 8414, 'colour': '#b2df8a', 'frame': 0, 'exon': 2},
-    {'name': 'rev', 'start': 5970, 'end': 6044, 'colour': '#c2a5cf', 'frame': 2, 'exon': 1},
-    {'name': 'rev', 'start': 8369, 'end': 8643, 'colour': '#c2a5cf', 'frame': 1, 'exon': 2},
-    {'name': 'vpu', 'start': 6062, 'end': 6306, 'colour': '#ffff99', 'frame': 1},
-    {'name': 'env', 'start': 6221, 'end': 8785, 'colour': '#8dd3c7', 'frame': 2},
-    {'name': 'nef', 'start': 8787, 'end': 9407, 'colour': '#bebada', 'frame': 0},
-    {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
+    {'name': 'tat', 'start': 5830, 'end': 6044, 'colour': '#b2df8a', 'frame': 0, 'exon': 1},
+    {'name': 'tat', 'start': 8369, 'end': 8414, 'colour': '#b2df8a', 'frame': -1, 'exon': 2},
+    {'name': 'rev', 'start': 5970, 'end': 6044, 'colour': '#c2a5cf', 'frame': 1, 'exon': 1},
+    {'name': 'rev', 'start': 8369, 'end': 8643, 'colour': '#c2a5cf', 'frame': 0, 'exon': 2},
+    {'name': 'vpu', 'start': 6062, 'end': 6306, 'colour': '#ffff99', 'frame': 0},
+    {'name': 'env', 'start': 6221, 'end': 8785, 'colour': '#8dd3c7', 'frame': 1},
+    {'name': 'nef', 'start': 8787, 'end': 9407, 'colour': '#bebada', 'frame': 2},
+    {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 0}
 ]
 
 
