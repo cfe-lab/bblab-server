@@ -59,9 +59,16 @@ def run(csv_file):
         import isoforms_plot.plotter as plotter
 
         # Read CSV text
-        file_bytes = csv_file.read()
-        csv_data = file_bytes.decode("utf-8")
-        csv_text = _read_csv_text(csv_data)
+        try:
+            file_bytes = csv_file.read()
+            csv_data = file_bytes.decode("utf-8")
+            csv_text = _read_csv_text(csv_data)
+        except Exception as exc:
+            return {
+                "success": False,
+                "error_message": f"Failed to read input file: {exc}",
+                "error_details": traceback.format_exc(),
+            }
 
         # Parse
         input_stream = io.StringIO(csv_text)
