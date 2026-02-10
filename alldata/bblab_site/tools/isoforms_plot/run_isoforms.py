@@ -3,7 +3,6 @@ import os
 
 sys.path.append(os.environ.get("BBLAB_UTIL_PATH", "fail"))
 
-import io
 import traceback
 from pathlib import Path
 from typing import TextIO
@@ -45,14 +44,11 @@ def run(csv_file: TextIO) -> dict:
         import isoforms_plot.parser as parser
         import isoforms_plot.compiler as compiler
         import isoforms_plot.plotter as plotter
+        import isoforms_plot.lexer as lexer
 
-        # Parse
-        parsed = parser.parse(csv_file)
-
-        # Compile
+        lexed = lexer.lex(csv_file)
+        parsed = parser.parse(lexed)
         compiled = compiler.compile(parsed)
-
-        # Plot
         drawing = plotter.plot(
             compiled.transcripts,
             compiled.groups,
