@@ -8,8 +8,7 @@ This file is responsible for parsing of:
 
 import csv
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Iterator, Literal, Optional, Sequence, TypeAlias, TextIO
+from typing import Iterator, Literal, Optional, Sequence, TypeAlias
 import multicsv
 from itertools import accumulate
 import isoforms_plot.exceptions as ex
@@ -59,7 +58,7 @@ class Transcript:
     fragments: Sequence[Fragment]
     label: Optional[str]
     group: Optional[str]
-    comment: Optional[str]
+    N_observed: Optional[str]
 
 
 @dataclass(frozen=True)
@@ -91,7 +90,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
     Expected CSV columns:
     - fragments: Semicolon-separated list of ranges (e.g., "1-743; 4913-end")
     - label: Optional label for the transcript
-    - comment: Optional comment
+    - N_observed: Optional number of observations
     - group: Optional group name
 
     Each fragment is "start-end" where:
@@ -99,25 +98,36 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
     - end is either an integer or the literal string "end" (mapped to None)
     """
     for row in reader:
+        # Skip completely empty rows (all fields are empty or whitespace)
+        if not row or all(not str(v).strip() for v in row.values()):
+            continue
+
         # Parse fragments field
         fragments_str = row.get("fragments", "").strip()
         if not fragments_str:
             raise ex.MissingFragmentsError(row=row)
 
         fragments = []
-        previous_str = ""
         split_fragments = fragments_str.split(";")
-        accumulated_splits = accumulate(
-            split_fragments, lambda acc, this_fragment: ";".join([acc, this_fragment])
+        accumulated_splits = list(
+            accumulate(
+                split_fragments,
+                lambda acc, this_fragment: ";".join([acc, this_fragment]),
+            )
         )
 
-        for fragment_str, previous_str in zip(split_fragments, accumulated_splits):
-            next_str = fragments_str[len(previous_str) :]
+        for o_fragment_str, current_str in zip(
+            split_fragments, accumulated_splits
+        ):
+            next_str = fragments_str[len(current_str) + len(o_fragment_str):]
+            previous_str = current_str[:-len(o_fragment_str)]
+            assert current_str.endswith(o_fragment_str), f"Internal error: accumulated string '{current_str}' does not end with current fragment '{o_fragment_str}'"
+            assert len(current_str) == len(previous_str) + len(o_fragment_str), f"Internal error: accumulated string '{current_str}' length does not match sum of previous '{previous_str}' and current fragment '{o_fragment_str}' lengths"
 
-            fragment_str = fragment_str.strip()
+            fragment_str = o_fragment_str.strip()
             if not fragment_str:
                 raise ex.EmptyFragmentError(
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -126,7 +136,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             parts = fragment_str.split("-", 1)
             if len(parts) != 2:
                 raise ex.InvalidDashPatternError(
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -138,7 +148,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             except BaseException:
                 raise ex.NotIntegerStartError(
                     start_str=start_str,
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -146,7 +156,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             if start < 1:
                 raise ex.NotPositiveStartError(
                     start=start,
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -161,14 +171,14 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
                 except BaseException:
                     raise ex.NotIntegerEndError(
                         end_str=end_str,
-                        fragment_str=fragment_str,
+                        fragment_str=o_fragment_str,
                         previous_str=previous_str,
                         next_str=next_str,
                     )
                 if end < 1:
                     raise ex.NotPositiveEndError(
                         end=end,
-                        fragment_str=fragment_str,
+                        fragment_str=o_fragment_str,
                         previous_str=previous_str,
                         next_str=next_str,
                     )
@@ -176,7 +186,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
                     raise ex.EndLessThanStartError(
                         start=start,
                         end=end,
-                        fragment_str=fragment_str,
+                        fragment_str=o_fragment_str,
                         previous_str=previous_str,
                         next_str=next_str,
                     )
@@ -185,14 +195,14 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
         # Extract optional fields, converting empty strings to None
         label = (row.get("label") or "").strip() or None
-        comment = (row.get("comment") or "").strip() or None
+        N_observed = (row.get("N_observed") or "").strip() or None
         group = (row.get("group") or "").strip() or None
 
         yield Transcript(
             fragments=tuple(fragments),
             label=label,
             group=group,
-            comment=comment,
+            N_observed=N_observed,
         )
 
 
@@ -217,8 +227,9 @@ def read_donors(reader: csv.DictReader) -> Iterator[Donor]:
     - colour: Optional colour (e.g., "red", "blue"). Must not be grey, black, or white.
     """
     for row in reader:
-        if not row:
-            continue  # Skip empty rows
+        # Skip completely empty rows (all fields are empty or whitespace)
+        if not row or all(not str(v).strip() for v in row.values()):
+            continue
 
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
@@ -260,8 +271,9 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
     - colour: Optional colour (e.g., "red", "blue"). Must not be grey, black, or white.
     """
     for row in reader:
-        if not row:
-            continue  # Skip empty rows
+        # Skip completely empty rows (all fields are empty or whitespace)
+        if not row or all(not str(v).strip() for v in row.values()):
+            continue
 
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
@@ -293,53 +305,43 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
         yield Acceptor(name=name, position=position, colour=colour)
 
 
-def open_csv_file(input: Path | TextIO) -> multicsv.MultiCSVFile:
-    if isinstance(input, Path):
-        return multicsv.open(input)
-    else:
-        return multicsv.wrap(input)
+def parse(csvfile: multicsv.MultiCSVFile) -> AST:
+    multisections = {
+        section.lower(): [
+            other for other in csvfile if other.lower() == section.lower()
+        ]
+        for section in csvfile
+    }
+    if any(len(matches) > 1 for matches in multisections.values()):
+        raise ex.MultipleSectionsWithSameNameError(multisections=multisections)
 
+    sections = {name.lower(): value for name, value in csvfile.items()}
 
-def parse(input: Path | TextIO) -> AST:
-    with open_csv_file(input) as csvfile:
-        multisections = {
-            section.lower(): [
-                other for other in csvfile if other.lower() == section.lower()
-            ]
-            for section in csvfile
-        }
-        if any(len(matches) > 1 for matches in multisections.values()):
-            raise ex.MultipleSectionsWithSameNameError(multisections=multisections)
+    title_section = sections.get("title")
+    title = (
+        parse_title(csv.reader(title_section)) if title_section is not None else None
+    )
 
-        sections = {name.lower(): value for name, value in csvfile.items()}
+    transcripts_section = sections.get("transcripts")
+    if transcripts_section is None:
+        raise ex.MissingTranscriptsSectionError(sections=sections)
 
-        title_section = sections.get("title")
-        title = (
-            parse_title(csv.reader(title_section))
-            if title_section is not None
-            else None
-        )
+    donors_section = sections.get("donors")
+    if donors_section is None:
+        raise ex.MissingDonorsSectionError(sections=sections)
 
-        transcripts_section = sections.get("transcripts")
-        if transcripts_section is None:
-            raise ex.MissingTranscriptsSectionError(sections=sections)
+    acceptors_section = sections.get("acceptors")
+    if acceptors_section is None:
+        raise ex.MissingAcceptorsSectionError(sections=sections)
 
-        donors_section = sections.get("donors")
-        if donors_section is None:
-            raise ex.MissingDonorsSectionError(sections=sections)
+    reader = csv.DictReader(transcripts_section)
+    transcripts = tuple(read_transcripts(reader))
 
-        acceptors_section = sections.get("acceptors")
-        if acceptors_section is None:
-            raise ex.MissingAcceptorsSectionError(sections=sections)
+    donors_reader = csv.DictReader(donors_section)
+    donors = tuple(read_donors(donors_reader))
 
-        reader = csv.DictReader(transcripts_section)
-        transcripts = tuple(read_transcripts(reader))
-
-        donors_reader = csv.DictReader(donors_section)
-        donors = tuple(read_donors(donors_reader))
-
-        acceptors_reader = csv.DictReader(acceptors_section)
-        acceptors = tuple(read_acceptors(acceptors_reader))
+    acceptors_reader = csv.DictReader(acceptors_section)
+    acceptors = tuple(read_acceptors(acceptors_reader))
 
     return AST(
         title=title,

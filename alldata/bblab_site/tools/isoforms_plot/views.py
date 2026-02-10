@@ -52,9 +52,13 @@ def results(request):
     if request.method == "POST":
         from . import run_isoforms
 
-        csv_data = StringIO(request.FILES["file"].read().decode("utf-8"))
-        result = run_isoforms.run(csv_data)
+        try:
+            csv_file = request.FILES["file"]
+        except KeyError:
+            context = _build_context(request, show_results=False)
+            return render(request, "isoforms_plot/index.html", context)
 
+        result = run_isoforms.run(csv_file)
         context = _build_context(request, show_results=True, result=result)
         return render(request, "isoforms_plot/index.html", context)
     else:

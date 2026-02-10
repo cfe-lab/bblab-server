@@ -3,11 +3,12 @@ from pathlib import Path
 import sys
 from typing import Sequence
 
-from isoforms_plot import plotter, parser, compiler
+from isoforms_plot import lexer, plotter, parser, compiler
 
 
 def main_typed(input_csv: Path, output_svg: Path) -> None:
-    parsed = parser.parse(input_csv)
+    lexed = lexer.lex(input_csv)
+    parsed = parser.parse(lexed)
     compiled = compiler.compile(parsed)
     plot = plotter.plot(
         compiled.transcripts,

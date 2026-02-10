@@ -6,14 +6,14 @@ This is where we do things like:
 - resolve "end" (None) to END_POS
 """
 
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from typing import Literal, Optional, Sequence, Tuple
 
 from isoforms_plot.parser import AST, Transcript, SpliceSiteColour
 import isoforms_plot.exceptions as ex
 
-END_POS = 9632
+END_POS = 9719
 
 
 @dataclass(frozen=True)
@@ -132,11 +132,14 @@ def compile_transcripts(
                     next_fragment=(next_part.start, next_part.end),
                 )
 
+        # Wrap N_observed in parentheses for display as comment
+        comment = f"({transcript.N_observed})" if transcript.N_observed else None
+
         compiled_transcripts.append(
             CompiledTranscript(
                 parts=parts_tuple,
                 label=transcript.label,
-                comment=transcript.comment,
+                comment=comment,
             )
         )
 
@@ -147,7 +150,7 @@ def compile_transcripts(
     for transcript in compiled_transcripts:
         current_label = transcript.label
         if current_label is not None and current_label == prev_label:
-            # Remove duplicate consecutive label
+            # Remove duplicate consecutive label (keep comment intact)
             deduplicated_transcripts.append(
                 CompiledTranscript(
                     parts=transcript.parts,
@@ -162,25 +165,31 @@ def compile_transcripts(
     compiled_transcripts = deduplicated_transcripts
 
     # Build groups structure
-    # Preserve order of first appearance
-    groups_order = []
-    group_counts = defaultdict(int)
-    last_group = None
-    last_group_count = 0
+    # Groups are consecutive runs of transcripts with the same group value
+    # Preserve order and allow the same group name to appear multiple times
+    groups_list = []  # List of (group_name, size) tuples
+    SENTINEL = object()  # Unique sentinel that's not None
+    last_group = SENTINEL
+    current_group_size = 0
+
     for transcript in parsed_transcripts:
         if transcript.group != last_group:
-            group_counts[last_group] = last_group_count
+            # Save the previous group if it exists
+            if last_group is not SENTINEL:
+                groups_list.append((last_group, current_group_size))
+            # Start a new group
             last_group = transcript.group
-            groups_order.append(transcript.group)
-            last_group_count = 0
-        last_group_count += 1
+            current_group_size = 0
+        current_group_size += 1
 
-    group_counts[last_group] = last_group_count  # for the final group
+    # Don't forget the final group
+    if last_group is not SENTINEL:
+        groups_list.append((last_group, current_group_size))
 
-    # Build groups list
+    # Build CompiledGroup objects
     compiled_groups = [
-        CompiledGroup(name=group_name, size=group_counts[group_name])
-        for group_name in groups_order
+        CompiledGroup(name=group_name, size=size)
+        for group_name, size in groups_list
     ]
 
     return compiled_transcripts, compiled_groups

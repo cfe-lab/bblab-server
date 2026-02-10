@@ -3,11 +3,9 @@ import os
 
 sys.path.append(os.environ.get("BBLAB_UTIL_PATH", "fail"))
 
-import io
-import html
 import traceback
 from pathlib import Path
-from typing import Tuple
+from typing import TextIO
 
 # Add the parent directory to sys.path to enable isoforms_plot imports
 CURDIR = Path(__file__).parent.absolute()
@@ -17,22 +15,6 @@ if str(CURDIR) not in sys.path:
 # Constants
 OUTPUT_SVG = "/alldata/bblab_site/media/output.svg"
 DEFAULT_CSV_PATH = Path(__file__).parent / "test_isoforms.csv"
-
-
-# -- Utility helpers -------------------------------------------------------
-def _read_csv_text(csv_data) -> Tuple[str, str]:
-    """Return CSV text or (None, error_message)."""
-    try:
-        if hasattr(csv_data, "read"):
-            raw = csv_data.read()
-            if isinstance(raw, bytes):
-                raw = raw.decode("utf8")
-            return raw, ""
-        # allow path-like input
-        text = Path(csv_data).read_text(encoding="utf8")
-        return text, ""
-    except Exception as exc:
-        return "", f"Could not read input CSV: {html.escape(str(exc))}"
 
 
 def get_default_csv() -> str:
@@ -46,7 +28,7 @@ def get_default_csv() -> str:
 # -- Main runner ----------------------------------------------------------
 
 
-def run(csv_data):
+def run(csv_file: TextIO) -> dict:
     """Orchestrate plotting. Returns dict with results.
 
     Returns:
@@ -57,25 +39,16 @@ def run(csv_data):
         - 'error_details': str (if not success, traceback)
     """
 
-    # Read CSV text
-    csv_text, read_err = _read_csv_text(csv_data)
-    if read_err:
-        return {"success": False, "error_message": read_err, "error_details": None}
-
     # Try to generate plot - all validation happens in the plotter
     try:
         import isoforms_plot.parser as parser
         import isoforms_plot.compiler as compiler
         import isoforms_plot.plotter as plotter
+        import isoforms_plot.lexer as lexer
 
-        # Parse
-        input_stream = io.StringIO(csv_text)
-        parsed = parser.parse(input_stream)
-
-        # Compile
+        lexed = lexer.lex(csv_file)
+        parsed = parser.parse(lexed)
         compiled = compiler.compile(parsed)
-
-        # Plot
         drawing = plotter.plot(
             compiled.transcripts,
             compiled.groups,

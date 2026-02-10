@@ -9,30 +9,30 @@ CHAR_WIDTH_FACTOR = 0.6
 
 DOTTED_LINES_WIDTH = 1
 
-START_POS = 638
-END_POS = 9632
 XOFFSET = 400
 CANVAS_WIDTH = 900
 
 # default NL43 landmarks for the small overview graphic
-# assigned to three frames (0/1/2) so overlapping genes stack vertically
-# tat and rev have multiple exons, so we include both parts
+# assigned to frames so overlapping genes stack vertically
+# tat and rev have multiple exons at different vertical positions
 LANDMARKS = [
     {"name": "5'LTR", 'start': 1, 'end': 634, 'colour': '#e0e0e0', 'frame': 0},
     {'name': 'gag', 'start': 790, 'end': 2292, 'colour': '#a6cee3', 'frame': 0},
     {'name': 'pol', 'start': 2085, 'end': 5096, 'colour': '#1f78b4', 'frame': 2},
     {'name': 'vif', 'start': 5041, 'end': 5619, 'colour': '#fb9a99', 'frame': 0},
     {'name': 'vpr', 'start': 5559, 'end': 5849, 'colour': '#fdbf6f', 'frame': 2},
-    {'name': 'tat', 'start': 5830, 'end': 6044, 'colour': '#b2df8a', 'frame': 1, 'exon': 1},
-    {'name': 'tat', 'start': 8369, 'end': 8414, 'colour': '#b2df8a', 'frame': 0, 'exon': 2},
-    {'name': 'rev', 'start': 5970, 'end': 6044, 'colour': '#c2a5cf', 'frame': 2, 'exon': 1},
-    {'name': 'rev', 'start': 8369, 'end': 8643, 'colour': '#c2a5cf', 'frame': 1, 'exon': 2},
-    {'name': 'vpu', 'start': 6062, 'end': 6306, 'colour': '#ffff99', 'frame': 1},
-    {'name': 'env', 'start': 6221, 'end': 8785, 'colour': '#8dd3c7', 'frame': 2},
-    {'name': 'nef', 'start': 8787, 'end': 9407, 'colour': '#bebada', 'frame': 0},
-    {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 1}
+    {'name': 'tat', 'start': 5830, 'end': 6044, 'colour': '#b2df8a', 'frame': 0, 'exon': 1},
+    {'name': 'tat', 'start': 8369, 'end': 8414, 'colour': '#b2df8a', 'frame': -1, 'exon': 2},
+    {'name': 'rev', 'start': 5970, 'end': 6044, 'colour': '#c2a5cf', 'frame': 1, 'exon': 1},
+    {'name': 'rev', 'start': 8369, 'end': 8643, 'colour': '#c2a5cf', 'frame': 0, 'exon': 2},
+    {'name': 'vpu', 'start': 6062, 'end': 6306, 'colour': '#ffff99', 'frame': 0},
+    {'name': 'env', 'start': 6221, 'end': 8785, 'colour': '#8dd3c7', 'frame': 1},
+    {'name': 'nef', 'start': 8787, 'end': 9407, 'colour': '#bebada', 'frame': 2},
+    {"name": "3'LTR", 'start': 9086, 'end': 9719, 'colour': '#e0e0e0', 'frame': 0}
 ]
 
+END_POSS = [lm['end'] for lm in LANDMARKS if isinstance(lm['end'], int)]
+END_POS = max(END_POSS, default=1)
 
 class Title:
     """Draws a title at the top of the figure."""
@@ -67,7 +67,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     Draw a simple overview of the reference (NL43) using the provided
     landmarks list. Each landmark should be a dict with 'start', 'end', 'name'
     and optionally 'colour' and 'frame'. Coordinates are assumed to be in the
-    same reference coordinate system as START_POS/END_POS; this function adds
+    same reference coordinate system as 1/END_POS; this function adds
     XOFFSET so the overview lines up with the main plot.
     """
 
@@ -239,8 +239,7 @@ class SplicingSites:
     """
     def __init__(self, splicing_sites, total_height, total_samples=0, lineheight=5, h=60):
         self.splicing_sites = splicing_sites
-        self.start = min(START_POS, min(site.start for site in splicing_sites))
-        self.a = self.start + XOFFSET
+        self.a = XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
         self.h = h  # height of the component (increased for multi-level labels)
@@ -352,9 +351,6 @@ class SplicingSites:
         sites_data = []
         for site in self.splicing_sites:
             site_pos = site.start
-            # Skip sites outside our display range
-            if site_pos < self.start or site_pos > self.b:
-                continue
             x_pos = (site_pos + XOFFSET) * xscale
             sites_data.append((site, x_pos))
 
@@ -695,10 +691,10 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
     # add a small blank multitrack to create vertical separation between the splicing sites
     # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
     try:
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
+        figure.add(Multitrack([Track(XOFFSET, XOFFSET, color='#ffffff', h=2)]), gap=25)
     except TypeError:
         # fallback if Track signature differs; attempt without named color
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
+        figure.add(Multitrack([Track(XOFFSET, XOFFSET, color='#ffffff', h=2)]), gap=25)
 
     # Add all pre-created group components to the figure
     for group_component in group_components:

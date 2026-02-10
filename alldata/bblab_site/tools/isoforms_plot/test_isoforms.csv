@@ -3,30 +3,30 @@
 My Isoforms Plot Title
 
 [transcripts]
-fragments,label,comment,group
-1-743; 4913-end,vif,(3),My First Group
-1-743; 5390-end,vpr,(15),My First Group
-1-743; 4913-4962; 5390-end,vpr,(4),My First Group
-1-743; 5390-5463; 5976-end,vpu/env,(4),My First Group
-1-743; 5976-end,vpu/env,(1),My First Group
-1-743; 4913-4962; 5390-5463; 5976-end,vpu/env,(1),My First Group
-1-743; 5390-5463; 5976-6046; 8369-end,nef,(14),My First Group
-1-743; 4913-4962; 5390-5463; 5976-6046; 8369-end,nef,(7)
-1-743; 5976-6046; 8369-end,nef,(6)
-1-710; 5976-6046; 8369-end,nef,(2)
-1-743; 4913-4962; 5976-6046; 8369-end,nef,(2)
-1-743; 5390-5463; 5976-6046; 8369-end,nef,(1)
-1-743; 5777-6046; 8369-end,tat,(2)
-1-743; 5390-5463; 5777-6046; 8369-end,tat,(1)
-1-743; 4913-4962; 5390-5463; 5777-6046; 8369-end,tat,(1)
-1-743; 5390-5463; 5960-6046; 8369-end,rev,(3),My last group
-1-743; 5960-6046; 8369-end,rev,(3),My last group
-1-743; 5390-5463; 5954-6046; 8369-end,rev,(2),My last group
-1-743;  5954-6046; 8369-end,rev,(1),My last group
-1-743; 4913-4962; 5390-5463; 5960-6046; 8369-end,rev,(1),My last group
-1-743; 4913-4962; 5390-5463; 5954-6046; 8369-end,rev,(1),My last group
-1-743; 4913-4962; 5390-5463; 5954-end,example user input category,(1),My last group
-1-743; 4913-4962; 5390-5463; 6611-end,should not happen,(1),My last group
+fragments,label,N_observed,group
+1-743; 4913-end,vif,3,My First Group
+1-743; 5390-end,vpr,15,My First Group
+1-743; 4913-4962; 5390-end,vpr,4,My First Group
+1-743; 5390-5463; 5976-end,vpu/env,4,My First Group
+1-743; 5976-end,vpu/env,1,My First Group
+1-743; 4913-4962; 5390-5463; 5976-end,vpu/env,1,My First Group
+1-743; 5390-5463; 5976-6046; 8369-end,nef,14,My First Group
+1-743; 4913-4962; 5390-5463; 5976-6046; 8369-end,nef,7
+1-743; 5976-6046; 8369-end,nef,6
+1-710; 5976-6046; 8369-end,nef,2
+1-743; 4913-4962; 5976-6046; 8369-end,nef,2
+1-743; 5390-5463; 5976-6046; 8369-end,nef,1
+1-743; 5777-6046; 8369-end,tat,2
+1-743; 5390-5463; 5777-6046; 8369-end,tat,1
+1-743; 4913-4962; 5390-5463; 5777-6046; 8369-end,tat,1
+1-743; 5390-5463; 5960-6046; 8369-end,rev,3,My last group
+1-743; 5960-6046; 8369-end,rev,3,My last group
+1-743; 5390-5463; 5954-6046; 8369-end,rev,2,My last group
+1-743;  5954-6046; 8369-end,rev,1,My last group
+1-743; 4913-4962; 5390-5463; 5960-6046; 8369-end,rev,1,My last group
+1-743; 4913-4962; 5390-5463; 5954-6046; 8369-end,rev,1,My last group
+1-743; 4913-4962; 5390-5463; 5954-end,example user input category,1,My last group
+1-743; 4913-4962; 5390-5463; 6611-end,should not happen,1,My last group
 
 [donors]
 name,position,colour
