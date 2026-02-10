@@ -132,11 +132,14 @@ def compile_transcripts(
                     next_fragment=(next_part.start, next_part.end),
                 )
 
+        # Wrap N_observed in parentheses for display as comment
+        comment = f"({transcript.N_observed})" if transcript.N_observed else None
+
         compiled_transcripts.append(
             CompiledTranscript(
                 parts=parts_tuple,
                 label=transcript.label,
-                comment=transcript.comment,
+                comment=comment,
             )
         )
 
@@ -147,7 +150,7 @@ def compile_transcripts(
     for transcript in compiled_transcripts:
         current_label = transcript.label
         if current_label is not None and current_label == prev_label:
-            # Remove duplicate consecutive label
+            # Remove duplicate consecutive label (keep comment intact)
             deduplicated_transcripts.append(
                 CompiledTranscript(
                     parts=transcript.parts,

@@ -59,7 +59,7 @@ class Transcript:
     fragments: Sequence[Fragment]
     label: Optional[str]
     group: Optional[str]
-    comment: Optional[str]
+    N_observed: Optional[str]
 
 
 @dataclass(frozen=True)
@@ -91,7 +91,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
     Expected CSV columns:
     - fragments: Semicolon-separated list of ranges (e.g., "1-743; 4913-end")
     - label: Optional label for the transcript
-    - comment: Optional comment
+    - N_observed: Optional number of observations
     - group: Optional group name
 
     Each fragment is "start-end" where:
@@ -185,14 +185,14 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
         # Extract optional fields, converting empty strings to None
         label = (row.get("label") or "").strip() or None
-        comment = (row.get("comment") or "").strip() or None
+        N_observed = (row.get("N_observed") or "").strip() or None
         group = (row.get("group") or "").strip() or None
 
         yield Transcript(
             fragments=tuple(fragments),
             label=label,
             group=group,
-            comment=comment,
+            N_observed=N_observed,
         )
 
 
