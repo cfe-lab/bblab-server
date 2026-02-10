@@ -350,9 +350,6 @@ class SplicingSites:
         sites_data = []
         for site in self.splicing_sites:
             site_pos = site.start
-            # Skip sites outside our display range
-            if site_pos < self.start or site_pos > self.b:
-                continue
             x_pos = (site_pos + XOFFSET) * xscale
             sites_data.append((site, x_pos))
 
