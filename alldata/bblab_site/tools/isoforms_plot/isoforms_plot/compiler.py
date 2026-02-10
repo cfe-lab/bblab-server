@@ -165,11 +165,13 @@ def compile_transcripts(
     # Preserve order of first appearance
     groups_order = []
     group_counts = defaultdict(int)
-    last_group = None
+    SENTINEL = object()  # Unique sentinel that's not None
+    last_group = SENTINEL
     last_group_count = 0
     for transcript in parsed_transcripts:
         if transcript.group != last_group:
-            group_counts[last_group] = last_group_count
+            if last_group is not SENTINEL:
+                group_counts[last_group] = last_group_count
             last_group = transcript.group
             groups_order.append(transcript.group)
             last_group_count = 0
