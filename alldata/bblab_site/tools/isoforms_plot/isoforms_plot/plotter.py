@@ -9,7 +9,6 @@ CHAR_WIDTH_FACTOR = 0.6
 
 DOTTED_LINES_WIDTH = 1
 
-START_POS = 638
 END_POS = 9632
 XOFFSET = 400
 CANVAS_WIDTH = 900
@@ -67,7 +66,7 @@ def add_genome_overview(figure, landmarks, height=12, xoffset=XOFFSET):
     Draw a simple overview of the reference (NL43) using the provided
     landmarks list. Each landmark should be a dict with 'start', 'end', 'name'
     and optionally 'colour' and 'frame'. Coordinates are assumed to be in the
-    same reference coordinate system as START_POS/END_POS; this function adds
+    same reference coordinate system as 1/END_POS; this function adds
     XOFFSET so the overview lines up with the main plot.
     """
 
@@ -239,8 +238,7 @@ class SplicingSites:
     """
     def __init__(self, splicing_sites, total_height, total_samples=0, lineheight=5, h=60):
         self.splicing_sites = splicing_sites
-        self.start = min(START_POS, min(site.start for site in splicing_sites))
-        self.a = self.start + XOFFSET
+        self.a = XOFFSET
         self.b = END_POS + XOFFSET
         self.w = self.b - self.a
         self.h = h  # height of the component (increased for multi-level labels)
@@ -695,10 +693,10 @@ def plot(transcripts, groups, splicing_sites, title=None) -> draw.Drawing:
     # add a small blank multitrack to create vertical separation between the splicing sites
     # and the sample tracks (gap value tuned to avoid overlap with multi-level labels)
     try:
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
+        figure.add(Multitrack([Track(XOFFSET, XOFFSET, color='#ffffff', h=2)]), gap=25)
     except TypeError:
         # fallback if Track signature differs; attempt without named color
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=25)
+        figure.add(Multitrack([Track(XOFFSET, XOFFSET, color='#ffffff', h=2)]), gap=25)
 
     # Add all pre-created group components to the figure
     for group_component in group_components:
