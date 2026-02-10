@@ -301,6 +301,9 @@ def open_csv_file(input: Path | TextIO) -> multicsv.MultiCSVFile:
         return multicsv.wrap(stream)
     else:
         content = input.read()
+        if not isinstance(content, str):
+            raise ex.InvalidFileModeError(content)
+
         stream = StringIO(content)
         return multicsv.wrap(stream)
 

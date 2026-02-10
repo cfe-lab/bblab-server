@@ -6,6 +6,7 @@ sys.path.append(os.environ.get("BBLAB_UTIL_PATH", "fail"))
 import io
 import traceback
 from pathlib import Path
+from typing import TextIO
 
 # Add the parent directory to sys.path to enable isoforms_plot imports
 CURDIR = Path(__file__).parent.absolute()
@@ -15,19 +16,6 @@ if str(CURDIR) not in sys.path:
 # Constants
 OUTPUT_SVG = "/alldata/bblab_site/media/output.svg"
 DEFAULT_CSV_PATH = Path(__file__).parent / "test_isoforms.csv"
-
-
-# -- Utility helpers -------------------------------------------------------
-def _read_csv_text(csv_data) -> str:
-    """Return CSV text or (None, error_message)."""
-    if hasattr(csv_data, "read"):
-        raw = csv_data.read()
-        if isinstance(raw, bytes):
-            raw = raw.decode("utf8")
-        return raw
-    # allow path-like input
-    text = Path(csv_data).read_text(encoding="utf8")
-    return text
 
 
 def get_default_csv() -> str:
@@ -41,7 +29,7 @@ def get_default_csv() -> str:
 # -- Main runner ----------------------------------------------------------
 
 
-def run(csv_file):
+def run(csv_file: TextIO) -> dict:
     """Orchestrate plotting. Returns dict with results.
 
     Returns:
@@ -58,21 +46,8 @@ def run(csv_file):
         import isoforms_plot.compiler as compiler
         import isoforms_plot.plotter as plotter
 
-        # Read CSV text
-        try:
-            file_bytes = csv_file.read()
-            csv_data = file_bytes.decode("utf-8")
-            csv_text = _read_csv_text(csv_data)
-        except Exception as exc:
-            return {
-                "success": False,
-                "error_message": f"Failed to read input file: {exc}",
-                "error_details": traceback.format_exc(),
-            }
-
         # Parse
-        input_stream = io.StringIO(csv_text)
-        parsed = parser.parse(input_stream)
+        parsed = parser.parse(csv_file)
 
         # Compile
         compiled = compiler.compile(parsed)

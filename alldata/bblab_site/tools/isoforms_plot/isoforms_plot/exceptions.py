@@ -5,11 +5,23 @@ Parse Errors: Raised during CSV parsing when input format is invalid.
 Compile Errors: Raised during compilation when semantic constraints are violated.
 """
 
+import json
 from typing import Any, Dict, Sequence
 
 # ============================================================================
 # PARSE ERRORS - Raised by parser.py when input format is invalid
 # ============================================================================
+
+
+class InvalidFileModeError(ValueError):
+    """Raised when a file-like object is not opened in text mode."""
+
+    def __init__(self, content: object) -> None:
+        self.content = content
+        super().__init__(
+            f"Expected a text file, but got a binary file (content type {json.dumps(type(content).__name__)})."
+            " Please make sure that you are using a valid CSV file."
+        )
 
 
 class MissingFragmentsError(ValueError):

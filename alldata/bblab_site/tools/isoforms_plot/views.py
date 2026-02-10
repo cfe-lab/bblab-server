@@ -59,7 +59,6 @@ def results(request):
             return render(request, "isoforms_plot/index.html", context)
 
         result = run_isoforms.run(csv_file)
-
         context = _build_context(request, show_results=True, result=result)
         return render(request, "isoforms_plot/index.html", context)
     else:
