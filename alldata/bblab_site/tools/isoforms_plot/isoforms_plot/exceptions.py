@@ -13,17 +13,6 @@ from typing import Any, Dict, Sequence
 # ============================================================================
 
 
-class InvalidFileModeError(ValueError):
-    """Raised when a file-like object is not opened in text mode."""
-
-    def __init__(self, content: object) -> None:
-        self.content = content
-        super().__init__(
-            f"Expected a text file, but got a binary file (content type {json.dumps(type(content).__name__)})."
-            " Please make sure that you are using a valid CSV file."
-        )
-
-
 class MissingFragmentsError(ValueError):
     """Raised when a transcript row has no fragments field."""
 

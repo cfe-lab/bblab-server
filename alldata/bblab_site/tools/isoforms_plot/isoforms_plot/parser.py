@@ -8,9 +8,7 @@ This file is responsible for parsing of:
 
 import csv
 from dataclasses import dataclass
-from io import StringIO
-from pathlib import Path
-from typing import Iterator, Literal, Optional, Sequence, TypeAlias, TextIO
+from typing import Iterator, Literal, Optional, Sequence, TypeAlias
 import multicsv
 from itertools import accumulate
 import isoforms_plot.exceptions as ex
@@ -100,6 +98,10 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
     - end is either an integer or the literal string "end" (mapped to None)
     """
     for row in reader:
+        # Skip completely empty rows (all fields are empty or whitespace)
+        if not row or all(not str(v).strip() for v in row.values()):
+            continue
+
         # Parse fragments field
         fragments_str = row.get("fragments", "").strip()
         if not fragments_str:
@@ -218,8 +220,9 @@ def read_donors(reader: csv.DictReader) -> Iterator[Donor]:
     - colour: Optional colour (e.g., "red", "blue"). Must not be grey, black, or white.
     """
     for row in reader:
-        if not row:
-            continue  # Skip empty rows
+        # Skip completely empty rows (all fields are empty or whitespace)
+        if not row or all(not str(v).strip() for v in row.values()):
+            continue
 
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
@@ -261,8 +264,9 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
     - colour: Optional colour (e.g., "red", "blue"). Must not be grey, black, or white.
     """
     for row in reader:
-        if not row:
-            continue  # Skip empty rows
+        # Skip completely empty rows (all fields are empty or whitespace)
+        if not row or all(not str(v).strip() for v in row.values()):
+            continue
 
         name = (row.get("name") or "").strip()
         position_str = (row.get("position") or "").strip()
@@ -294,60 +298,43 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
         yield Acceptor(name=name, position=position, colour=colour)
 
 
-def open_csv_file(input: Path | TextIO) -> multicsv.MultiCSVFile:
-    if isinstance(input, Path):
-        content = input.read_text()
-        stream = StringIO(content)
-        return multicsv.wrap(stream)
-    else:
-        content = input.read()
-        if not isinstance(content, str):
-            raise ex.InvalidFileModeError(content)
+def parse(csvfile: multicsv.MultiCSVFile) -> AST:
+    multisections = {
+        section.lower(): [
+            other for other in csvfile if other.lower() == section.lower()
+        ]
+        for section in csvfile
+    }
+    if any(len(matches) > 1 for matches in multisections.values()):
+        raise ex.MultipleSectionsWithSameNameError(multisections=multisections)
 
-        stream = StringIO(content)
-        return multicsv.wrap(stream)
+    sections = {name.lower(): value for name, value in csvfile.items()}
 
+    title_section = sections.get("title")
+    title = (
+        parse_title(csv.reader(title_section)) if title_section is not None else None
+    )
 
-def parse(input: Path | TextIO) -> AST:
-    with open_csv_file(input) as csvfile:
-        multisections = {
-            section.lower(): [
-                other for other in csvfile if other.lower() == section.lower()
-            ]
-            for section in csvfile
-        }
-        if any(len(matches) > 1 for matches in multisections.values()):
-            raise ex.MultipleSectionsWithSameNameError(multisections=multisections)
+    transcripts_section = sections.get("transcripts")
+    if transcripts_section is None:
+        raise ex.MissingTranscriptsSectionError(sections=sections)
 
-        sections = {name.lower(): value for name, value in csvfile.items()}
+    donors_section = sections.get("donors")
+    if donors_section is None:
+        raise ex.MissingDonorsSectionError(sections=sections)
 
-        title_section = sections.get("title")
-        title = (
-            parse_title(csv.reader(title_section))
-            if title_section is not None
-            else None
-        )
+    acceptors_section = sections.get("acceptors")
+    if acceptors_section is None:
+        raise ex.MissingAcceptorsSectionError(sections=sections)
 
-        transcripts_section = sections.get("transcripts")
-        if transcripts_section is None:
-            raise ex.MissingTranscriptsSectionError(sections=sections)
+    reader = csv.DictReader(transcripts_section)
+    transcripts = tuple(read_transcripts(reader))
 
-        donors_section = sections.get("donors")
-        if donors_section is None:
-            raise ex.MissingDonorsSectionError(sections=sections)
+    donors_reader = csv.DictReader(donors_section)
+    donors = tuple(read_donors(donors_reader))
 
-        acceptors_section = sections.get("acceptors")
-        if acceptors_section is None:
-            raise ex.MissingAcceptorsSectionError(sections=sections)
-
-        reader = csv.DictReader(transcripts_section)
-        transcripts = tuple(read_transcripts(reader))
-
-        donors_reader = csv.DictReader(donors_section)
-        donors = tuple(read_donors(donors_reader))
-
-        acceptors_reader = csv.DictReader(acceptors_section)
-        acceptors = tuple(read_acceptors(acceptors_reader))
+    acceptors_reader = csv.DictReader(acceptors_section)
+    acceptors = tuple(read_acceptors(acceptors_reader))
 
     return AST(
         title=title,
