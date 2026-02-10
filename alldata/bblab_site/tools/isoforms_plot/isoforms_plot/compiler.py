@@ -6,7 +6,7 @@ This is where we do things like:
 - resolve "end" (None) to END_POS
 """
 
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from typing import Literal, Optional, Sequence, Tuple
 
@@ -162,27 +162,31 @@ def compile_transcripts(
     compiled_transcripts = deduplicated_transcripts
 
     # Build groups structure
-    # Preserve order of first appearance
-    groups_order = []
-    group_counts = defaultdict(int)
+    # Groups are consecutive runs of transcripts with the same group value
+    # Preserve order and allow the same group name to appear multiple times
+    groups_list = []  # List of (group_name, size) tuples
     SENTINEL = object()  # Unique sentinel that's not None
     last_group = SENTINEL
-    last_group_count = 0
+    current_group_size = 0
+
     for transcript in parsed_transcripts:
         if transcript.group != last_group:
+            # Save the previous group if it exists
             if last_group is not SENTINEL:
-                group_counts[last_group] = last_group_count
+                groups_list.append((last_group, current_group_size))
+            # Start a new group
             last_group = transcript.group
-            groups_order.append(transcript.group)
-            last_group_count = 0
-        last_group_count += 1
+            current_group_size = 0
+        current_group_size += 1
 
-    group_counts[last_group] = last_group_count  # for the final group
+    # Don't forget the final group
+    if last_group is not SENTINEL:
+        groups_list.append((last_group, current_group_size))
 
-    # Build groups list
+    # Build CompiledGroup objects
     compiled_groups = [
-        CompiledGroup(name=group_name, size=group_counts[group_name])
-        for group_name in groups_order
+        CompiledGroup(name=group_name, size=size)
+        for group_name, size in groups_list
     ]
 
     return compiled_transcripts, compiled_groups
