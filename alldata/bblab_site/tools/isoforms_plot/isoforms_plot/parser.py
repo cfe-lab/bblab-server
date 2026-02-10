@@ -108,19 +108,26 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             raise ex.MissingFragmentsError(row=row)
 
         fragments = []
-        previous_str = ""
         split_fragments = fragments_str.split(";")
-        accumulated_splits = accumulate(
-            split_fragments, lambda acc, this_fragment: ";".join([acc, this_fragment])
+        accumulated_splits = list(
+            accumulate(
+                split_fragments,
+                lambda acc, this_fragment: ";".join([acc, this_fragment]),
+            )
         )
 
-        for fragment_str, previous_str in zip(split_fragments, accumulated_splits):
-            next_str = fragments_str[len(previous_str) :]
+        for o_fragment_str, current_str in zip(
+            split_fragments, accumulated_splits
+        ):
+            next_str = fragments_str[len(current_str) + len(o_fragment_str):]
+            previous_str = current_str[:-len(o_fragment_str)]
+            assert current_str.endswith(o_fragment_str), f"Internal error: accumulated string '{current_str}' does not end with current fragment '{o_fragment_str}'"
+            assert len(current_str) == len(previous_str) + len(o_fragment_str), f"Internal error: accumulated string '{current_str}' length does not match sum of previous '{previous_str}' and current fragment '{o_fragment_str}' lengths"
 
-            fragment_str = fragment_str.strip()
+            fragment_str = o_fragment_str.strip()
             if not fragment_str:
                 raise ex.EmptyFragmentError(
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -129,7 +136,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             parts = fragment_str.split("-", 1)
             if len(parts) != 2:
                 raise ex.InvalidDashPatternError(
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -141,7 +148,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             except BaseException:
                 raise ex.NotIntegerStartError(
                     start_str=start_str,
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -149,7 +156,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             if start < 1:
                 raise ex.NotPositiveStartError(
                     start=start,
-                    fragment_str=fragment_str,
+                    fragment_str=o_fragment_str,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -164,14 +171,14 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
                 except BaseException:
                     raise ex.NotIntegerEndError(
                         end_str=end_str,
-                        fragment_str=fragment_str,
+                        fragment_str=o_fragment_str,
                         previous_str=previous_str,
                         next_str=next_str,
                     )
                 if end < 1:
                     raise ex.NotPositiveEndError(
                         end=end,
-                        fragment_str=fragment_str,
+                        fragment_str=o_fragment_str,
                         previous_str=previous_str,
                         next_str=next_str,
                     )
@@ -179,7 +186,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
                     raise ex.EndLessThanStartError(
                         start=start,
                         end=end,
-                        fragment_str=fragment_str,
+                        fragment_str=o_fragment_str,
                         previous_str=previous_str,
                         next_str=next_str,
                     )

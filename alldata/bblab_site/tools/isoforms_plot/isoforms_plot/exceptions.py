@@ -31,7 +31,7 @@ class InvalidDashPatternError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Invalid fragment string: '{fragment_str}'. Expected format 'start-end'.\n"
-            f"Context: ...{previous_str}|HERE|{next_str}..."
+            f"Context: {previous_str}|HERE|{next_str}"
         )
 
 
@@ -44,7 +44,7 @@ class EmptyFragmentError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Empty fragment string found.\n"
-            f"Context: ...{previous_str}|HERE|{next_str}..."
+            f"Context: {previous_str}|HERE|{next_str}"
         )
 
 
@@ -60,7 +60,7 @@ class NotIntegerStartError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Fragment start '{start_str}' is not a valid integer in fragment '{fragment_str}'.\n"
-            f"Context: ...{previous_str}|HERE|{next_str}..."
+            f"Context: {previous_str}|HERE|{next_str}"
         )
 
 
@@ -76,7 +76,7 @@ class NotPositiveStartError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Fragment start {start} must be positive (>= 1) in fragment '{fragment_str}'.\n"
-            f"Context: ...{previous_str}|HERE|{next_str}..."
+            f"Context: {previous_str}|HERE|{next_str}"
         )
 
 
@@ -92,7 +92,7 @@ class NotIntegerEndError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Fragment end '{end_str}' is not a valid integer or 'end' keyword in fragment '{fragment_str}'.\n"
-            f"Context: ...{previous_str}|HERE|{next_str}..."
+            f"Context: {previous_str}|HERE|{next_str}"
         )
 
 
@@ -108,7 +108,7 @@ class NotPositiveEndError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Fragment end {end} must be positive (>= 1) in fragment '{fragment_str}'.\n"
-            f"Context: ...{previous_str}|HERE|{next_str}..."
+            f"Context: {previous_str}|HERE|{next_str}"
         )
 
 
@@ -125,7 +125,7 @@ class EndLessThanStartError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Fragment end {end} cannot be less than start {start} in fragment '{fragment_str}'.\n"
-            f"Context: ...{previous_str}|HERE|{next_str}..."
+            f"Context: {previous_str}|HERE|{next_str}"
         )
 
 
