@@ -8,6 +8,7 @@ This file is responsible for parsing of:
 
 import csv
 from dataclasses import dataclass
+from io import StringIO
 from pathlib import Path
 from typing import Iterator, Literal, Optional, Sequence, TypeAlias, TextIO
 import multicsv
@@ -295,9 +296,13 @@ def read_acceptors(reader: csv.DictReader) -> Iterator[Acceptor]:
 
 def open_csv_file(input: Path | TextIO) -> multicsv.MultiCSVFile:
     if isinstance(input, Path):
-        return multicsv.open(input)
+        content = input.read_text()
+        stream = StringIO(content)
+        return multicsv.wrap(stream)
     else:
-        return multicsv.wrap(input)
+        content = input.read()
+        stream = StringIO(content)
+        return multicsv.wrap(stream)
 
 
 def parse(input: Path | TextIO) -> AST:
