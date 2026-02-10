@@ -5,7 +5,6 @@ Parse Errors: Raised during CSV parsing when input format is invalid.
 Compile Errors: Raised during compilation when semantic constraints are violated.
 """
 
-import json
 from typing import Any, Dict, Sequence
 
 # ============================================================================
