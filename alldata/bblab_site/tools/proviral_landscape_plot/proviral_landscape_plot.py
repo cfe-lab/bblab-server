@@ -512,15 +512,6 @@ class ProviralLandscapePlot:
             self.curr_multitrack.append(left_primer)
             right_primer = self.make_gene_track(RIGHT_PRIMER_START, END_POS, defect_type)
             self.curr_multitrack.append(right_primer)
-        if defect_type == "5' Defect":
-            if is_first:
-                # draw everything after the end of gag as a line
-                after_gag = self.make_gene_track(GAG_END, RIGHT_PRIMER_START, defect_type)
-                self.curr_multitrack.append(after_gag)
-            if xstart > GAG_END:
-                return
-            elif xend > GAG_END:
-                xend = GAG_END
         self.defects.add(defect_type)
         curr_track = self.make_gene_track(xstart, xend, defect_type, highlight=highlight)
         self.curr_multitrack.append(curr_track)
