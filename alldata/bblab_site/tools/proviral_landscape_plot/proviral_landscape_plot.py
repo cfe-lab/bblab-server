@@ -497,7 +497,6 @@ class ProviralLandscapePlot:
         self.xaxisheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
-        is_first = False
         if defect_type not in DEFECT_TO_COLOR.keys():
             print(f"Unknown defect: {defect_type}")
             return
@@ -505,13 +504,6 @@ class ProviralLandscapePlot:
             if self.curr_samp_name != '':
                 self.draw_current_multitrack()
             self.curr_samp_name = samp_name
-            is_first = True
-        if is_first:
-            # add the primers to start and end
-            left_primer = self.make_gene_track(START_POS, LEFT_PRIMER_END, defect_type)
-            self.curr_multitrack.append(left_primer)
-            right_primer = self.make_gene_track(RIGHT_PRIMER_START, END_POS, defect_type)
-            self.curr_multitrack.append(right_primer)
         self.defects.add(defect_type)
         curr_track = self.make_gene_track(xstart, xend, defect_type, highlight=highlight)
         self.curr_multitrack.append(curr_track)
