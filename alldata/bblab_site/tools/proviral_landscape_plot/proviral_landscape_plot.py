@@ -66,7 +66,6 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                }
 
 # There are some defects where we don't care about the alignment and just want to plot lines:
-LINE_DEFECTS: list[str] = []
 DEFECT_ORDER = {'Intact': 10,
                 'Hypermutated': 20,
                 "5' Defect": 30,
@@ -507,13 +506,6 @@ class ProviralLandscapePlot:
                 self.draw_current_multitrack()
             self.curr_samp_name = samp_name
             is_first = True
-        if defect_type in LINE_DEFECTS and highlight != 'Defect Region':
-            # draw the entire line once and skip all others, unless they're highlighted as the defect region
-            if is_first:
-                xstart = LEFT_PRIMER_END
-                xend = RIGHT_PRIMER_START
-            else:
-                return
         if is_first:
             # add the primers to start and end
             left_primer = self.make_gene_track(START_POS, LEFT_PRIMER_END, defect_type)
@@ -579,7 +571,7 @@ def sort_csv_lines(lines):
         for _, samp_rows in groupby(defect_rows, itemgetter('samp_name')):
             samp_rows = list(samp_rows)
             samp_rows.sort(key=lambda elem: int(elem['ref_start'].strip()))
-            if DEFECT_TYPE[samp_rows[0]['defect']] not in ["5' Defect"] + LINE_DEFECTS:
+            if DEFECT_TYPE[samp_rows[0]['defect']] not in ["5' Defect"]:
                 # We want to remove 50bp gaps, unless it's a 5'defect. Can also skip line defects
                 for i, row in enumerate(samp_rows):
                     ref_start = int(row['ref_start'].strip())
