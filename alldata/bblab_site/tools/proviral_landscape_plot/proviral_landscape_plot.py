@@ -66,7 +66,7 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                }
 
 # There are some defects where we don't care about the alignment and just want to plot lines:
-LINE_DEFECTS = ['Hypermutated', 'Intact', 'Premature Stop']
+LINE_DEFECTS: list[str] = []
 DEFECT_ORDER = {'Intact': 10,
                 'Hypermutated': 20,
                 "5' Defect": 30,
