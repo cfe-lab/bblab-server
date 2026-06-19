@@ -10,7 +10,6 @@ import csv
 from dataclasses import dataclass
 from typing import Iterator, Literal, Optional, Sequence, TypeAlias
 import multicsv
-from itertools import accumulate
 from . import exceptions as ex
 
 
@@ -109,46 +108,47 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
         fragments = []
         split_fragments = fragments_str.split(";")
-        accumulated_splits = list(
-            accumulate(
-                split_fragments,
-                lambda acc, this_fragment: ";".join([acc, this_fragment]),
-            )
-        )
 
-        for o_fragment_str, current_str in zip(
-            split_fragments, accumulated_splits
-        ):
-            next_str = fragments_str[len(current_str) + len(o_fragment_str):]
-            previous_str = current_str[:-len(o_fragment_str)]
-            assert current_str.endswith(o_fragment_str), f"Internal error: accumulated string '{current_str}' does not end with current fragment '{o_fragment_str}'"
-            assert len(current_str) == len(previous_str) + len(o_fragment_str), f"Internal error: accumulated string '{current_str}' length does not match sum of previous '{previous_str}' and current fragment '{o_fragment_str}' lengths"
+        for j, raw_fragment in enumerate(split_fragments):
+            fragment_str = raw_fragment.strip()
 
-            fragment_str = o_fragment_str.strip()
+            # Build context for error messages
+            parts_before = ";".join(split_fragments[:j])
+            parts_after = ";".join(split_fragments[j + 1:])
+            previous_str = parts_before + ";" if parts_before else ""
+            next_str = ";" + parts_after if parts_after else ""
+
             if not fragment_str:
                 raise ex.EmptyFragmentError(
-                    fragment_str=o_fragment_str,
+                    fragment_str=raw_fragment,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
 
-            # Split on hyphen to get start and end
-            parts = fragment_str.split("-", 1)
-            if len(parts) != 2:
+            # Count dashes to validate range shape before parsing integers
+            dash_count = fragment_str.count("-")
+            if dash_count == 0:
                 raise ex.InvalidDashPatternError(
-                    fragment_str=o_fragment_str,
+                    fragment_str=raw_fragment,
+                    previous_str=previous_str,
+                    next_str=next_str,
+                )
+            if dash_count > 1:
+                raise ex.TooManyDashesInFragmentError(
+                    fragment_str=raw_fragment,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
 
-            start_str, end_str = parts
+            # Exactly one dash: split into start and end
+            start_str, end_str = fragment_str.split("-", 1)
             start_str = start_str.strip()
             try:
                 start = int(start_str)
             except BaseException:
                 raise ex.NotIntegerStartError(
                     start_str=start_str,
-                    fragment_str=o_fragment_str,
+                    fragment_str=raw_fragment,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -156,7 +156,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
             if start < 1:
                 raise ex.NotPositiveStartError(
                     start=start,
-                    fragment_str=o_fragment_str,
+                    fragment_str=raw_fragment,
                     previous_str=previous_str,
                     next_str=next_str,
                 )
@@ -171,14 +171,14 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
                 except BaseException:
                     raise ex.NotIntegerEndError(
                         end_str=end_str,
-                        fragment_str=o_fragment_str,
+                        fragment_str=raw_fragment,
                         previous_str=previous_str,
                         next_str=next_str,
                     )
                 if end < 1:
                     raise ex.NotPositiveEndError(
                         end=end,
-                        fragment_str=o_fragment_str,
+                        fragment_str=raw_fragment,
                         previous_str=previous_str,
                         next_str=next_str,
                     )
@@ -186,7 +186,7 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
                     raise ex.EndLessThanStartError(
                         start=start,
                         end=end,
-                        fragment_str=o_fragment_str,
+                        fragment_str=raw_fragment,
                         previous_str=previous_str,
                         next_str=next_str,
                     )

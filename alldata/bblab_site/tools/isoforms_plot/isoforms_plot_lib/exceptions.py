@@ -23,14 +23,29 @@ class MissingFragmentsError(ValueError):
 
 
 class InvalidDashPatternError(ValueError):
-    """Raised when a fragment doesn't follow 'start-end' format."""
+    """Raised when a fragment doesn't follow 'start-end' format (no dash found)."""
 
     def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
         self.fragment_str = fragment_str
         self.previous_str = previous_str
         self.next_str = next_str
         super().__init__(
-            f"Invalid fragment string: '{fragment_str}'. Expected format 'start-end'.\n"
+            f"Invalid fragment string: '{fragment_str}'. "
+            f"Expected format 'start-end' (no dash found).\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
+class TooManyDashesInFragmentError(ValueError):
+    """Raised when a fragment contains more than one dash separator."""
+
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Invalid fragment string: '{fragment_str}'. "
+            f"Contains too many dashes; expected exactly one 'start-end' range.\n"
             f"Context: {previous_str}|HERE|{next_str}"
         )
 
@@ -454,6 +469,7 @@ class ConflictingFragmentColoursError(ValueError):
 AnyError = (
     MissingFragmentsError
     | InvalidDashPatternError
+    | TooManyDashesInFragmentError
     | EmptyFragmentError
     | NotIntegerStartError
     | NotPositiveStartError
