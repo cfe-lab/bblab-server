@@ -12,7 +12,7 @@ services:
       context: .
       dockerfile: bblab.dockerfile
       target: bblab-site
-    image: cfe-lab/bblab-site:${BBLAB_IMAGE_TAG:?no image tag set}
+    image: ${BBLAB_IMAGE:?no image tag set}
     env_file: .env-bblab
     environment:
       - SMTP_MAIL_SERVER=${SMTP_MAIL_SERVER:?no smtp server set}
