@@ -54,8 +54,6 @@ class Compiled:
 
 def compile_transcripts(
     parsed_transcripts: Sequence[Transcript],
-    valid_starts: set[int],
-    valid_ends: set[int],
     acceptor_colours: dict[int, Optional[SpliceSiteColour]],
     donor_colours: dict[int, Optional[SpliceSiteColour]],
 ) -> Tuple[Sequence[CompiledTranscript], Sequence[CompiledGroup]]:
@@ -102,22 +100,20 @@ def compile_transcripts(
 
         parts_tuple = tuple(compiled_parts)
 
-        # Validate fragment start/end positions
+        # Validate fragment positions are within bounds
         for j, part in enumerate(parts_tuple):
             start, end = part.start, part.end
-            if start not in valid_starts:
+            if start > END_POS:
                 raise ex.InvalidFragmentStartError(
                     transcript_index=i,
                     fragment_index=j,
                     start_position=start,
-                    valid_starts=sorted(valid_starts),
                 )
-            if end not in valid_ends:
+            if end > END_POS:
                 raise ex.InvalidFragmentEndError(
                     transcript_index=i,
                     fragment_index=j,
                     end_position=end,
-                    valid_ends=sorted(valid_ends),
                 )
 
         # Validate fragments don't overlap
@@ -208,8 +204,7 @@ def compile(parsed_inputs: AST) -> Compiled:
     - No duplicate donor names
     - No duplicate acceptor names
     - Transcripts have at least one fragment
-    - Fragment starts are at position 1 or an acceptor site
-    - Fragment ends are at END_POS or a donor site
+    - Fragment positions do not exceed END_POS
     - Fragments within transcripts do not overlap
     """
 
@@ -235,10 +230,6 @@ def compile(parsed_inputs: AST) -> Compiled:
             ]
             raise ex.DuplicateAcceptorNameError(name=name, positions=positions)
 
-    # Build sets of valid start and end positions
-    valid_starts = {1} | {acceptor.position for acceptor in parsed_inputs.acceptors}
-    valid_ends = {END_POS} | {donor.position for donor in parsed_inputs.donors}
-
     # Build colour mappings for splice sites (position -> colour)
     # Position 1 and END_POS have no associated colour (None)
     acceptor_colours: dict[int, Optional[SpliceSiteColour]] = {1: None}
@@ -251,8 +242,6 @@ def compile(parsed_inputs: AST) -> Compiled:
 
     compiled_transcripts, compiled_groups = compile_transcripts(
         parsed_inputs.transcripts,
-        valid_starts,
-        valid_ends,
         acceptor_colours,
         donor_colours,
     )
