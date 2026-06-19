@@ -9,6 +9,13 @@ dependencies = [
   "multicsv==1.0.6",
   "genetracks @ git+https://github.com/cfe-lab/genetracks.git@a7f20f644ab86b451e870c9ace0621af8ecae0df",
 ]
+[project.optional-dependencies]
+test = [
+  "pytest==8.3.4",
+]
+dev = [
+  "mypy",
+]
 
 [build-system]
 requires = ["hatchling"]
