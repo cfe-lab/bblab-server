@@ -5,7 +5,7 @@ Parse Errors: Raised during CSV parsing when input format is invalid.
 Compile Errors: Raised during compilation when semantic constraints are violated.
 """
 
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Dict, Mapping, Sequence
 
 # ============================================================================
 # PARSE ERRORS - Raised by parser.py when input format is invalid
