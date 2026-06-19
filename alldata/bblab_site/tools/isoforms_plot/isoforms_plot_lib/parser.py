@@ -30,6 +30,9 @@ SpliceSiteColour: TypeAlias = Literal[
 ]
 
 
+# Regex for trailing colour annotation: <range>...(...)
+COLOUR_ANNOTATION_RE = re.compile(r"(?P<range>.+?)\s*\((?P<colour>[^()]*)\)\s*\Z")
+
 # Predefined list of allowed splice site colours
 ALLOWED_COLOURS: tuple[SpliceSiteColour, ...] = (
     "red",
@@ -106,15 +109,12 @@ def parse_fragment(
             next_str=next_str,
         )
 
-    # Colour annotation pattern: trailing "(<colour>)" with optional whitespace
-    _COLOUR_RE = re.compile(r"(?P<range>.+?)\s*\((?P<colour>[^()]*)\)\s*\Z")
-
     colour = None
     range_str = fragment_str
 
     # If the fragment contains parentheses, require a valid trailing colour annotation
     if "(" in fragment_str or ")" in fragment_str:
-        match = _COLOUR_RE.match(fragment_str)
+        match = COLOUR_ANNOTATION_RE.match(fragment_str)
         if not match:
             raise ex.InvalidFragmentColourSyntaxError(
                 fragment_str=raw_fragment,
