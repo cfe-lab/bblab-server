@@ -9,6 +9,16 @@ dependencies = [
   "multicsv==1.0.6",
   "genetracks @ git+https://github.com/cfe-lab/genetracks.git@a7f20f644ab86b451e870c9ace0621af8ecae0df",
 ]
+[project.scripts]
+isoforms_plot = "isoforms_plot_lib.__main__:entry"
+
+[project.optional-dependencies]
+test = [
+  "pytest==8.3.4",
+]
+dev = [
+  "mypy",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -16,6 +26,19 @@ build-backend = "hatchling.build"
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.hatch.build.targets.sdist]
+exclude = [".venv", ".mypy_cache", ".~mydata", ".git"]
+
+[tool.mypy]
+mypy_path = ["../.."]
+
+[[tool.mypy.overrides]]
+module = "django.*"
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "genetracks"

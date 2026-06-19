@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 from typing import Sequence
 
-from isoforms_plot import lexer, plotter, parser, compiler
+from . import lexer, plotter, parser, compiler
 
 
 def main_typed(input_csv: Path, output_svg: Path) -> None:

@@ -10,8 +10,8 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Literal, Optional, Sequence, Tuple
 
-from isoforms_plot.parser import AST, Transcript, SpliceSiteColour
-import isoforms_plot.exceptions as ex
+from .parser import AST, Transcript, SpliceSiteColour
+from . import exceptions as ex
 
 END_POS = 9719
 
@@ -56,8 +56,8 @@ def compile_transcripts(
     parsed_transcripts: Sequence[Transcript],
     valid_starts: set[int],
     valid_ends: set[int],
-    acceptor_colours: dict[int, Optional[str]],
-    donor_colours: dict[int, Optional[str]],
+    acceptor_colours: dict[int, Optional[SpliceSiteColour]],
+    donor_colours: dict[int, Optional[SpliceSiteColour]],
 ) -> Tuple[Sequence[CompiledTranscript], Sequence[CompiledGroup]]:
 
     # Validate transcripts have fragments
@@ -146,20 +146,20 @@ def compile_transcripts(
     # Deduplicate consecutive labels
     # e.g., gag -> vpr -> vpr -> vpr becomes gag -> vpr -> None -> None
     prev_label = None
-    deduplicated_transcripts = []
-    for transcript in compiled_transcripts:
-        current_label = transcript.label
+    deduplicated_transcripts: list[CompiledTranscript] = []
+    for ct in compiled_transcripts:
+        current_label = ct.label
         if current_label is not None and current_label == prev_label:
             # Remove duplicate consecutive label (keep comment intact)
             deduplicated_transcripts.append(
                 CompiledTranscript(
-                    parts=transcript.parts,
+                    parts=ct.parts,
                     label=None,
-                    comment=transcript.comment,
+                    comment=ct.comment,
                 )
             )
         else:
-            deduplicated_transcripts.append(transcript)
+            deduplicated_transcripts.append(ct)
         prev_label = current_label if current_label is not None else prev_label
 
     compiled_transcripts = deduplicated_transcripts
@@ -167,23 +167,22 @@ def compile_transcripts(
     # Build groups structure
     # Groups are consecutive runs of transcripts with the same group value
     # Preserve order and allow the same group name to appear multiple times
-    groups_list = []  # List of (group_name, size) tuples
-    SENTINEL = object()  # Unique sentinel that's not None
-    last_group = SENTINEL
+    groups_list: list[tuple[str | None, int]] = []
+    first_group = True
+    last_group: str | None = None
     current_group_size = 0
 
     for transcript in parsed_transcripts:
-        if transcript.group != last_group:
-            # Save the previous group if it exists
-            if last_group is not SENTINEL:
+        if first_group or transcript.group != last_group:
+            if not first_group:
                 groups_list.append((last_group, current_group_size))
-            # Start a new group
+            first_group = False
             last_group = transcript.group
             current_group_size = 0
         current_group_size += 1
 
     # Don't forget the final group
-    if last_group is not SENTINEL:
+    if not first_group:
         groups_list.append((last_group, current_group_size))
 
     # Build CompiledGroup objects
@@ -242,11 +241,11 @@ def compile(parsed_inputs: AST) -> Compiled:
 
     # Build colour mappings for splice sites (position -> colour)
     # Position 1 and END_POS have no associated colour (None)
-    acceptor_colours: dict[int, Optional[str]] = {1: None}
+    acceptor_colours: dict[int, Optional[SpliceSiteColour]] = {1: None}
     for acceptor in parsed_inputs.acceptors:
         acceptor_colours[acceptor.position] = acceptor.colour
 
-    donor_colours: dict[int, Optional[str]] = {END_POS: None}
+    donor_colours: dict[int, Optional[SpliceSiteColour]] = {END_POS: None}
     for donor in parsed_inputs.donors:
         donor_colours[donor.position] = donor.colour
 

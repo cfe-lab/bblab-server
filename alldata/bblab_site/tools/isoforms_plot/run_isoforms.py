@@ -7,11 +7,6 @@ import traceback
 from pathlib import Path
 from typing import TextIO
 
-# Add the parent directory to sys.path to enable isoforms_plot imports
-CURDIR = Path(__file__).parent.absolute()
-if str(CURDIR) not in sys.path:
-    sys.path.insert(0, str(CURDIR))
-
 # Constants
 OUTPUT_SVG = "/alldata/bblab_site/media/output.svg"
 DEFAULT_CSV_PATH = Path(__file__).parent / "test_isoforms.csv"
@@ -41,10 +36,7 @@ def run(csv_file: TextIO) -> dict:
 
     # Try to generate plot - all validation happens in the plotter
     try:
-        import isoforms_plot.parser as parser
-        import isoforms_plot.compiler as compiler
-        import isoforms_plot.plotter as plotter
-        import isoforms_plot.lexer as lexer
+        from .isoforms_plot_lib import parser, compiler, plotter, lexer
 
         lexed = lexer.lex(csv_file)
         parsed = parser.parse(lexed)

@@ -5,7 +5,7 @@ Parse Errors: Raised during CSV parsing when input format is invalid.
 Compile Errors: Raised during compilation when semantic constraints are violated.
 """
 
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Mapping, Sequence
 
 # ============================================================================
 # PARSE ERRORS - Raised by parser.py when input format is invalid
@@ -210,7 +210,7 @@ class InvalidAcceptorPositionError(ValueError):
 class MissingTranscriptsSectionError(ValueError):
     """Raised when CSV file is missing required [transcripts] section."""
 
-    def __init__(self, sections: Dict[str, str]) -> None:
+    def __init__(self, sections: Mapping[str, Any]) -> None:
         self.sections = sections
         super().__init__(
             f"Missing required [transcripts] section in CSV file. "
@@ -221,7 +221,7 @@ class MissingTranscriptsSectionError(ValueError):
 class MissingDonorsSectionError(ValueError):
     """Raised when CSV file is missing required [donors] section."""
 
-    def __init__(self, sections: Dict[str, str]) -> None:
+    def __init__(self, sections: Mapping[str, Any]) -> None:
         self.sections = sections
         super().__init__(
             f"Missing required [donors] section in CSV file. "
@@ -232,7 +232,7 @@ class MissingDonorsSectionError(ValueError):
 class MissingAcceptorsSectionError(ValueError):
     """Raised when CSV file is missing required [acceptors] section."""
 
-    def __init__(self, sections: Dict[str, str]) -> None:
+    def __init__(self, sections: Mapping[str, Any]) -> None:
         self.sections = sections
         super().__init__(
             f"Missing required [acceptors] section in CSV file. "
@@ -243,7 +243,7 @@ class MissingAcceptorsSectionError(ValueError):
 class MultipleSectionsWithSameNameError(ValueError):
     """Raised when CSV file contains multiple sections with the same name (case-insensitive)."""
 
-    def __init__(self, multisections: Dict[str, Sequence[str]]) -> None:
+    def __init__(self, multisections: Mapping[str, Sequence[str]]) -> None:
         self.multisections = multisections
         duplicates = [
             matches for name, matches in multisections.items() if len(matches) > 1

@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Iterator, Literal, Optional, Sequence, TypeAlias
 import multicsv
 from itertools import accumulate
-import isoforms_plot.exceptions as ex
+from . import exceptions as ex
 
 
 SpliceSiteColour: TypeAlias = Literal[
