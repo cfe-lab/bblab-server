@@ -66,6 +66,7 @@ DEFECT_TYPE = {'LargeDeletion': 'Large Deletion',
                }
 
 # There are some defects where we don't care about the alignment and just want to plot lines:
+LINE_DEFECTS = ['Hypermutated', 'Intact', 'Premature Stop']
 DEFECT_ORDER = {'Intact': 10,
                 'Hypermutated': 20,
                 "5' Defect": 30,
@@ -497,6 +498,7 @@ class ProviralLandscapePlot:
         self.xaxisheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
+        is_first = False
         if defect_type not in DEFECT_TO_COLOR.keys():
             print(f"Unknown defect: {defect_type}")
             return
@@ -504,6 +506,29 @@ class ProviralLandscapePlot:
             if self.curr_samp_name != '':
                 self.draw_current_multitrack()
             self.curr_samp_name = samp_name
+            is_first = True
+        if defect_type in LINE_DEFECTS and highlight != 'Defect Region':
+            # draw the entire line once and skip all others, unless they're highlighted as the defect region
+            if is_first:
+                xstart = LEFT_PRIMER_END
+                xend = RIGHT_PRIMER_START
+            else:
+                return
+        if is_first:
+            # add the primers to start and end
+            left_primer = self.make_gene_track(START_POS, LEFT_PRIMER_END, defect_type)
+            self.curr_multitrack.append(left_primer)
+            right_primer = self.make_gene_track(RIGHT_PRIMER_START, END_POS, defect_type)
+            self.curr_multitrack.append(right_primer)
+        if defect_type == "5' Defect":
+            if is_first:
+                # draw everything after the end of gag as a line
+                after_gag = self.make_gene_track(GAG_END, RIGHT_PRIMER_START, defect_type)
+                self.curr_multitrack.append(after_gag)
+            if xstart > GAG_END:
+                return
+            elif xend > GAG_END:
+                xend = GAG_END
         self.defects.add(defect_type)
         curr_track = self.make_gene_track(xstart, xend, defect_type, highlight=highlight)
         self.curr_multitrack.append(curr_track)
@@ -554,7 +579,7 @@ def sort_csv_lines(lines):
         for _, samp_rows in groupby(defect_rows, itemgetter('samp_name')):
             samp_rows = list(samp_rows)
             samp_rows.sort(key=lambda elem: int(elem['ref_start'].strip()))
-            if DEFECT_TYPE[samp_rows[0]['defect']] not in ["5' Defect"]:
+            if DEFECT_TYPE[samp_rows[0]['defect']] not in ["5' Defect"] + LINE_DEFECTS:
                 # We want to remove 50bp gaps, unless it's a 5'defect. Can also skip line defects
                 for i, row in enumerate(samp_rows):
                     ref_start = int(row['ref_start'].strip())
