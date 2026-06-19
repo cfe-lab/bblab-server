@@ -471,7 +471,7 @@
 
 		<h3>Transcripts</h3>
 		<p>
-			In <code>[transcripts]</code>, each row describes one transcript. The required <code>fragments</code> field lists exon-like blocks in <code>start-end</code> format, separated by semicolons (e.g., <code>1-200; 500-800; 1000-end</code>). Fragments can start at position 1 or any declared acceptor, and must end at a declared donor or the keyword <code>end</code>. The keyword <code>end</code> is case-insensitive and represents the final position on the reference sequence. Fragment boundaries <em>must</em> match declared splice sites—arbitrary coordinates will be rejected.
+			In <code>[transcripts]</code>, each row describes one transcript. The required <code>fragments</code> field lists exon-like blocks in <code>start-end</code> format, separated by semicolons (e.g., <code>1-200; 500-800; 1000-end</code>). Fragments must start at known acceptor sites and must end at known donor sites. Exceptions are the very first coordinate, and the very last coordinate in the transcript. The keyword <code>end</code> is case-insensitive and represents the final position on the reference sequence.
 		</p>
 
 		<p>
