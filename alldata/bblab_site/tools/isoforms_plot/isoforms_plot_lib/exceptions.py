@@ -5,7 +5,7 @@ Parse Errors: Raised during CSV parsing when input format is invalid.
 Compile Errors: Raised during compilation when semantic constraints are violated.
 """
 
-from typing import Any, Dict, Mapping, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 # ============================================================================
 # PARSE ERRORS - Raised by parser.py when input format is invalid
@@ -315,39 +315,89 @@ class OverlappingFragmentsError(ValueError):
         )
 
 
-class InvalidFragmentStartError(ValueError):
-    """Raised when a fragment start position exceeds END_POS."""
+class FragmentStartOutOfBoundsError(ValueError):
+    """Raised when a fragment start position exceeds the maximum coordinate."""
 
     def __init__(
         self,
         transcript_index: int,
         fragment_index: int,
         start_position: int,
+        max_position: int,
     ) -> None:
         self.transcript_index = transcript_index
         self.fragment_index = fragment_index
         self.start_position = start_position
+        self.max_position = max_position
         super().__init__(
-            f"Invalid fragment start in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
-            f"position {start_position} exceeds the maximum coordinate (9719)."
+            f"Fragment start in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
+            f"position {start_position} exceeds the maximum coordinate ({max_position})."
         )
 
 
-class InvalidFragmentEndError(ValueError):
-    """Raised when a fragment end position exceeds END_POS."""
+class FragmentEndOutOfBoundsError(ValueError):
+    """Raised when a fragment end position exceeds the maximum coordinate."""
 
     def __init__(
         self,
         transcript_index: int,
         fragment_index: int,
         end_position: int,
+        max_position: int,
     ) -> None:
         self.transcript_index = transcript_index
         self.fragment_index = fragment_index
         self.end_position = end_position
+        self.max_position = max_position
+        super().__init__(
+            f"Fragment end in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
+            f"position {end_position} exceeds the maximum coordinate ({max_position})."
+        )
+
+
+class InvalidFragmentStartError(ValueError):
+    """Raised when a non-first fragment starts at a position that is not a declared acceptor site."""
+
+    def __init__(
+        self,
+        transcript_index: int,
+        fragment_index: int,
+        start_position: int,
+        valid_starts: Sequence[int],
+    ) -> None:
+        self.transcript_index = transcript_index
+        self.fragment_index = fragment_index
+        self.start_position = start_position
+        self.valid_starts = valid_starts
+        valid_starts_str = ", ".join(map(str, sorted(valid_starts)))
+        super().__init__(
+            f"Invalid fragment start in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
+            f"position {start_position} is not a declared acceptor site. "
+            f"Internal fragment starts must match a declared acceptor. "
+            f"Valid acceptor positions: {valid_starts_str}."
+        )
+
+
+class InvalidFragmentEndError(ValueError):
+    """Raised when a non-last fragment ends at a position that is not a declared donor site."""
+
+    def __init__(
+        self,
+        transcript_index: int,
+        fragment_index: int,
+        end_position: int,
+        valid_ends: Sequence[int],
+    ) -> None:
+        self.transcript_index = transcript_index
+        self.fragment_index = fragment_index
+        self.end_position = end_position
+        self.valid_ends = valid_ends
+        valid_ends_str = ", ".join(map(str, sorted(valid_ends)))
         super().__init__(
             f"Invalid fragment end in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
-            f"position {end_position} exceeds the maximum coordinate (9719)."
+            f"position {end_position} is not a declared donor site. "
+            f"Internal fragment ends must match a declared donor. "
+            f"Valid donor positions: {valid_ends_str}."
         )
 
 
@@ -424,6 +474,8 @@ AnyError = (
     | DuplicateAcceptorNameError
     | EmptyTranscriptError
     | OverlappingFragmentsError
+    | FragmentStartOutOfBoundsError
+    | FragmentEndOutOfBoundsError
     | InvalidFragmentStartError
     | InvalidFragmentEndError
 )
