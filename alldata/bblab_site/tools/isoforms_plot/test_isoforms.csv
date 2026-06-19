@@ -26,7 +26,9 @@ fragments,label,N_observed,group
 1-743; 4913-4962; 5390-5463; 5960-6046; 8369-end,rev,1,My last group
 1-743; 4913-4962; 5390-5463; 5954-6046; 8369-end,rev,1,My last group
 1-743; 4913-4962; 5390-5463; 5954-end,example user input category,1,My last group
-1-743; 4913-4962; 5390-5463; 6611-end,should not happen,1,My last group
+1-743; 4913-4962; 5390-5463; 6611-end,unusual examples,touches a rare site,My last group
+1-743; 4913-5463(green); 5954-end (blue),,customly coloured,My last group
+455-743; 4913-5463; 5954-8000,,custom start/end,My last group
 
 [donors]
 name,position,colour

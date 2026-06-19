@@ -7,10 +7,10 @@ This file is responsible for parsing of:
 """
 
 import csv
+import re
 from dataclasses import dataclass
 from typing import Iterator, Literal, Optional, Sequence, TypeAlias
 import multicsv
-from itertools import accumulate
 from . import exceptions as ex
 
 
@@ -29,6 +29,9 @@ SpliceSiteColour: TypeAlias = Literal[
     "navy",
 ]
 
+
+# Regex for trailing colour annotation: <range>...(...)
+COLOUR_ANNOTATION_RE = re.compile(r"(?P<range>.+?)\s*\((?P<colour>[^()]*)\)\s*\Z")
 
 # Predefined list of allowed splice site colours
 ALLOWED_COLOURS: tuple[SpliceSiteColour, ...] = (
@@ -51,6 +54,7 @@ ALLOWED_COLOURS: tuple[SpliceSiteColour, ...] = (
 class Fragment:
     start: int
     end: Optional[int]
+    colour: Optional[SpliceSiteColour] = None
 
 
 @dataclass(frozen=True)
@@ -83,6 +87,146 @@ class AST:
     acceptors: Sequence[Acceptor]
 
 
+def parse_fragment(
+    raw_fragment: str,
+    previous_str: str,
+    next_str: str,
+) -> Fragment:
+    """
+    Parse a single fragment string (e.g. ``"5390-5463"`` or ``"5390-5463 (red)"``)
+    into a ``Fragment``.
+
+    Raises the usual parse errors for malformed ranges, and additionally
+    ``InvalidFragmentColourSyntaxError`` / ``EmptyFragmentColourError`` /
+    ``InvalidFragmentColourError`` for malformed colour annotations.
+    """
+    fragment_str = raw_fragment.strip()
+
+    if not fragment_str:
+        raise ex.EmptyFragmentError(
+            fragment_str=raw_fragment,
+            previous_str=previous_str,
+            next_str=next_str,
+        )
+
+    colour = None
+    range_str = fragment_str
+
+    # If the fragment contains parentheses, require a valid trailing colour annotation
+    if "(" in fragment_str or ")" in fragment_str:
+        match = COLOUR_ANNOTATION_RE.match(fragment_str)
+        if not match:
+            raise ex.InvalidFragmentColourSyntaxError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+        range_str = match.group("range").strip()
+        colour_raw = match.group("colour").strip()
+
+        # Range part must not contain parentheses
+        if "(" in range_str or ")" in range_str:
+            raise ex.InvalidFragmentColourSyntaxError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+        # Range must not end with a bare dash (colour used as end coordinate)
+        if range_str.endswith("-"):
+            raise ex.InvalidFragmentColourSyntaxError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+        if not colour_raw:
+            raise ex.EmptyFragmentColourError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+        if colour_raw not in ALLOWED_COLOURS:
+            raise ex.InvalidFragmentColourError(
+                fragment_str=raw_fragment,
+                colour=colour_raw,
+                allowed_colours=ALLOWED_COLOURS,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+        colour = colour_raw
+
+    # Validate range shape before parsing integers
+    dash_count = range_str.count("-")
+    if dash_count == 0:
+        raise ex.InvalidDashPatternError(
+            fragment_str=raw_fragment,
+            previous_str=previous_str,
+            next_str=next_str,
+        )
+    if dash_count > 1:
+        raise ex.TooManyDashesInFragmentError(
+            fragment_str=raw_fragment,
+            previous_str=previous_str,
+            next_str=next_str,
+        )
+
+    # Exactly one dash: split into start and end
+    start_str, end_str = range_str.split("-", 1)
+    start_str = start_str.strip()
+    try:
+        start = int(start_str)
+    except BaseException:
+        raise ex.NotIntegerStartError(
+            start_str=start_str,
+            fragment_str=raw_fragment,
+            previous_str=previous_str,
+            next_str=next_str,
+        )
+
+    if start < 1:
+        raise ex.NotPositiveStartError(
+            start=start,
+            fragment_str=raw_fragment,
+            previous_str=previous_str,
+            next_str=next_str,
+        )
+
+    end_str = end_str.strip()
+    if end_str.lower() == "end":
+        end = None
+    else:
+        try:
+            end = int(end_str)
+        except BaseException:
+            raise ex.NotIntegerEndError(
+                end_str=end_str,
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+        if end < 1:
+            raise ex.NotPositiveEndError(
+                end=end,
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+        if end < start:
+            raise ex.EndLessThanStartError(
+                start=start,
+                end=end,
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+    return Fragment(start=start, end=end, colour=colour)
+
+
 def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
     """
     Parse transcripts from CSV rows.
@@ -109,89 +253,16 @@ def read_transcripts(reader: csv.DictReader) -> Iterator[Transcript]:
 
         fragments = []
         split_fragments = fragments_str.split(";")
-        accumulated_splits = list(
-            accumulate(
-                split_fragments,
-                lambda acc, this_fragment: ";".join([acc, this_fragment]),
-            )
-        )
 
-        for o_fragment_str, current_str in zip(
-            split_fragments, accumulated_splits
-        ):
-            next_str = fragments_str[len(current_str) + len(o_fragment_str):]
-            previous_str = current_str[:-len(o_fragment_str)]
-            assert current_str.endswith(o_fragment_str), f"Internal error: accumulated string '{current_str}' does not end with current fragment '{o_fragment_str}'"
-            assert len(current_str) == len(previous_str) + len(o_fragment_str), f"Internal error: accumulated string '{current_str}' length does not match sum of previous '{previous_str}' and current fragment '{o_fragment_str}' lengths"
+        for j, raw_fragment in enumerate(split_fragments):
+            # Build context for error messages
+            parts_before = ";".join(split_fragments[:j])
+            parts_after = ";".join(split_fragments[j + 1:])
+            previous_str = parts_before + ";" if parts_before else ""
+            next_str = ";" + parts_after if parts_after else ""
 
-            fragment_str = o_fragment_str.strip()
-            if not fragment_str:
-                raise ex.EmptyFragmentError(
-                    fragment_str=o_fragment_str,
-                    previous_str=previous_str,
-                    next_str=next_str,
-                )
-
-            # Split on hyphen to get start and end
-            parts = fragment_str.split("-", 1)
-            if len(parts) != 2:
-                raise ex.InvalidDashPatternError(
-                    fragment_str=o_fragment_str,
-                    previous_str=previous_str,
-                    next_str=next_str,
-                )
-
-            start_str, end_str = parts
-            start_str = start_str.strip()
-            try:
-                start = int(start_str)
-            except BaseException:
-                raise ex.NotIntegerStartError(
-                    start_str=start_str,
-                    fragment_str=o_fragment_str,
-                    previous_str=previous_str,
-                    next_str=next_str,
-                )
-
-            if start < 1:
-                raise ex.NotPositiveStartError(
-                    start=start,
-                    fragment_str=o_fragment_str,
-                    previous_str=previous_str,
-                    next_str=next_str,
-                )
-
-            # Handle "end" keyword (case-insensitive)
-            end_str = end_str.strip()
-            if end_str.lower() == "end":
-                end = None
-            else:
-                try:
-                    end = int(end_str)
-                except BaseException:
-                    raise ex.NotIntegerEndError(
-                        end_str=end_str,
-                        fragment_str=o_fragment_str,
-                        previous_str=previous_str,
-                        next_str=next_str,
-                    )
-                if end < 1:
-                    raise ex.NotPositiveEndError(
-                        end=end,
-                        fragment_str=o_fragment_str,
-                        previous_str=previous_str,
-                        next_str=next_str,
-                    )
-                if end < start:
-                    raise ex.EndLessThanStartError(
-                        start=start,
-                        end=end,
-                        fragment_str=o_fragment_str,
-                        previous_str=previous_str,
-                        next_str=next_str,
-                    )
-
-            fragments.append(Fragment(start=start, end=end))
+            fragment = parse_fragment(raw_fragment, previous_str, next_str)
+            fragments.append(fragment)
 
         # Extract optional fields, converting empty strings to None
         label = (row.get("label") or "").strip() or None

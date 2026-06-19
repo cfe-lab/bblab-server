@@ -23,14 +23,29 @@ class MissingFragmentsError(ValueError):
 
 
 class InvalidDashPatternError(ValueError):
-    """Raised when a fragment doesn't follow 'start-end' format."""
+    """Raised when a fragment doesn't follow 'start-end' format (no dash found)."""
 
     def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
         self.fragment_str = fragment_str
         self.previous_str = previous_str
         self.next_str = next_str
         super().__init__(
-            f"Invalid fragment string: '{fragment_str}'. Expected format 'start-end'.\n"
+            f"Invalid fragment string: '{fragment_str}'. "
+            f"Expected format 'start-end' (no dash found).\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
+class TooManyDashesInFragmentError(ValueError):
+    """Raised when a fragment contains more than one dash separator."""
+
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Invalid fragment string: '{fragment_str}'. "
+            f"Contains too many dashes; expected exactly one 'start-end' range.\n"
             f"Context: {previous_str}|HERE|{next_str}"
         )
 
@@ -44,6 +59,55 @@ class EmptyFragmentError(ValueError):
         self.next_str = next_str
         super().__init__(
             f"Empty fragment string found.\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
+class InvalidFragmentColourSyntaxError(ValueError):
+    """Raised when a fragment colour annotation has invalid syntax."""
+
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Invalid fragment colour syntax in '{fragment_str}'.\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
+class EmptyFragmentColourError(ValueError):
+    """Raised when a fragment colour annotation is empty (e.g. `()`)."""
+
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Empty fragment colour in '{fragment_str}'.\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
+class InvalidFragmentColourError(ValueError):
+    """Raised when a fragment colour is not in the allowed set."""
+
+    def __init__(
+        self,
+        fragment_str: str,
+        colour: str,
+        allowed_colours: Sequence[str],
+        previous_str: str,
+        next_str: str,
+    ) -> None:
+        self.fragment_str = fragment_str
+        self.colour = colour
+        self.allowed_colours = allowed_colours
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Invalid fragment colour '{colour}' in '{fragment_str}'. "
+            f"Allowed colours are: {', '.join(allowed_colours)}.\n"
             f"Context: {previous_str}|HERE|{next_str}"
         )
 
@@ -315,8 +379,48 @@ class OverlappingFragmentsError(ValueError):
         )
 
 
+class FragmentStartOutOfBoundsError(ValueError):
+    """Raised when a fragment start position exceeds the maximum coordinate."""
+
+    def __init__(
+        self,
+        transcript_index: int,
+        fragment_index: int,
+        start_position: int,
+        max_position: int,
+    ) -> None:
+        self.transcript_index = transcript_index
+        self.fragment_index = fragment_index
+        self.start_position = start_position
+        self.max_position = max_position
+        super().__init__(
+            f"Fragment start in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
+            f"position {start_position} exceeds the maximum coordinate ({max_position})."
+        )
+
+
+class FragmentEndOutOfBoundsError(ValueError):
+    """Raised when a fragment end position exceeds the maximum coordinate."""
+
+    def __init__(
+        self,
+        transcript_index: int,
+        fragment_index: int,
+        end_position: int,
+        max_position: int,
+    ) -> None:
+        self.transcript_index = transcript_index
+        self.fragment_index = fragment_index
+        self.end_position = end_position
+        self.max_position = max_position
+        super().__init__(
+            f"Fragment end in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
+            f"position {end_position} exceeds the maximum coordinate ({max_position})."
+        )
+
+
 class InvalidFragmentStartError(ValueError):
-    """Raised when a fragment starts at a position that is not 1 or an acceptor site."""
+    """Raised when a non-first fragment starts at a position that is not a declared acceptor site."""
 
     def __init__(
         self,
@@ -332,14 +436,14 @@ class InvalidFragmentStartError(ValueError):
         valid_starts_str = ", ".join(map(str, sorted(valid_starts)))
         super().__init__(
             f"Invalid fragment start in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
-            f"position {start_position} is not a valid start position. "
-            f"Fragments must start at position 1 or at an acceptor site. "
-            f"Valid start positions: {valid_starts_str}."
+            f"position {start_position} is not a declared acceptor site. "
+            f"Internal fragment starts must match a declared acceptor. "
+            f"Valid acceptor positions: {valid_starts_str}."
         )
 
 
 class InvalidFragmentEndError(ValueError):
-    """Raised when a fragment ends at a position that is not END_POS or a donor site."""
+    """Raised when a non-last fragment ends at a position that is not a declared donor site."""
 
     def __init__(
         self,
@@ -355,9 +459,9 @@ class InvalidFragmentEndError(ValueError):
         valid_ends_str = ", ".join(map(str, sorted(valid_ends)))
         super().__init__(
             f"Invalid fragment end in transcript {transcript_index + 1}, fragment {fragment_index + 1}: "
-            f"position {end_position} is not a valid end position. "
-            f"Fragments must end at a donor site or use 'end' keyword. "
-            f"Valid end positions: {valid_ends_str}."
+            f"position {end_position} is not a declared donor site. "
+            f"Internal fragment ends must match a declared donor. "
+            f"Valid donor positions: {valid_ends_str}."
         )
 
 
@@ -414,7 +518,11 @@ class ConflictingFragmentColoursError(ValueError):
 AnyError = (
     MissingFragmentsError
     | InvalidDashPatternError
+    | TooManyDashesInFragmentError
     | EmptyFragmentError
+    | InvalidFragmentColourSyntaxError
+    | EmptyFragmentColourError
+    | InvalidFragmentColourError
     | NotIntegerStartError
     | NotPositiveStartError
     | NotIntegerEndError
@@ -434,6 +542,8 @@ AnyError = (
     | DuplicateAcceptorNameError
     | EmptyTranscriptError
     | OverlappingFragmentsError
+    | FragmentStartOutOfBoundsError
+    | FragmentEndOutOfBoundsError
     | InvalidFragmentStartError
     | InvalidFragmentEndError
 )

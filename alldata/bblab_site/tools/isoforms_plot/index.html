@@ -453,7 +453,7 @@
 		<h2>📖 How CSV Input Works</h2>
 
 		<p>
-			The CSV is a <strong>structured description of splicing</strong>: splice sites are declared first, then each transcript is described as a <em>path that connects those sites</em>. All fragment boundaries must correspond to declared splice sites.
+			The CSV is a <strong>structured description of splicing</strong>: splice sites are declared first, then each transcript is described as a <em>path that connects those sites</em>. Internal fragment boundaries (non-first starts and non-last ends) must correspond to declared splice sites, while the outer boundaries (first start, final end) may be arbitrary transcript boundaries.
 		</p>
 
 		<p>
@@ -471,7 +471,9 @@
 
 		<h3>Transcripts</h3>
 		<p>
-			In <code>[transcripts]</code>, each row describes one transcript. The required <code>fragments</code> field lists exon-like blocks in <code>start-end</code> format, separated by semicolons (e.g., <code>1-200; 500-800; 1000-end</code>). Fragments can start at position 1 or any declared acceptor, and must end at a declared donor or the keyword <code>end</code>. The keyword <code>end</code> is case-insensitive and represents the final position on the reference sequence. Fragment boundaries <em>must</em> match declared splice sites—arbitrary coordinates will be rejected.
+			In <code>[transcripts]</code>, each row describes one transcript. The required <code>fragments</code> field lists exon-like blocks in <code>start-end</code> format, separated by semicolons (e.g., <code>1-200; 500-800; 1000-end</code>). The first fragment's start and the last fragment's end are transcript boundaries that can be any positive coordinate within the reference range. However, every <strong>internal</strong> fragment start must be a declared acceptor site, and every <strong>internal</strong> fragment end must be a declared donor site. The keyword <code>end</code> is case-insensitive and represents the final position on the reference sequence.
+
+			Each fragment can optionally include a <strong>colour annotation</strong> after the range to set its colour directly, overriding any colour that would be derived from adjacent splice sites. The colour is written in parentheses after the range: <code>5390-5463 (red)</code>, <code>5390-5463(blue)</code>, or <code>5390-5463( green )</code>. Allowed colours are the same as for splice sites. Explicit fragment colours are especially useful for resolving colour conflicts when a fragment touches two splice sites with different colours.
 		</p>
 
 		<p>
@@ -484,7 +486,7 @@
 
 		<h3>Colours and Conflicts</h3>
 		<p>
-			When a fragment touches two splice sites with different colours (one at the start, one at the end), the tool will reject the input with a conflict error. Each fragment can have only one colour. To resolve this, either remove one of the colours from the splice sites, or adjust the fragment boundaries so they don't span conflicting colours.
+			When a fragment touches two splice sites with different colours (one at the start, one at the end), the tool will reject the input with a conflict error. Each fragment can have only one colour. To resolve a conflict, you can either remove one of the colours from the splice sites, adjust the fragment boundaries, or add an <strong>explicit fragment colour</strong> to the conflicting fragment using the <code>5390-5463(red)</code> syntax. An explicit fragment colour overrides the splice-site colours and bypasses the conflict check.
 		</p>
 
 		<h3>Label Deduplication</h3>
@@ -499,12 +501,12 @@
 
 		<h3>Common Mistakes</h3>
 		<p>
-			If a needed position is missing from the donors/acceptors sections, add it there rather than attempting to use an undeclared position. Fragment ranges must use integers for both start and end (except for the <code>end</code> keyword). Negative numbers and zero are not allowed. Whitespace around fragment ranges is ignored, so <code>1-200</code>, <code>1 - 200</code>, and <code> 1-200 </code> are all equivalent.
+			If an internal fragment boundary uses a position not declared in donors or acceptors, the tool will reject it. Fragment ranges must use integers for both start and end (except for the <code>end</code> keyword). Negative numbers and zero are not allowed. Whitespace around fragment ranges is ignored, so <code>1-200</code>, <code>1 - 200</code>, and <code> 1-200 </code> are all equivalent.
 		</p>
 
 		<h3>Technical Details</h3>
 		<p>
-			The <code>end</code> keyword is internally mapped to position 9632, which is displayed as the rightmost point on the genome map. Section headers are case-insensitive (<code>[transcripts]</code>, <code>[TRANSCRIPTS]</code>, and <code>[Transcripts]</code> are all equivalent), but duplicate section headers (even with different casing) will be rejected. CSV parsing follows standard rules: fields can be quoted to include commas or newlines.
+			The <code>end</code> keyword is internally mapped to the rightmost reference coordinate (the end of the 3'LTR). Section headers are case-insensitive (<code>[transcripts]</code>, <code>[TRANSCRIPTS]</code>, and <code>[Transcripts]</code> are all equivalent), but duplicate section headers (even with different casing) will be rejected. CSV parsing follows standard rules: fields can be quoted to include commas or newlines.
 		</p>
 	</div>
 </div>
