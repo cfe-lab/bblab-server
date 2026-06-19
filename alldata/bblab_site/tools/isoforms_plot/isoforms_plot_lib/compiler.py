@@ -109,27 +109,29 @@ def compile_transcripts(
                     valid_ends=sorted(valid_internal_ends),
                 )
 
-            # Determine fragment colour based on splice sites it touches
-            start_colour = acceptor_colours.get(start)
-            end_colour = donor_colours.get(end)
+            # Determine fragment colour:
+            # explicit annotation takes priority over splice-site derivation
+            if fragment.colour is not None:
+                fragment_colour = fragment.colour
+            else:
+                start_colour = acceptor_colours.get(start)
+                end_colour = donor_colours.get(end)
 
-            # Check for conflicting colours
-            if (
-                start_colour is not None
-                and end_colour is not None
-                and start_colour != end_colour
-            ):
-                raise ex.ConflictingFragmentColoursError(
-                    transcript_index=i,
-                    fragment_index=j,
-                    start_position=start,
-                    end_position=end,
-                    start_colour=start_colour,
-                    end_colour=end_colour,
-                )
+                if (
+                    start_colour is not None
+                    and end_colour is not None
+                    and start_colour != end_colour
+                ):
+                    raise ex.ConflictingFragmentColoursError(
+                        transcript_index=i,
+                        fragment_index=j,
+                        start_position=start,
+                        end_position=end,
+                        start_colour=start_colour,
+                        end_colour=end_colour,
+                    )
 
-            # Fragment adopts colour from either end (they match or only one is coloured)
-            fragment_colour = start_colour or end_colour
+                fragment_colour = start_colour or end_colour
 
             compiled_parts.append(
                 CompiledFragment(start=start, end=end, colour=fragment_colour)

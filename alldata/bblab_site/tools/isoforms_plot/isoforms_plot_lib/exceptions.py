@@ -63,6 +63,55 @@ class EmptyFragmentError(ValueError):
         )
 
 
+class InvalidFragmentColourSyntaxError(ValueError):
+    """Raised when a fragment colour annotation has invalid syntax."""
+
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Invalid fragment colour syntax in '{fragment_str}'.\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
+class EmptyFragmentColourError(ValueError):
+    """Raised when a fragment colour annotation is empty (e.g. `()`)."""
+
+    def __init__(self, fragment_str: str, previous_str: str, next_str: str) -> None:
+        self.fragment_str = fragment_str
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Empty fragment colour in '{fragment_str}'.\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
+class InvalidFragmentColourError(ValueError):
+    """Raised when a fragment colour is not in the allowed set."""
+
+    def __init__(
+        self,
+        fragment_str: str,
+        colour: str,
+        allowed_colours: Sequence[str],
+        previous_str: str,
+        next_str: str,
+    ) -> None:
+        self.fragment_str = fragment_str
+        self.colour = colour
+        self.allowed_colours = allowed_colours
+        self.previous_str = previous_str
+        self.next_str = next_str
+        super().__init__(
+            f"Invalid fragment colour '{colour}' in '{fragment_str}'. "
+            f"Allowed colours are: {', '.join(allowed_colours)}.\n"
+            f"Context: {previous_str}|HERE|{next_str}"
+        )
+
+
 class NotIntegerStartError(ValueError):
     """Raised when fragment start position is not a valid integer."""
 
@@ -471,6 +520,9 @@ AnyError = (
     | InvalidDashPatternError
     | TooManyDashesInFragmentError
     | EmptyFragmentError
+    | InvalidFragmentColourSyntaxError
+    | EmptyFragmentColourError
+    | InvalidFragmentColourError
     | NotIntegerStartError
     | NotPositiveStartError
     | NotIntegerEndError

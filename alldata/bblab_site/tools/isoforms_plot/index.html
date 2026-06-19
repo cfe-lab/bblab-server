@@ -471,7 +471,9 @@
 
 		<h3>Transcripts</h3>
 		<p>
-			In <code>[transcripts]</code>, each row describes one transcript. The required <code>fragments</code> field lists exon-like blocks in <code>start-end</code> format, separated by semicolons (e.g., <code>1-200; 500-800; 1000-end</code>). The first fragment's start and the last fragment's end are transcript boundaries that can be any positive coordinate. However, every <strong>internal</strong> fragment start must be a declared acceptor site, and every <strong>internal</strong> fragment end must be a declared donor site. The keyword <code>end</code> is case-insensitive and represents the final position on the reference sequence.
+			In <code>[transcripts]</code>, each row describes one transcript. The required <code>fragments</code> field lists exon-like blocks in <code>start-end</code> format, separated by semicolons (e.g., <code>1-200; 500-800; 1000-end</code>). The first fragment's start and the last fragment's end are transcript boundaries that can be any positive coordinate within the reference range. However, every <strong>internal</strong> fragment start must be a declared acceptor site, and every <strong>internal</strong> fragment end must be a declared donor site. The keyword <code>end</code> is case-insensitive and represents the final position on the reference sequence.
+
+			Each fragment can optionally include a <strong>colour annotation</strong> after the range to set its colour directly, overriding any colour that would be derived from adjacent splice sites. The colour is written in parentheses after the range: <code>5390-5463 (red)</code>, <code>5390-5463(blue)</code>, or <code>5390-5463( green )</code>. Allowed colours are the same as for splice sites. Explicit fragment colours are especially useful for resolving colour conflicts when a fragment touches two splice sites with different colours.
 		</p>
 
 		<p>
@@ -484,7 +486,7 @@
 
 		<h3>Colours and Conflicts</h3>
 		<p>
-			When a fragment touches two splice sites with different colours (one at the start, one at the end), the tool will reject the input with a conflict error. Each fragment can have only one colour. To resolve this, either remove one of the colours from the splice sites, or adjust the fragment boundaries so they don't span conflicting colours.
+			When a fragment touches two splice sites with different colours (one at the start, one at the end), the tool will reject the input with a conflict error. Each fragment can have only one colour. To resolve a conflict, you can either remove one of the colours from the splice sites, adjust the fragment boundaries, or add an <strong>explicit fragment colour</strong> to the conflicting fragment using the <code>5390-5463(red)</code> syntax. An explicit fragment colour overrides the splice-site colours and bypasses the conflict check.
 		</p>
 
 		<h3>Label Deduplication</h3>
