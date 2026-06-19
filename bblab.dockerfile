@@ -25,7 +25,8 @@ RUN apt-get install -qq unzip wget vim curl \
         libxml2-dev libcurl4-openssl-dev libssl-dev \
         gfortran liblapack-dev libblas-dev libopenblas-dev git \
         libcairo2-dev cmake gobject-introspection \
-        libgirepository1.0-dev libdbus-1-dev pkg-config
+        libgirepository1.0-dev libdbus-1-dev pkg-config \
+        libuv1-dev
 
 # set the timezone for Vancouver, so that datetime.now() returns our
 # local time, not UTC.
