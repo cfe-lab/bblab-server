@@ -7,6 +7,7 @@ This file is responsible for parsing of:
 """
 
 import csv
+import re
 from dataclasses import dataclass
 from typing import Iterator, Literal, Optional, Sequence, TypeAlias
 import multicsv
@@ -105,41 +106,58 @@ def parse_fragment(
             next_str=next_str,
         )
 
-    # Extract optional trailing colour annotation: "...(colour)"
+    # Colour annotation pattern: trailing "(<colour>)" with optional whitespace
+    _COLOUR_RE = re.compile(r"(?P<range>.+?)\s*\((?P<colour>[^()]*)\)\s*\Z")
+
     colour = None
     range_str = fragment_str
 
-    if fragment_str.endswith(")"):
-        open_idx = fragment_str.rfind("(")
-        if open_idx != -1:
-            colour_raw = fragment_str[open_idx + 1:-1].strip()
-            range_str = fragment_str[:open_idx].strip()
+    # If the fragment contains parentheses, require a valid trailing colour annotation
+    if "(" in fragment_str or ")" in fragment_str:
+        match = _COLOUR_RE.match(fragment_str)
+        if not match:
+            raise ex.InvalidFragmentColourSyntaxError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
 
-            # Check for multiple parenthesized groups
-            if "(" in range_str or ")" in range_str:
-                raise ex.InvalidFragmentColourSyntaxError(
-                    fragment_str=raw_fragment,
-                    previous_str=previous_str,
-                    next_str=next_str,
-                )
+        range_str = match.group("range").strip()
+        colour_raw = match.group("colour").strip()
 
-            if not colour_raw:
-                raise ex.EmptyFragmentColourError(
-                    fragment_str=raw_fragment,
-                    previous_str=previous_str,
-                    next_str=next_str,
-                )
+        # Range part must not contain parentheses
+        if "(" in range_str or ")" in range_str:
+            raise ex.InvalidFragmentColourSyntaxError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
 
-            if colour_raw not in ALLOWED_COLOURS:
-                raise ex.InvalidFragmentColourError(
-                    fragment_str=raw_fragment,
-                    colour=colour_raw,
-                    allowed_colours=ALLOWED_COLOURS,
-                    previous_str=previous_str,
-                    next_str=next_str,
-                )
+        # Range must not end with a bare dash (colour used as end coordinate)
+        if range_str.endswith("-"):
+            raise ex.InvalidFragmentColourSyntaxError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
 
-            colour = colour_raw
+        if not colour_raw:
+            raise ex.EmptyFragmentColourError(
+                fragment_str=raw_fragment,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+        if colour_raw not in ALLOWED_COLOURS:
+            raise ex.InvalidFragmentColourError(
+                fragment_str=raw_fragment,
+                colour=colour_raw,
+                allowed_colours=ALLOWED_COLOURS,
+                previous_str=previous_str,
+                next_str=next_str,
+            )
+
+        colour = colour_raw
 
     # Validate range shape before parsing integers
     dash_count = range_str.count("-")
