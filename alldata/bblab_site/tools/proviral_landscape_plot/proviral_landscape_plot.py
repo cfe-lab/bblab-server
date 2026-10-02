@@ -595,14 +595,17 @@ class PlotTitle:
     def draw(self, x=0, y=0, xscale=1.0):
         d = draw.Group(transform="translate({} {})".format(x, y))
         center_x = self.w * xscale / 2
+        # y grows upwards inside this inverted context, so the title takes the
+        # top of the block and the sample count sits on the line below it
+        title_y = self.h - 0.8 * self.font_size
         d.append(draw.Text(self.text, self.font_size,
-                           center_x, self.font_size,
+                           center_x, title_y,
                            font_family='monospace',
                            text_anchor='middle',
                            fill='black'))
         if self.samples is not None:
             d.append(draw.Text(f'N={self.samples}', self.sub_font_size,
-                               center_x, self.font_size + self.sub_font_size + 6,
+                               center_x, title_y - self.font_size - 6,
                                font_family='monospace',
                                text_anchor='middle',
                                fill='black'))
@@ -1061,8 +1064,12 @@ def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS,
     def from_top(distance):
         return distance - page_h
 
-    # the shared legend sits at the bottom of the page, with the grid above it
-    legend_top = page_h - page_margin - legend_h
+    # The shared legend sits below the grid, separated by the gap the height
+    # budget reserved for it. Measuring from the grid rather than from the
+    # bottom of the page keeps the two from overlapping when the content does
+    # not fill the paper exactly.
+    grid_h_mm = num_rows * panel_h_units * unit + (num_rows - 1) * plot_gap
+    legend_top = grid_top + grid_h_mm + PLOT_GAP_MM
 
     # Each figure is drawn in plot units inside a group scaled onto the page, so
     # that the tracks, the gaps and the fonts all scale together.
