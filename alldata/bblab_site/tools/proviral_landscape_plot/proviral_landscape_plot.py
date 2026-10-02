@@ -508,8 +508,8 @@ class LegendAndPercentages:
 
 class PlotTitle:
     """A title drawn above a plot, with an optional sample count underneath"""
-    def __init__(self, text, samples=None, font_size=24, height=38,
-                 sub_font_size=15, sub_height=24):
+    def __init__(self, text, samples=None, font_size=34, height=54,
+                 sub_font_size=21, sub_height=33):
         self.text = str(text)
         self.samples = samples
         self.font_size = font_size
@@ -976,15 +976,7 @@ def build_proviral_figure(lines, title=None, lineheight=None, with_legend=True):
     # the title comes first so that it ends up above everything else
     if title:
         figure.add(PlotTitle(str(title), samples=total_samples or None), gap=10)
-    # add genome overview at the top of the figure so it appears above sample tracks
-    add_genome_overview(figure, LANDMARKS)
-    # add a small blank multitrack to create vertical separation between the overview
-    # and the sample tracks (gap value tuned experimentally)
-    try:
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
-    except TypeError:
-        # fallback if Track signature differs; attempt without named color
-        figure.add(Multitrack([Track(START_POS + XOFFSET, START_POS + XOFFSET, color='#ffffff', h=2)]), gap=8)
+    
     # keep raw counts while building percentages later
     defect_counts = defaultdict(int)
     highlighted_set = set()
