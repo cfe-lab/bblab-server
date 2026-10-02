@@ -139,12 +139,36 @@ SIDEBAR_FONT_MM = 2.4
 LEGEND_FONT_MM = 2.6
 
 # vertical space each plot needs on the page for everything that is not a
-# sample track, in millimetres
-TITLE_CHROME_MM = 9.0
-XAXIS_CHROME_MM = 10.0
+# sample track. Both are worked out from the factors the drawing itself uses
+# (see PlotTitle and ProviralLandscapePlot.add_xaxis), so the height budget
+# cannot drift away from what is really drawn.
+# the title is two lines of text, the gap under it is in plot units and added
+# by the page, which knows how big a plot unit is on the paper
+TITLE_GAP_UNITS = 10
+TITLE_CHROME_MM = 1.6 * TITLE_FONT_MM + 1.6 * SUBTITLE_FONT_MM
+# the x axis is a thin line with room above it for the gap to the tracks and
+# room below it for the tick labels and the axis title
+AXIS_PADDING_FACTOR = 0.5
+AXIS_GAP_FACTOR = 2.5
+AXIS_THICKNESS_FACTOR = 0.15
+# the space the tick labels and the axis title need below the axis line, as a
+# multiple of the axis font size; XAxis reserves exactly this much
+AXIS_LABEL_SPACE_FACTOR = 4.0
+# How far a plot hangs below the box the page lays it out in. The axis title
+# sits further below the axis line than the figure reserves for the axis, so
+# the drawn axis reaches past the bottom of that box by this much, as a
+# multiple of the axis font size.
+AXIS_TITLE_OFFSET_FACTOR = 3.5
+AXIS_OVERHANG_FACTOR = AXIS_TITLE_OFFSET_FACTOR + 0.2 - AXIS_GAP_FACTOR
+XAXIS_CHROME_MM = (AXIS_PADDING_FACTOR + AXIS_GAP_FACTOR
+                   + AXIS_THICKNESS_FACTOR + AXIS_LABEL_SPACE_FACTOR) \
+    * XAXIS_FONT_MM
 # the shared legend strip below the grid: one row of entries plus padding
 LEGEND_ROW_MM = 3.5
 LEGEND_PADDING_MM = 3.0
+# the gap a turned legend keeps from the plots around it when it goes into a
+# free corner of the grid instead of into the strip below it
+LEGEND_CORNER_GAP_MM = 3.0
 
 # Plot-unit font sizes for a page that is not tied to a paper size. These only
 # matter for --page-size fit.
@@ -622,6 +646,17 @@ class SharedLegend:
     ROW_HEIGHT = 20
     FONT_SIZE = 15
     BAR_HEIGHT = 10
+    # the gap between two entries of a turned legend
+    LEGEND_ENTRY_GAP = 10
+    # the gap between the swatch of a turned entry and its label
+    LEGEND_LABEL_GAP = 10
+    # how deep a label is across the page, as a multiple of the font size: the
+    # band of glyphs that has to line up with the swatch it belongs to
+    LABEL_BAND_FACTOR = 0.7
+    # how wide one character of a monospace label is, as a multiple of the font
+    # size; it is what a label is measured with, since nothing here can measure
+    # real text
+    CHAR_WIDTH_FACTOR = 0.6
     # the sizes above are the ones for a 15px font; anything else scales from
     # here
     FONT_SIZE_DEFAULT = 15
@@ -639,33 +674,116 @@ class SharedLegend:
             self.BAR_HEIGHT = self.BAR_HEIGHT * font_size / self.FONT_SIZE_DEFAULT
         num_rows = ceil(len(self.entries) / self.num_columns)
         self.h = max(1, num_rows) * self.ROW_HEIGHT + self.padding
-        # column width: bar + gap + widest label (6px per monospace char at 15px)
+        # column width: bar + gap + widest label
         widest = max((len(e) for e in self.entries), default=0)
-        label_width = widest * self.FONT_SIZE * 0.6 + 20
+        label_width = widest * self.label_length('') + 20
         self.column_width = self.bar_width + 12 + label_width
         self.w = self.num_columns * self.column_width
 
+    def label_length(self, entry):
+        """How far a label runs along its baseline."""
+        return len(entry) * self.FONT_SIZE * self.CHAR_WIDTH_FACTOR
+
+    def turned_entry_band(self):
+        """
+        How deep one turned entry is across the page.
+
+        A turned entry is a swatch with its label on the same vertical line, so
+        the band is as deep as the deeper of the two, and the shallower one sits
+        in the middle of it.
+        """
+        return max(self.BAR_HEIGHT, self.LABEL_BAND_FACTOR * self.FONT_SIZE)
+
+    def turned_entry_pitch(self):
+        """How far apart two turned entries sit across the page."""
+        return self.turned_entry_band() + self.LEGEND_ENTRY_GAP
+
+    def turned_size(self):
+        """
+        The (width, height) of the block that draw_rotated draws.
+
+        Turning the legend swaps the two: the entries march across the page
+        instead of down it, and the block is as deep as a turned entry, which is
+        the label above its swatch, plus padding at either end.
+        """
+        entries = [e for e in self.entries if self.color_of(e) is not None]
+        band = self.turned_entry_band()
+        width = (2 * self.padding
+                 + (len(entries) - 1) * self.turned_entry_pitch() + band)
+        longest = max((self.label_length(e) for e in entries), default=0)
+        height = (2 * self.padding + self.bar_width + self.LEGEND_LABEL_GAP
+                  + longest)
+        return width, height
+
+    @staticmethod
+    def color_of(entry):
+        """The swatch color of a legend entry, or None when there is none."""
+        if entry in DEFECT_TO_COLOR:
+            return DEFECT_TO_COLOR[entry]
+        if entry in HIGHLIGHT_COLORS:
+            return HIGHLIGHT_COLORS[entry]
+        print(f"No color defined for defect {entry}")
+        return None
+
     def draw(self, x=0, y=0, xscale=1.0):
+        """Draw the legend as a horizontal block below its origin."""
         d = draw.Group(transform="translate({} {})".format(x, y))
         num_per_column = ceil(len(self.entries) / self.num_columns)
         for i, entry in enumerate(self.entries):
-            try:
-                color = DEFECT_TO_COLOR[entry]
-            except KeyError:
-                try:
-                    color = HIGHLIGHT_COLORS[entry]
-                except KeyError:
-                    print(f"No color defined for defect {entry}")
-                    continue
+            color = self.color_of(entry)
+            if color is None:
+                continue
             column = i // num_per_column
             row = i % num_per_column
             xpos = column * self.column_width
             ypos = self.padding + row * self.ROW_HEIGHT
-            d.append(draw.Rectangle(xpos, ypos, self.bar_width, self.BAR_HEIGHT,
-                                    fill=color, stroke=color))
+            d.append(draw.Rectangle(xpos, ypos, self.bar_width,
+                                    self.BAR_HEIGHT, fill=color, stroke=color))
             d.append(draw.Text(entry, self.FONT_SIZE,
                                xpos + self.bar_width + 12,
                                ypos + self.BAR_HEIGHT / 2 - 2,
+                               font_family='monospace',
+                               fill='black'))
+        return d
+
+    def draw_rotated(self):
+        """
+        Draw the legend turned a quarter turn counter-clockwise, so that it
+        reads from the bottom up and its entries march across the page.
+
+        Every entry is turned as a whole, so the swatch of an entry and its
+        label stay together: the label sits above its swatch, on the same
+        vertical line. The swatches are all bottom aligned, so the entries read
+        as one row of colours with their names above them.
+
+        The block is turned_size() wide and tall, measured from its bottom left
+        corner, with y counting up the page: the page flips every y it is
+        handed. A legend with one column is what usually goes into a free
+        corner, because then it is about as wide as it is deep.
+        """
+        d = draw.Group()
+        band = self.turned_entry_band()
+        label_band = self.LABEL_BAND_FACTOR * self.FONT_SIZE
+        entries = [e for e in self.entries if self.color_of(e) is not None]
+        for i, entry in enumerate(entries):
+            color = self.color_of(entry)
+            xpos = self.padding + i * self.turned_entry_pitch()
+            # the swatch and its label share the band of the entry, each
+            # centered in it so that both sit on the same vertical line
+            d.append(draw.Rectangle(xpos + (band - self.BAR_HEIGHT) / 2,
+                                    self.padding,
+                                    self.BAR_HEIGHT, self.bar_width,
+                                    fill=color, stroke=color))
+            # The label reads upwards, so it starts above its swatch and runs
+            # from there. Turned, the glyphs of a text sit to the left of its
+            # baseline, so the baseline is half the band past the start of the
+            # band. The page flips every y it is handed, so the rotation has
+            # to be about the flipped position.
+            tx = xpos + (band + label_band) / 2
+            ty = self.padding + self.bar_width + self.LEGEND_LABEL_GAP
+            d.append(draw.Text(entry, self.FONT_SIZE, tx, ty,
+                               text_anchor='start',
+                               transform="rotate(-90 {} {})".format(tx, -ty),
                                font_family='monospace',
                                fill='black'))
         return d
@@ -843,6 +961,33 @@ def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
     return sorted_samples
 
 
+def free_grid_slots(num_plots, columns, num_rows):
+    """
+    The parts of a plot grid that hold no plot.
+
+    Plots fill the grid from the top left, so what is left over is a run of
+    cells at the end of the last row. Each slot is returned as (row, first
+    column, number of columns), biggest and lowest first, so that a caller that
+    needs one piece of free space gets the free corner of the grid.
+    """
+    occupied = {divmod(i, columns) for i in range(num_plots)}
+    slots = []
+    for row in range(num_rows):
+        column = 0
+        while column < columns:
+            if (row, column) in occupied:
+                column += 1
+                continue
+            first = column
+            while column < columns and (row, column) not in occupied:
+                column += 1
+            slots.append((row, first, column - first))
+    # the corner at the bottom of the page is the one worth having, and within
+    # a row the rightmost run of cells is the one that reads as a corner
+    slots.sort(key=lambda slot: (-slot[0], -slot[2], -slot[1]))
+    return slots
+
+
 def create_proviral_plot(input_file, output_svg, dpi=None):
     """
     Draw a single proviral landscape plot and write it to output_svg.
@@ -996,22 +1141,64 @@ def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS,
                     defect_types.append(defect)
         return built, defect_types, highlighted_types
 
-    def make_legend(defect_types, highlighted_types):
+    def make_legend(defect_types, highlighted_types, num_columns=None):
         return SharedLegend(sorted(defect_types, key=defect_type_order),
                             sorted(highlighted_types),
-                            num_columns=legend_columns,
+                            num_columns=(legend_columns if num_columns is None
+                                         else num_columns),
                             font_size=legend_font_size)
 
-    # The legend depends on which defects the plots turned out to hold, and how
-    # tall each plot is depends on how much room the legend leaves, so build
-    # once to find out, then build again for real.
-    worst_case_entries = len(DEFECT_TO_COLOR) + len(HIGHLIGHT_COLORS)
-    block_height = block_height_for(legend_height_mm(worst_case_entries))
-    figures, defect_types, highlighted_types = build_figures(block_height)
-    legend = make_legend(defect_types, highlighted_types)
-    block_height = block_height_for(legend_height_mm(len(legend.entries)))
-    figures, defect_types, highlighted_types = build_figures(block_height)
-    legend = make_legend(defect_types, highlighted_types)
+    # Where the legend goes. The strip below the grid always works, but a grid
+    # whose last row is not full has an empty corner, and a legend turned on
+    # its side fits in a corner of a single plot, which is nicer: the plots get
+    # the whole height of the paper, and nothing overlaps anything.
+    #
+    # A turned legend is as wide as the horizontal one is tall, so it is built
+    # with a single column, and it is measured against the free cells the grid
+    # leaves over. When no corner is big enough the strip below the grid is
+    # used after all.
+    def corner_legend_slot():
+        """
+        Find a free corner of the grid that a turned legend fits into.
+
+        Returns (row, first column, column count, legend, track budget of the
+        plots), or None when the grid is full or every corner is too small.
+        """
+        # without a strip below it, the plots can have the whole paper height
+        block_height = block_height_for(0)
+        corner_figures, defect_types, highlighted_types = build_figures(
+            block_height)
+        legend = make_legend(defect_types, highlighted_types, num_columns=1)
+        turned_w, turned_h = legend.turned_size()
+        panel_h = max(figure.h for figure in corner_figures)
+        # the corner gap keeps the legend clear of the plots around it
+        margin = ((LEGEND_CORNER_GAP_MM if paper_w_mm is not None
+                   else PLOT_GAP / 2) / unit)
+        for row, column, span in free_grid_slots(len(inputs), columns,
+                                                 num_rows):
+            slot_w = span * PLOT_WIDTH + (span - 1) * (plot_gap / unit)
+            if (turned_w + 2 * margin <= slot_w
+                    and turned_h + 2 * margin <= panel_h):
+                return row, column, span, legend, block_height
+        return None
+
+    corner = corner_legend_slot()
+    if corner is not None:
+        _, _, _, legend, block_height = corner
+        figures, defect_types, highlighted_types = build_figures(block_height)
+        legend_in_corner = True
+    else:
+        # The legend depends on which defects the plots turned out to hold, and
+        # how tall each plot is depends on how much room the legend leaves, so
+        # build once to find out, then build again for real.
+        worst_case_entries = len(DEFECT_TO_COLOR) + len(HIGHLIGHT_COLORS)
+        block_height = block_height_for(legend_height_mm(worst_case_entries))
+        figures, defect_types, highlighted_types = build_figures(block_height)
+        legend = make_legend(defect_types, highlighted_types)
+        block_height = block_height_for(legend_height_mm(len(legend.entries)))
+        figures, defect_types, highlighted_types = build_figures(block_height)
+        legend = make_legend(defect_types, highlighted_types)
+        legend_in_corner = False
 
     # A sample can show up under more than one defect category, so a plot can
     # come out a track or two taller than planned. Pad the shorter plots with a
@@ -1032,24 +1219,26 @@ def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS,
     # physical size, so it prints, or rasterizes, at exactly the right
     # dimensions whatever resolution is asked for. Without a paper size the page
     # stays in plot units and simply grows to fit.
-    legend_h_mm = (legend_height_mm(len(legend.entries)) if paper_w_mm is not None
-                   else legend.h)
+    # A legend that goes into a free corner of the grid takes no room below the
+    # grid at all, so only the strip below the grid counts towards the height
+    # of the content.
+    legend_h_mm = (0.0 if legend_in_corner
+                   else (legend_height_mm(len(legend.entries))
+                         if paper_w_mm is not None else legend.h))
     content_w_mm = grid_w_units * unit
     content_h_mm = (num_rows * panel_h_units * unit
                     + (num_rows - 1) * plot_gap + PLOT_GAP_MM + legend_h_mm)
     if paper_w_mm is None:
         page_w = grid_w_units
         page_h = (num_rows * panel_h_units + (num_rows - 1) * PLOT_GAP
-                  + legend.h + PLOT_GAP)
+                  + legend_h_mm)
         grid_left = 0.0
         grid_top = 0.0
-        legend_h = legend.h
     else:
         page_w = paper_w_mm
         page_h = paper_h_mm
         grid_left = (page_w - content_w_mm) / 2
         grid_top = (page_h - content_h_mm) / 2
-        legend_h = legend_h_mm
 
     page = draw.Drawing(page_w, page_h, origin=(0, 0),
                         context=draw.Context(invert_y=True))
@@ -1057,19 +1246,13 @@ def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS,
         # declare the physical size; the viewBox is in millimetres
         page.svg_args = {'width': f'{page_w:g}mm', 'height': f'{page_h:g}mm'}
 
-    # In this inverted context a figure or legend drawn at translate y=0 ends up at
-    # the bottom of the page, so a distance measured downwards from the top of
-    # the page converts to (distance - page_h). Elements drawn relative to a
-    # group hang above it, so callers add the height of what they place.
+    # The page flips the y axis of everything drawn into it, so a block that is
+    # drawn downwards from its origin ends up above that origin. Content is
+    # therefore placed by its bottom edge: a distance measured downwards from
+    # the top of the page becomes (distance - page_h), and the block hangs
+    # upwards from there.
     def from_top(distance):
         return distance - page_h
-
-    # The shared legend sits below the grid, separated by the gap the height
-    # budget reserved for it. Measuring from the grid rather than from the
-    # bottom of the page keeps the two from overlapping when the content does
-    # not fill the paper exactly.
-    grid_h_mm = num_rows * panel_h_units * unit + (num_rows - 1) * plot_gap
-    legend_top = grid_top + grid_h_mm + PLOT_GAP_MM
 
     # Each figure is drawn in plot units inside a group scaled onto the page, so
     # that the tracks, the gaps and the fonts all scale together.
@@ -1088,12 +1271,37 @@ def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS,
             group.append(element.draw(xscale=xscale, y=y_local - figure.h))
         page.append(group)
 
-    # shared legend: horizontally centered, at the bottom of the page. The
-    # legend draws downwards from its origin, so its origin is its top edge.
-    legend_x = (page_w - legend.w * unit) / 2
-    legend_group = draw.Group(transform="translate({} {}) scale({})".format(
-        legend_x, from_top(legend_top), unit))
-    legend_group.append(legend.draw())
+    if legend_in_corner:
+        # A turned legend in the free corner of the grid: its width and height
+        # are the other way round from the horizontal one, and it is centered
+        # across the cells no plot was put in. Its lowest point sits on the
+        # lowest point of the plots of that row, which is the bottom of the
+        # row as far as the drawn axis title reaches below it.
+        row, column, span = corner[:3]
+        slot_left = grid_left + column * (panel_w_mm + plot_gap)
+        slot_w_mm = span * panel_w_mm + (span - 1) * plot_gap
+        slot_top = grid_top + row * (panel_h_mm + plot_gap)
+        turned_w_mm, turned_h_mm = (size * unit
+                                    for size in legend.turned_size())
+        axis_font = (XAXIS_FONT_MM if paper_w_mm is not None
+                     else XAXIS_FONT_SIZE * unit)
+        legend_x = slot_left + (slot_w_mm - turned_w_mm) / 2
+        legend_bottom = (slot_top + panel_h_mm
+                         + AXIS_OVERHANG_FACTOR * axis_font)
+        legend_group = draw.Group(transform="translate({} {}) scale({})".format(
+            legend_x, from_top(legend_bottom), unit))
+        legend_group.append(legend.draw_rotated())
+    else:
+        # The shared legend sits below the grid, separated by the gap the height
+        # budget reserved for it. Measuring from the grid rather than from the
+        # bottom of the page keeps the two from overlapping when the content
+        # does not fill the paper exactly.
+        grid_h_mm = num_rows * panel_h_units * unit + (num_rows - 1) * plot_gap
+        legend_top = grid_top + grid_h_mm + PLOT_GAP_MM
+        legend_x = (page_w - legend.w * unit) / 2
+        legend_group = draw.Group(transform="translate({} {}) scale({})".format(
+            legend_x, from_top(legend_top + legend_h_mm), unit))
+        legend_group.append(legend.draw())
     page.append(legend_group)
 
     if dpi:
