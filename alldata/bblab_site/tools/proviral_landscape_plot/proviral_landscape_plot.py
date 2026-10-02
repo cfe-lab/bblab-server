@@ -1,3 +1,4 @@
+import os
 from csv import DictReader
 from argparse import ArgumentParser
 from genetracks import Figure, Track, Multitrack, Label
@@ -78,6 +79,10 @@ DEFECT_ORDER = {'Intact': 10,
                 'Chimera': 80,
                 }
 
+# the columns an input csv has to provide
+REQUIRED_COLUMNS = ['samp_name', 'ref_start', 'ref_end', 'defect',
+                    'is_defective', 'is_inverted']
+
 START_POS = 638
 END_POS = 9632
 LEFT_PRIMER_END = 666
@@ -85,6 +90,23 @@ RIGHT_PRIMER_START = 9604
 GAG_END = 2292
 XOFFSET = 400
 SMALLEST_GAP = 50
+
+# height (in unscaled plot units) that is reserved for the sample tracks of a
+# single plot. When several plots are drawn on one page every plot gets the
+# same amount of room for its samples, so that the proportions of the defect
+# categories are directly comparable between plots.
+SAMPLE_BLOCK_HEIGHT = 800
+# tracks are never squeezed below this height; plots with a huge number of
+# samples make every plot on the page taller instead
+MIN_LINEHEIGHT = 0.5
+# vertical space inserted between two consecutive sample tracks
+SAMPLE_GAP = 1
+
+# grid layout
+GRID_COLUMNS = 3
+PLOT_WIDTH = 900
+PLOT_GAP = 40
+PAGE_MARGIN = 20
 
 # default HXB2 landmarks for the small overview graphic
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
@@ -484,16 +506,102 @@ class LegendAndPercentages:
         return d
 
 
+class PlotTitle:
+    """A title drawn above a plot, with an optional sample count underneath"""
+    def __init__(self, text, samples=None, font_size=24, height=38,
+                 sub_font_size=15, sub_height=24):
+        self.text = str(text)
+        self.samples = samples
+        self.font_size = font_size
+        self.h = height
+        self.sub_font_size = sub_font_size
+        self.sub_height = sub_height
+        if samples is not None:
+            self.h += sub_height
+        # match the width of the widest element so the title is centered on the
+        # plot area rather than on the page
+        self.w = XAxis().w
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        d = draw.Group(transform="translate({} {})".format(x, y))
+        center_x = self.w * xscale / 2
+        d.append(draw.Text(self.text, self.font_size,
+                           center_x, self.font_size,
+                           font_family='monospace',
+                           text_anchor='middle',
+                           fill='black'))
+        if self.samples is not None:
+            d.append(draw.Text(f'N={self.samples}', self.sub_font_size,
+                               center_x, self.font_size + self.sub_font_size + 6,
+                               font_family='monospace',
+                               text_anchor='middle',
+                               fill='black'))
+        return d
+
+
+class SharedLegend:
+    """
+    A single legend for a page holding several plots.
+
+    Entries are laid out in columns and the whole block is centered on the page,
+    below all plots.
+    """
+    ROW_HEIGHT = 20
+    FONT_SIZE = 15
+    BAR_HEIGHT = 10
+
+    def __init__(self, defect_types, highlighted_types, num_columns=3,
+                 bar_width=60, padding=16):
+        self.entries = list(defect_types) + list(highlighted_types)
+        self.num_columns = max(1, num_columns)
+        self.bar_width = bar_width
+        self.padding = padding
+        num_rows = ceil(len(self.entries) / self.num_columns)
+        self.h = max(1, num_rows) * self.ROW_HEIGHT + self.padding
+        # column width: bar + gap + widest label (6px per monospace char at 15px)
+        widest = max((len(e) for e in self.entries), default=0)
+        label_width = widest * self.FONT_SIZE * 0.6 + 20
+        self.column_width = self.bar_width + 12 + label_width
+        self.w = self.num_columns * self.column_width
+
+    def draw(self, x=0, y=0, xscale=1.0):
+        d = draw.Group(transform="translate({} {})".format(x, y))
+        num_per_column = ceil(len(self.entries) / self.num_columns)
+        for i, entry in enumerate(self.entries):
+            try:
+                color = DEFECT_TO_COLOR[entry]
+            except KeyError:
+                try:
+                    color = HIGHLIGHT_COLORS[entry]
+                except KeyError:
+                    print(f"No color defined for defect {entry}")
+                    continue
+            column = i // num_per_column
+            row = i % num_per_column
+            xpos = column * self.column_width
+            ypos = self.padding + row * self.ROW_HEIGHT
+            d.append(draw.Rectangle(xpos, ypos, self.bar_width, self.BAR_HEIGHT,
+                                    fill=color, stroke=color))
+            d.append(draw.Text(entry, self.FONT_SIZE,
+                               xpos + self.bar_width + 12,
+                               ypos + self.BAR_HEIGHT / 2 - 2,
+                               font_family='monospace',
+                               fill='black'))
+        return d
+
+
 class ProviralLandscapePlot:
-    def __init__(self, figure, tot_samples):
+    def __init__(self, figure, tot_samples, lineheight=None):
         self.curr_samp_name = ''
         self.defects = set()
         self.figure = figure
         self.curr_multitrack = []
         self.tot_samples = tot_samples
-        self.lineheight = 500 / self.tot_samples if self.tot_samples > 0 else 0
-        if self.lineheight > 5:
-            self.lineheight = 5
+        if lineheight is None:
+            lineheight = 500 / self.tot_samples if self.tot_samples > 0 else 0
+            if lineheight > 5:
+                lineheight = 5
+        self.lineheight = lineheight
         self.xaxisheight = 0
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
@@ -526,7 +634,7 @@ class ProviralLandscapePlot:
     def draw_current_multitrack(self):
         # draw line and reset multitrack
         if self.curr_multitrack:
-            self.figure.add(Multitrack(self.curr_multitrack), gap=1)
+            self.figure.add(Multitrack(self.curr_multitrack), gap=SAMPLE_GAP)
         self.curr_multitrack = []
 
     def add_xaxis(self):
@@ -642,12 +750,232 @@ def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
 
 
 def create_proviral_plot(input_file, output_svg):
-    # read all rows, set up figure and counters
-    lines = list(DictReader(input_file))
+    """
+    Draw a single proviral landscape plot and write it to output_svg.
+
+    input_file is an open file object or any iterable of csv dict rows.
+    """
+    lines = read_landscape_rows(input_file, source=getattr(input_file, 'name', 'input'))
+    figure, _, _ = build_proviral_figure(lines, title=None)
+    # display with a standard width so the overview is visible
+    figure.show(w=PLOT_WIDTH).save_svg(output_svg)
+
+
+def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS):
+    """
+    Draw one proviral landscape plot per input file onto a single SVG page.
+
+    csv_files : list of paths to proviral landscape csv files
+    output_svg: path of the svg to write
+    columns   : number of plots per row; the remaining plots wrap onto further
+                rows
+
+    Every plot is given the same height so that the proportions of the defect
+    categories can be compared directly between plots. One legend is drawn for
+    the whole page, centered below the plots.
+    """
+    inputs = list(csv_files)
+    if not inputs:
+        raise ValueError("No input csv files given")
+    missing = [path for path in inputs if not os.path.exists(path)]
+    if missing:
+        raise FileNotFoundError("Input csv file(s) not found: "
+                                + ", ".join(missing))
+
+    # read everything first, so the sample counts are known before we decide how
+    # tall each sample track has to be
+    rows_by_file = []
+    sample_counts = []
+    for path in inputs:
+        lines = read_landscape_csv(path)
+        rows_by_file.append(lines)
+        sample_counts.append(count_samples(lines))
+
+    # Every plot gets the same room for its sample tracks: a plot with many
+    # samples simply gets thinner tracks than a plot with few. Each sample also
+    # costs a fixed gap, so that has to come out of the same budget, otherwise
+    # plots with more samples end up taller.
+    block_height = SAMPLE_BLOCK_HEIGHT
+    if sample_counts:
+        needed = max(sample_counts) * (MIN_LINEHEIGHT + SAMPLE_GAP)
+        if needed > block_height:
+            block_height = needed
+
+    figures = []
+    highlighted_types = set()
+    defect_types = []
+    for path, lines, num_samples in zip(inputs, rows_by_file, sample_counts):
+        if num_samples > 0:
+            lineheight = block_height / num_samples - SAMPLE_GAP
+            if lineheight < 0:
+                lineheight = 0
+        else:
+            lineheight = 0
+        figure, defects, highlighted = build_proviral_figure(
+            lines,
+            title=plot_title(path),
+            lineheight=lineheight,
+            with_legend=False,
+        )
+        figures.append(figure)
+        highlighted_types |= highlighted
+        for defect in defects:
+            if defect not in defect_types:
+                defect_types.append(defect)
+
+    legend = SharedLegend(sorted(defect_types, key=defect_type_order),
+                          sorted(highlighted_types),
+                          num_columns=max(columns, 1))
+
+    # give every plot the same on-page width and height
+    panel_w = PLOT_WIDTH
+    panel_h = max(figure.h for figure in figures)
+    # A sample can show up under more than one defect category, so a plot can
+    # end up a track or two taller than planned. Pad the shorter plots with a
+    # blank track so that every plot is exactly the same height.
+    for figure in figures:
+        missing = panel_h - figure.h
+        if missing > 0:
+            figure.add(Multitrack([Track(START_POS + XOFFSET,
+                                          START_POS + XOFFSET,
+                                          color='#ffffff', h=missing)]),
+                       gap=0)
+    # a common horizontal scale keeps plots directly comparable
+    xscale = panel_w / max(figure.w for figure in figures)
+
+    num_rows = ceil(len(figures) / columns)
+    grid_w = columns * panel_w + (columns - 1) * PLOT_GAP
+    grid_h = num_rows * panel_h + (num_rows - 1) * PLOT_GAP
+    page_w = grid_w + 2 * PAGE_MARGIN
+    page_h = grid_h + legend.h + 2 * PLOT_GAP + 2 * PAGE_MARGIN
+
+    page = draw.Drawing(page_w, page_h, origin=(0, 0),
+                        context=draw.Context(invert_y=True))
+
+    # In this inverted context a figure or legend drawn at translate y=0 ends up at
+    # the bottom of the page, so a distance measured downwards from the top of
+    # the page converts to (distance - page_h). Elements drawn relative to a
+    # group hang above it, so callers add the height of what they place.
+    def from_top(distance):
+        return distance - page_h
+
+    # the shared legend sits at the bottom of the page, with the grid above it
+    legend_top = page_h - PAGE_MARGIN - legend.h
+    grid_top = PAGE_MARGIN
+
+    for i, figure in enumerate(figures):
+        row, column = divmod(i, columns)
+        x = PAGE_MARGIN + column * (panel_w + PLOT_GAP)
+        row_top = grid_top + row * (panel_h + PLOT_GAP)
+        # center the plot vertically in its row
+        figure_top = row_top + (panel_h - figure.h) / 2
+        # a figure is drawn above the group's origin, one figure height tall
+        group = draw.Group(transform="translate({} {})".format(
+            x, from_top(figure_top + figure.h)))
+        for y_local, element in figure.elements:
+            group.append(element.draw(xscale=xscale, y=y_local - figure.h))
+        page.append(group)
+
+    # shared legend: horizontally centered, at the bottom of the page. The
+    # legend draws downwards from its origin, so its origin is its top edge.
+    legend_x = (page_w - legend.w) / 2
+    page.append(legend.draw(x=legend_x, y=from_top(legend_top)))
+
+    page.save_svg(output_svg)
+
+
+def read_landscape_rows(input_file, source='input'):
+    """
+    Turn an open csv file (or any iterable of raw csv lines) into a list of rows.
+
+    Handles the two things that spreadsheet exports add and hand written csvs
+    get wrong: a utf-8 byte order mark and whitespace around the header names.
+    Rows without a sample name (blank trailing lines, stray separators) are
+    dropped.
+    """
+    if hasattr(input_file, 'read'):
+        input_file = input_file.read()
+    if isinstance(input_file, (str, bytes)):
+        if isinstance(input_file, bytes):
+            input_file = input_file.decode('utf-8-sig')
+        elif input_file.startswith('\ufeff'):
+            input_file = input_file.lstrip('\ufeff')
+        input_file = input_file.splitlines()
+    if all(isinstance(row, dict) for row in input_file):
+        # already parsed rows
+        return [dict(row) for row in input_file]
+
+    reader = DictReader(input_file)
+    # ' samp_name' from a padded header would otherwise silently drop every row
+    reader.fieldnames = [name.strip() if name else name
+                         for name in (reader.fieldnames or [])]
+    missing = [column for column in REQUIRED_COLUMNS
+               if column not in reader.fieldnames]
+    if missing:
+        raise ValueError(
+            "{} is missing the required column(s): {}".format(
+                source, ", ".join(missing)))
+
+    rows = []
+    for row in reader:
+        # a short final line yields None for the columns it did not reach
+        row = {key: (value if value is not None else '')
+               for key, value in row.items()}
+        if row['samp_name'].strip():
+            rows.append(row)
+    return rows
+
+
+def read_landscape_csv(path):
+    """
+    Read a proviral landscape csv file into a list of rows.
+    """
+    with open(path, 'r', encoding='utf-8-sig', newline='') as input_file:
+        return read_landscape_rows(input_file, source=path)
+
+
+def count_samples(lines):
+    """Number of distinct samples in a list of csv rows"""
+    return len(set(r['samp_name'].strip() for r in lines
+                   if r['defect'].strip() in DEFECT_TYPE))
+
+
+def defect_type_order(defect_type):
+    """Sort key that puts defect types in the order they are drawn in"""
+    try:
+        return DEFECT_ORDER[defect_type]
+    except KeyError:
+        return max(DEFECT_ORDER.values()) + 1
+
+
+def plot_title(path):
+    """Derive a plot title from the input file name"""
+    return os.path.splitext(os.path.basename(path))[0]
+
+
+def build_proviral_figure(lines, title=None, lineheight=None, with_legend=True):
+    """
+    Build the Figure for a single proviral landscape plot.
+
+    lines            : list of csv dict rows
+    title            : optional title drawn above the plot
+    lineheight       : height of a single sample track; when given, every plot
+                       can be given the same value so that plots on a shared
+                       page have the same height
+    with_legend      : whether to draw this plot's own legend/sidebar. When
+                       plotting several inputs on one page a shared legend is
+                       drawn instead, so pass False.
+
+    Returns (figure, defect_types, highlighted_types).
+    """
+    # set up figure and counters
     # total unique samples (across all defects)
     total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
     figure = Figure()
-    plot = ProviralLandscapePlot(figure, total_samples)
+    plot = ProviralLandscapePlot(figure, total_samples, lineheight=lineheight)
+    # the title comes first so that it ends up above everything else
+    if title:
+        figure.add(PlotTitle(str(title), samples=total_samples or None), gap=10)
     # add genome overview at the top of the figure so it appears above sample tracks
     add_genome_overview(figure, LANDMARKS)
     # add a small blank multitrack to create vertical separation between the overview
@@ -718,21 +1046,39 @@ def create_proviral_plot(input_file, output_svg):
     # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
-    plot.legends_and_percentages(defect_percentages, highlighted_set, force_move_percentages=neighbour_flag)
-    # display with a standard width so the overview is visible
-    figure.show(w=900).save_svg(output_svg)
+    if with_legend:
+        plot.legends_and_percentages(defect_percentages, highlighted_set,
+                                     force_move_percentages=neighbour_flag)
+    return figure, set(plot.defects), highlighted_set
 
 
-def main():
-    parser = ArgumentParser()
-    parser.add_argument("proviral_landscape_csv",
-                        help="Proviral landscape input file, produced by proviral pipeline")
+def main(argv=None):
+    parser = ArgumentParser(
+        description="Draw proviral landscape plots, one per input csv, onto a "
+                    "single SVG page.")
+    parser.add_argument("proviral_landscape_csvs", nargs='+',
+                        help="Proviral landscape input file(s), produced by the "
+                             "proviral pipeline. One plot is drawn per file. "
+                             "The output file must be given last.")
     parser.add_argument("output_svg",
-                        help="Output SVG")
-    args = parser.parse_args()
+                        help="Output SVG (always the last argument)")
+    parser.add_argument("-c", "--columns", type=int, default=GRID_COLUMNS,
+                        help=f"Number of plots per row (default: {GRID_COLUMNS})")
+    args = parser.parse_args(argv)
 
-    with open(args.proviral_landscape_csv, 'r') as input_file:
-        create_proviral_plot(input_file, args.output_svg)
+    if args.columns < 1:
+        parser.error("--columns must be at least 1")
+    for path in args.proviral_landscape_csvs:
+        if not os.path.exists(path):
+            parser.error("input csv file not found: " + path)
+
+    if len(args.proviral_landscape_csvs) == 1:
+        # a single input still gets the single-plot layout with its own legend
+        lines = read_landscape_csv(args.proviral_landscape_csvs[0])
+        create_proviral_plot(lines, args.output_svg)
+    else:
+        create_proviral_page(args.proviral_landscape_csvs, args.output_svg,
+                             columns=args.columns)
 
 
 if __name__ == '__main__':
