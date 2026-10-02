@@ -20,6 +20,11 @@ test = [
 dev = [
   "mypy",
 ]
+# raster output, for --dpi: svg -> png with cairosvg, png -> tiff with pillow
+raster = [
+  "cairosvg==2.9.1",
+  "pillow==12.3.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -58,4 +63,12 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "drawsvg"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "cairosvg"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "PIL.*"
 ignore_missing_imports = true

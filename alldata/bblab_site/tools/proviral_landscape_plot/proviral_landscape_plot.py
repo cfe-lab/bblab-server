@@ -1,4 +1,5 @@
 import os
+import re
 from csv import DictReader
 from argparse import ArgumentParser
 from genetracks import Figure, Track, Multitrack, Label
@@ -94,7 +95,8 @@ SMALLEST_GAP = 50
 # height (in unscaled plot units) that is reserved for the sample tracks of a
 # single plot. When several plots are drawn on one page every plot gets the
 # same amount of room for its samples, so that the proportions of the defect
-# categories are directly comparable between plots.
+# categories are directly comparable between plots. A page works out its own
+# height from the size of the paper, this is only the fallback.
 SAMPLE_BLOCK_HEIGHT = 800
 # tracks are never squeezed below this height; plots with a huge number of
 # samples make every plot on the page taller instead
@@ -102,11 +104,54 @@ MIN_LINEHEIGHT = 0.5
 # vertical space inserted between two consecutive sample tracks
 SAMPLE_GAP = 1
 
-# grid layout
+# the leading participant number of a sample name, e.g. the 0380 of
+# 0380X00415ANFL11M11-NFLHIVDNA_S158
+PARTICIPANT_PATTERN = re.compile(r'^(\d{4})(?!\d)')
+
+# grid layout. A page that is tied to a paper size works in millimetres; the
+# plots themselves are drawn in "plot units" (PLOT_WIDTH units wide) and scaled
+# onto the page.
 GRID_COLUMNS = 3
 PLOT_WIDTH = 900
+PLOT_GAP_MM = 4.0
+PAGE_MARGIN_MM = 8.0
+# the same two, in plot units, for a page that is not tied to a paper size
 PLOT_GAP = 40
 PAGE_MARGIN = 20
+
+# named paper sizes in millimetres, as (width, height). A page is laid out in
+# plot units and then given the proportions of the paper, so the drawing is
+# resolution independent: the svg declares its physical size and prints, or
+# rasterizes, at whatever resolution is asked for.
+PAGE_SIZES_MM = {
+    'a4-landscape': (297.0, 210.0),
+    'a4-portrait': (210.0, 297.0),
+}
+DEFAULT_PAGE_SIZE = 'a4-landscape'
+
+# A page is laid out in millimetres of paper and the plots are drawn in plot
+# units, scaled onto it. Text is therefore specified by how tall it should end
+# up on the page, and converted to plot units once the scale is known.
+TITLE_FONT_MM = 3.4
+SUBTITLE_FONT_MM = 2.4
+XAXIS_FONT_MM = 2.4
+SIDEBAR_FONT_MM = 2.4
+LEGEND_FONT_MM = 2.6
+
+# vertical space each plot needs on the page for everything that is not a
+# sample track, in millimetres
+TITLE_CHROME_MM = 9.0
+XAXIS_CHROME_MM = 10.0
+# the shared legend strip below the grid: one row of entries plus padding
+LEGEND_ROW_MM = 3.5
+LEGEND_PADDING_MM = 3.0
+
+# Plot-unit font sizes for a page that is not tied to a paper size. These only
+# matter for --page-size fit.
+TITLE_FONT_SIZE = 34
+SUBTITLE_FONT_SIZE = 21
+XAXIS_FONT_SIZE = 20
+SIDEBAR_FONT_SIZE = 20
 
 # default HXB2 landmarks for the small overview graphic
 # assigned to three frames (0/1/2) so overlapping genes stack vertically
@@ -319,12 +364,13 @@ def defect_order(defect):
 
 
 class XAxis:
-    def __init__(self, h=3):
+    def __init__(self, h=3, font_size=XAXIS_FONT_SIZE):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
         self.w = END_POS + XOFFSET + 1500
         self.h = h
         self.color = 'black'
+        self.font_size = font_size
         self.ticks = [i for i in range(1000, 10000, 1000)]
 
     def draw(self, x=0, y=0, xscale=1.0):
@@ -332,6 +378,12 @@ class XAxis:
         a = self.a * xscale
         b = self.b * xscale
         x = x * xscale
+        font_size = self.font_size
+        # the tick marks and their labels are placed relative to the font, so
+        # that they stay put when the font is scaled for a printed page
+        tick_length = -font_size
+        label_offset = -2 * font_size
+        title_offset = -3.5 * font_size
 
         d = draw.Group(transform="translate({} {})".format(x, y))
         d.append(draw.Rectangle(a, 0, b - a, h,
@@ -340,30 +392,38 @@ class XAxis:
         for tick in self.ticks:
             label = str(tick)
             x_tick = (tick + XOFFSET) * xscale
-            d.append(draw.Lines(x_tick, 0, x_tick, -20, stroke=self.color, stroke_width=h))
-            d.append(Label(0, label, font_size=20, offset=-40).draw(x=x_tick))
+            d.append(draw.Lines(x_tick, 0, x_tick, tick_length, stroke=self.color, stroke_width=h))
+            d.append(Label(0, label, font_size=font_size, offset=label_offset).draw(x=x_tick))
 
-        d.append(Label(0, 'Nucleotide Position', font_size=20, offset=-70).draw(x=a + (b - a) / 2))
+        d.append(Label(0, 'Nucleotide Position', font_size=font_size, offset=title_offset).draw(x=a + (b - a) / 2))
 
         return d
 
 
 class LegendAndPercentages:
-    def __init__(self, defect_percentages, highlighted, total_samples, lineheight, xaxisheight, force_move_percentages=False):
+    def __init__(self, defect_percentages, highlighted, total_samples, lineheight, xaxisheight, force_move_percentages=False, with_legend=True, font_size=SIDEBAR_FONT_SIZE):
         self.a = START_POS + XOFFSET
         self.b = END_POS + XOFFSET
-        self.w = self.b - self.a
+        self.font_size = font_size
+        # the figure is as wide as the x axis, which leaves room to the right
+        # of the plot for this sidebar to hang into
+        self.w = XAxis().w
         self.defect_types = defect_percentages.keys()
         self.highlighted_types = highlighted
         self.defect_percentages = defect_percentages
         self.num_samples = total_samples
         # number of legend lines (3 columns)
         self.num_lines = (len(self.defect_types) + len(self.highlighted_types)) / 3
-        self.h = 20 * self.num_lines
+        # without a legend this element is just the percentage sidebar, which
+        # hangs off the sample tracks and needs no room of its own
+        self.h = 20 * self.num_lines if with_legend else 0
         self.lineheight = lineheight
         self.xaxisheight = xaxisheight
         # if True, move percentages into legend (used when any category is small)
         self.force_move_percentages = force_move_percentages
+        # a page draws one legend for all plots, so this element can be asked
+        # for the percentage sidebar only
+        self.with_legend = with_legend
 
     def add_legend(self, a, column_space, barlen, barheight, drawing, include_percentages=False):
         """Draw legend entries. If include_percentages is True, append percentages to legend labels
@@ -485,7 +545,7 @@ class LegendAndPercentages:
         sidebar_x = b + 10
         sidebar_ystart = h + self.xaxisheight + self.num_samples * (self.lineheight + 1)
         yaxis_label_height = h + self.xaxisheight + self.num_samples * (self.lineheight + 1) / 2
-        fontsize = 20
+        fontsize = self.font_size
 
         # Determine whether to move percentages into the legend
         # move_percentages_to_legend is controlled externally via force_move_percentages flag
@@ -493,31 +553,41 @@ class LegendAndPercentages:
 
         d = draw.Group(transform="translate({} {})".format(x, y))
 
-        d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height + 12).draw(x=(a - 30)))
-        d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height - 12).draw(x=(a - 30)))
+        # On a page the sample count is already printed under the plot title, so
+        # the "Seq." / "N=" axis labels would only repeat it.
+        if self.with_legend:
+            d.append(Label(-10, "Seq.", font_size=20, offset=yaxis_label_height + 12).draw(x=(a - 30)))
+            d.append(Label(-10, f"N={self.num_samples}", font_size=20, offset=yaxis_label_height - 12).draw(x=(a - 30)))
 
-        # draw legend; optionally include percentages in the legend labels
-        self.add_legend(a, column_space, barlen, barheight, d, include_percentages=move_percentages_to_legend)
+            # draw legend; optionally include percentages in the legend labels
+            self.add_legend(a, column_space, barlen, barheight, d,
+                            include_percentages=move_percentages_to_legend)
 
-        # only draw the sidebar when percentages are not moved into the legend
-        if not move_percentages_to_legend:
-            self.add_sidebar(sidebar_x, sidebar_ystart, fontsize, d)
+        # only draw the sidebar when percentages are not moved into the legend.
+        # A page has one legend for all plots, so its percentages always go into
+        # the sidebar, however small the categories are.
+        if self.with_legend and move_percentages_to_legend:
+            return d
+        if not self.defect_types:
+            return d
+        self.add_sidebar(sidebar_x, sidebar_ystart, fontsize, d)
 
         return d
 
 
 class PlotTitle:
     """A title drawn above a plot, with an optional sample count underneath"""
-    def __init__(self, text, samples=None, font_size=34, height=54,
-                 sub_font_size=21, sub_height=33):
+    def __init__(self, text, samples=None, font_size=TITLE_FONT_SIZE,
+                 sub_font_size=SUBTITLE_FONT_SIZE):
         self.text = str(text)
         self.samples = samples
         self.font_size = font_size
-        self.h = height
         self.sub_font_size = sub_font_size
-        self.sub_height = sub_height
+        # the block is a bit taller than its text, so the two lines do not
+        # collide and the title does not touch the sample tracks
+        self.h = 1.6 * font_size
         if samples is not None:
-            self.h += sub_height
+            self.h += 1.6 * sub_font_size
         # match the width of the widest element so the title is centered on the
         # plot area rather than on the page
         self.w = XAxis().w
@@ -549,13 +619,21 @@ class SharedLegend:
     ROW_HEIGHT = 20
     FONT_SIZE = 15
     BAR_HEIGHT = 10
+    # the sizes above are the ones for a 15px font; anything else scales from
+    # here
+    FONT_SIZE_DEFAULT = 15
 
     def __init__(self, defect_types, highlighted_types, num_columns=3,
-                 bar_width=60, padding=16):
+                 bar_width=60, padding=16, font_size=None):
         self.entries = list(defect_types) + list(highlighted_types)
         self.num_columns = max(1, num_columns)
         self.bar_width = bar_width
         self.padding = padding
+        if font_size:
+            self.FONT_SIZE = font_size
+            # keep the row tall enough for the text it holds
+            self.ROW_HEIGHT = self.ROW_HEIGHT * font_size / self.FONT_SIZE_DEFAULT
+            self.BAR_HEIGHT = self.BAR_HEIGHT * font_size / self.FONT_SIZE_DEFAULT
         num_rows = ceil(len(self.entries) / self.num_columns)
         self.h = max(1, num_rows) * self.ROW_HEIGHT + self.padding
         # column width: bar + gap + widest label (6px per monospace char at 15px)
@@ -591,7 +669,11 @@ class SharedLegend:
 
 
 class ProviralLandscapePlot:
-    def __init__(self, figure, tot_samples, lineheight=None):
+    def __init__(self, figure, tot_samples, lineheight=None,
+                 title_font_size=TITLE_FONT_SIZE,
+                 subtitle_font_size=SUBTITLE_FONT_SIZE,
+                 axis_font_size=XAXIS_FONT_SIZE,
+                 sidebar_font_size=SIDEBAR_FONT_SIZE):
         self.curr_samp_name = ''
         self.defects = set()
         self.figure = figure
@@ -603,6 +685,10 @@ class ProviralLandscapePlot:
                 lineheight = 5
         self.lineheight = lineheight
         self.xaxisheight = 0
+        self.title_font_size = title_font_size
+        self.subtitle_font_size = subtitle_font_size
+        self.axis_font_size = axis_font_size
+        self.sidebar_font_size = sidebar_font_size
 
     def add_line(self, samp_name, xstart, xend, defect_type, highlight):
         if defect_type not in DEFECT_TO_COLOR.keys():
@@ -638,19 +724,24 @@ class ProviralLandscapePlot:
         self.curr_multitrack = []
 
     def add_xaxis(self):
-        padding = 20
-        gap = 100
-        xaxis_thickness = 3
-        self.figure.add(XAxis(h=xaxis_thickness), padding=padding, gap=gap)
+        font_size = self.axis_font_size
+        padding = 0.5 * font_size
+        gap = 2.5 * font_size
+        xaxis_thickness = 0.15 * font_size
+        self.figure.add(XAxis(h=xaxis_thickness, font_size=font_size),
+                        padding=padding, gap=gap)
         self.xaxisheight = padding + gap + xaxis_thickness
 
-    def legends_and_percentages(self, defect_percentages, highlight_types, force_move_percentages=False):
+    def legends_and_percentages(self, defect_percentages, highlight_types,
+                                force_move_percentages=False, with_legend=True):
         self.figure.add(LegendAndPercentages(defect_percentages,
                                              highlight_types,
                                              self.tot_samples,
                                              self.lineheight,
                                              self.xaxisheight,
-                                             force_move_percentages))
+                                             force_move_percentages,
+                                             with_legend,
+                                             self.sidebar_font_size))
 
 
 def sort_csv_lines(lines):
@@ -749,30 +840,49 @@ def order_samples_by_gaps(rows, threshold=SMALLEST_GAP):
     return sorted_samples
 
 
-def create_proviral_plot(input_file, output_svg):
+def create_proviral_plot(input_file, output_svg, dpi=None):
     """
     Draw a single proviral landscape plot and write it to output_svg.
 
     input_file is an open file object or any iterable of csv dict rows.
+    dpi, when given, writes a raster image instead of an svg; see save_raster().
     """
     lines = read_landscape_rows(input_file, source=getattr(input_file, 'name', 'input'))
     figure, _, _ = build_proviral_figure(lines, title=None)
     # display with a standard width so the overview is visible
-    figure.show(w=PLOT_WIDTH).save_svg(output_svg)
+    page = figure.show(w=PLOT_WIDTH)
+    if dpi:
+        save_raster(page, output_svg, dpi)
+    else:
+        page.save_svg(output_svg)
 
 
-def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS):
+def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS,
+                         title_column=None, titles=None, legend_font_size=None,
+                         page_size=DEFAULT_PAGE_SIZE, with_percentages=True,
+                         dpi=None):
     """
-    Draw one proviral landscape plot per input file onto a single SVG page.
+    Draw one proviral landscape plot per input file onto a single page.
 
     csv_files : list of paths to proviral landscape csv files
     output_svg: path of the svg to write
     columns   : number of plots per row; the remaining plots wrap onto further
                 rows
+    title_column: csv column to take each plot's title from, e.g. 'sample' to
+                title every plot after the participant it belongs to
+    titles    : dict of title overrides, keyed by input file stem or by
+                participant number; see parse_title_overrides()
+    legend_font_size: font size of the shared legend (default 15)
+    page_size : key of PAGE_SIZES_MM, or None to let the page grow to fit its
+                content instead of matching a paper size
+    with_percentages : draw the per-plot percentage sidebar
+    dpi       : when given, write a raster image at this resolution instead of
+                an svg; needs cairosvg (and pillow for tiff)
 
     Every plot is given the same height so that the proportions of the defect
     categories can be compared directly between plots. One legend is drawn for
-    the whole page, centered below the plots.
+    the whole page, centered below the plots, and every plot keeps its own
+    percentage sidebar.
     """
     inputs = list(csv_files)
     if not inputs:
@@ -791,66 +901,158 @@ def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS):
         rows_by_file.append(lines)
         sample_counts.append(count_samples(lines))
 
+    num_rows = ceil(len(inputs) / columns)
+    paper_w_mm, paper_h_mm = PAGE_SIZES_MM.get(page_size, (None, None))
+
+    # How much of the paper one plot unit is worth. This is set by the width the
+    # grid needs, and the height that leaves over then decides how many units of
+    # sample tracks each plot gets. Working the height out first and dividing
+    # into it means the layout fits the paper without any trial and error.
+    grid_w_units = columns * PLOT_WIDTH + (columns - 1) * PLOT_GAP
+    if paper_w_mm is None:
+        unit = 1.0
+        plot_gap = PLOT_GAP
+        page_margin = PAGE_MARGIN
+    else:
+        unit = (paper_w_mm - 2 * PAGE_MARGIN_MM) / grid_w_units
+        plot_gap = PLOT_GAP_MM
+        page_margin = PAGE_MARGIN_MM
+    # the shared legend is laid out in columns, one row per so many entries
+    legend_columns = max(columns, 1)
+
+    def legend_height_mm(num_entries):
+        if num_entries <= 0:
+            return LEGEND_PADDING_MM
+        rows_needed = ceil(num_entries / legend_columns)
+        return rows_needed * LEGEND_ROW_MM + LEGEND_PADDING_MM
+
+    # Height left for the grid, once the margins and the legend strip are taken
+    # out. Everything a plot needs other than its sample tracks is text, sized
+    # in millimetres, so it does not change with the scale.
+    def sample_block_units(legend_mm):
+        if paper_w_mm is None:
+            # no paper to fit: use the nominal block height
+            return SAMPLE_BLOCK_HEIGHT
+        available = (paper_h_mm - 2 * page_margin - legend_mm - PLOT_GAP_MM
+                     - (num_rows - 1) * plot_gap)
+        block_mm = available / num_rows - TITLE_CHROME_MM - XAXIS_CHROME_MM
+        return max(block_mm / unit, 0)
+
     # Every plot gets the same room for its sample tracks: a plot with many
     # samples simply gets thinner tracks than a plot with few. Each sample also
     # costs a fixed gap, so that has to come out of the same budget, otherwise
     # plots with more samples end up taller.
-    block_height = SAMPLE_BLOCK_HEIGHT
-    if sample_counts:
-        needed = max(sample_counts) * (MIN_LINEHEIGHT + SAMPLE_GAP)
-        if needed > block_height:
-            block_height = needed
+    def block_height_for(legend_mm):
+        block = sample_block_units(legend_mm)
+        if sample_counts:
+            needed = max(sample_counts) * (MIN_LINEHEIGHT + SAMPLE_GAP)
+            if needed > block:
+                block = needed
+        return block
 
-    figures = []
-    highlighted_types = set()
-    defect_types = []
-    for path, lines, num_samples in zip(inputs, rows_by_file, sample_counts):
-        if num_samples > 0:
-            lineheight = block_height / num_samples - SAMPLE_GAP
-            if lineheight < 0:
+    # Text is sized in millimetres on the page, so the font sizes handed to the
+    # figures are those millimetres expressed in plot units.
+    if paper_w_mm is None:
+        font_sizes = (TITLE_FONT_SIZE, SUBTITLE_FONT_SIZE,
+                      XAXIS_FONT_SIZE, SIDEBAR_FONT_SIZE)
+        legend_font_size = (legend_font_size if legend_font_size is not None
+                            else SharedLegend.FONT_SIZE)
+    else:
+        font_sizes = tuple(size_mm / unit for size_mm in
+                           (TITLE_FONT_MM, SUBTITLE_FONT_MM,
+                            XAXIS_FONT_MM, SIDEBAR_FONT_MM))
+        # an explicit --legend-font-size is in plot units like it always was;
+        # without one, use a sensible size on the paper
+        legend_font_size = (legend_font_size if legend_font_size is not None
+                            else LEGEND_FONT_MM / unit)
+
+    def build_figures(block_height):
+        """Build one figure per input file, all with the given track budget."""
+        built = []
+        highlighted_types = set()
+        defect_types = []
+        for path, lines, num_samples in zip(inputs, rows_by_file, sample_counts):
+            if num_samples > 0:
+                lineheight = block_height / num_samples - SAMPLE_GAP
+                if lineheight < 0:
+                    lineheight = 0
+            else:
                 lineheight = 0
-        else:
-            lineheight = 0
-        figure, defects, highlighted = build_proviral_figure(
-            lines,
-            title=plot_title(path),
-            lineheight=lineheight,
-            with_legend=False,
-        )
-        figures.append(figure)
-        highlighted_types |= highlighted
-        for defect in defects:
-            if defect not in defect_types:
-                defect_types.append(defect)
+            figure, defects, highlighted = build_proviral_figure(
+                lines,
+                title=title_for_plot(path, lines, title_column, titles),
+                lineheight=lineheight,
+                with_legend=False,
+                with_percentages=with_percentages,
+                font_sizes=font_sizes,
+            )
+            built.append(figure)
+            highlighted_types |= highlighted
+            for defect in defects:
+                if defect not in defect_types:
+                    defect_types.append(defect)
+        return built, defect_types, highlighted_types
 
-    legend = SharedLegend(sorted(defect_types, key=defect_type_order),
-                          sorted(highlighted_types),
-                          num_columns=max(columns, 1))
+    def make_legend(defect_types, highlighted_types):
+        return SharedLegend(sorted(defect_types, key=defect_type_order),
+                            sorted(highlighted_types),
+                            num_columns=legend_columns,
+                            font_size=legend_font_size)
 
-    # give every plot the same on-page width and height
-    panel_w = PLOT_WIDTH
-    panel_h = max(figure.h for figure in figures)
+    # The legend depends on which defects the plots turned out to hold, and how
+    # tall each plot is depends on how much room the legend leaves, so build
+    # once to find out, then build again for real.
+    worst_case_entries = len(DEFECT_TO_COLOR) + len(HIGHLIGHT_COLORS)
+    block_height = block_height_for(legend_height_mm(worst_case_entries))
+    figures, defect_types, highlighted_types = build_figures(block_height)
+    legend = make_legend(defect_types, highlighted_types)
+    block_height = block_height_for(legend_height_mm(len(legend.entries)))
+    figures, defect_types, highlighted_types = build_figures(block_height)
+    legend = make_legend(defect_types, highlighted_types)
+
     # A sample can show up under more than one defect category, so a plot can
-    # end up a track or two taller than planned. Pad the shorter plots with a
-    # blank track so that every plot is exactly the same height.
+    # come out a track or two taller than planned. Pad the shorter plots with a
+    # blank track, so that every plot is exactly the same height.
+    panel_h_units = max(figure.h for figure in figures)
     for figure in figures:
-        missing = panel_h - figure.h
+        missing = panel_h_units - figure.h
         if missing > 0:
             figure.add(Multitrack([Track(START_POS + XOFFSET,
                                           START_POS + XOFFSET,
                                           color='#ffffff', h=missing)]),
                        gap=0)
-    # a common horizontal scale keeps plots directly comparable
-    xscale = panel_w / max(figure.w for figure in figures)
 
-    num_rows = ceil(len(figures) / columns)
-    grid_w = columns * panel_w + (columns - 1) * PLOT_GAP
-    grid_h = num_rows * panel_h + (num_rows - 1) * PLOT_GAP
-    page_w = grid_w + 2 * PAGE_MARGIN
-    page_h = grid_h + legend.h + 2 * PLOT_GAP + 2 * PAGE_MARGIN
+    # a common horizontal scale keeps plots directly comparable
+    xscale = PLOT_WIDTH / max(figure.w for figure in figures)
+
+    # Position everything in millimetres of paper. The drawing declares that
+    # physical size, so it prints, or rasterizes, at exactly the right
+    # dimensions whatever resolution is asked for. Without a paper size the page
+    # stays in plot units and simply grows to fit.
+    legend_h_mm = (legend_height_mm(len(legend.entries)) if paper_w_mm is not None
+                   else legend.h)
+    content_w_mm = grid_w_units * unit
+    content_h_mm = (num_rows * panel_h_units * unit
+                    + (num_rows - 1) * plot_gap + PLOT_GAP_MM + legend_h_mm)
+    if paper_w_mm is None:
+        page_w = grid_w_units
+        page_h = (num_rows * panel_h_units + (num_rows - 1) * PLOT_GAP
+                  + legend.h + PLOT_GAP)
+        grid_left = 0.0
+        grid_top = 0.0
+        legend_h = legend.h
+    else:
+        page_w = paper_w_mm
+        page_h = paper_h_mm
+        grid_left = (page_w - content_w_mm) / 2
+        grid_top = (page_h - content_h_mm) / 2
+        legend_h = legend_h_mm
 
     page = draw.Drawing(page_w, page_h, origin=(0, 0),
                         context=draw.Context(invert_y=True))
+    if paper_w_mm is not None:
+        # declare the physical size; the viewBox is in millimetres
+        page.svg_args = {'width': f'{page_w:g}mm', 'height': f'{page_h:g}mm'}
 
     # In this inverted context a figure or legend drawn at translate y=0 ends up at
     # the bottom of the page, so a distance measured downwards from the top of
@@ -860,28 +1062,75 @@ def create_proviral_page(csv_files, output_svg, columns=GRID_COLUMNS):
         return distance - page_h
 
     # the shared legend sits at the bottom of the page, with the grid above it
-    legend_top = page_h - PAGE_MARGIN - legend.h
-    grid_top = PAGE_MARGIN
+    legend_top = page_h - page_margin - legend_h
 
+    # Each figure is drawn in plot units inside a group scaled onto the page, so
+    # that the tracks, the gaps and the fonts all scale together.
+    panel_w_mm = PLOT_WIDTH * unit
+    panel_h_mm = panel_h_units * unit
     for i, figure in enumerate(figures):
         row, column = divmod(i, columns)
-        x = PAGE_MARGIN + column * (panel_w + PLOT_GAP)
-        row_top = grid_top + row * (panel_h + PLOT_GAP)
+        x = grid_left + column * (panel_w_mm + plot_gap)
+        row_top = grid_top + row * (panel_h_mm + plot_gap)
         # center the plot vertically in its row
-        figure_top = row_top + (panel_h - figure.h) / 2
+        figure_top = row_top + (panel_h_mm - figure.h * unit) / 2
         # a figure is drawn above the group's origin, one figure height tall
-        group = draw.Group(transform="translate({} {})".format(
-            x, from_top(figure_top + figure.h)))
+        group = draw.Group(transform="translate({} {}) scale({})".format(
+            x, from_top(figure_top + figure.h * unit), unit))
         for y_local, element in figure.elements:
             group.append(element.draw(xscale=xscale, y=y_local - figure.h))
         page.append(group)
 
     # shared legend: horizontally centered, at the bottom of the page. The
     # legend draws downwards from its origin, so its origin is its top edge.
-    legend_x = (page_w - legend.w) / 2
-    page.append(legend.draw(x=legend_x, y=from_top(legend_top)))
+    legend_x = (page_w - legend.w * unit) / 2
+    legend_group = draw.Group(transform="translate({} {}) scale({})".format(
+        legend_x, from_top(legend_top), unit))
+    legend_group.append(legend.draw())
+    page.append(legend_group)
 
-    page.save_svg(output_svg)
+    if dpi:
+        save_raster(page, output_svg, dpi)
+    else:
+        page.save_svg(output_svg)
+
+
+def save_raster(page, output_path, dpi):
+    """
+    Write a drawing out as a raster image, choosing the format from the file
+    extension: .png, .tiff/.tif, or anything else falls back to png.
+
+    The drawing declares its physical size in millimetres, so dpi is what
+    decides the pixel dimensions; 300 is what most journals ask for.
+    """
+    try:
+        import cairosvg
+    except ImportError:
+        raise ImportError(
+            'writing ' + os.path.splitext(output_path)[1].lstrip('.') +
+            ' needs cairosvg; install it with: uv pip install cairosvg pillow')
+
+    extension = os.path.splitext(output_path)[1].lower()
+    wants_tiff = extension in ('.tif', '.tiff')
+    png = cairosvg.svg2png(bytestring=page.as_svg().encode('utf-8'), dpi=dpi)
+
+    if not wants_tiff:
+        with open(output_path, 'wb') as output_file:
+            output_file.write(png)
+        return
+
+    try:
+        from PIL import Image
+    except ImportError:
+        raise ImportError(
+            'writing tiff needs pillow; install it with: uv pip install pillow')
+
+    import io
+    # LZW keeps a large, flat-colour figure small without any loss, and the
+    # resolution tags stop the image being placed at the wrong physical size
+    image = Image.open(io.BytesIO(png))
+    image.save(output_path, format='TIFF', compression='tiff_lzw',
+               dpi=(dpi, dpi))
 
 
 def read_landscape_rows(input_file, source='input'):
@@ -948,12 +1197,104 @@ def defect_type_order(defect_type):
         return max(DEFECT_ORDER.values()) + 1
 
 
-def plot_title(path):
-    """Derive a plot title from the input file name"""
+def plot_title(path, lines=None, title_column=None):
+    """
+    Derive a plot title for one input file.
+
+    With title_column given (the name of a column in the csv, typically the
+    first one) the title is taken from that column instead of from the file
+    name: the participant number every sample name starts with, so a plot is
+    titled after the participant rather than after whatever the file happens
+    to be called. Falls back to the file name when the column is missing or
+    when the sample names do not agree on one prefix.
+    """
+    if title_column and lines:
+        title = participant_id(lines, title_column)
+        if title:
+            return title
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def build_proviral_figure(lines, title=None, lineheight=None, with_legend=True):
+def participant_id(lines, column='sample'):
+    """
+    The leading participant number that every sample name in lines shares.
+
+    Sample names look like ``0380X00415ANFL11M11-NFLHIVDNA_S158``, so the
+    participant number is the first four digits (optionally behind a letter).
+    Sample names that do not look like that at all (controls such as
+    ``HIV3644NS2`` are named differently within one participant's file) are
+    skipped. Returns None when the column is absent or when the sample names
+    that do look like participant names disagree, since a title has to be
+    unambiguous.
+    """
+    prefixes = set()
+    for row in lines:
+        value = (row.get(column) or '').strip()
+        if not value:
+            continue
+        match = PARTICIPANT_PATTERN.match(value)
+        if match:
+            prefixes.add(match.group(1))
+    if len(prefixes) == 1:
+        return prefixes.pop()
+    return None
+
+
+def parse_title_overrides(spec):
+    """
+    Turn a ``0913=BC023,0380=BC016`` command line string into a dict.
+
+    Keys are matched against the file name stem first and then against the
+    participant number taken from the csv, so the mapping can be written
+    either way.
+    """
+    overrides = {}
+    if not spec:
+        return overrides
+    for item in spec.split(','):
+        item = item.strip()
+        if not item:
+            continue
+        if '=' not in item:
+            raise ValueError(
+                f"not a key=value title: '{item}' (expected e.g. 0913=BC023)")
+        key, _, title = item.partition('=')
+        key = key.strip()
+        if not key or not title.strip():
+            raise ValueError(
+                f"not a key=value title: '{item}' (expected e.g. 0913=BC023)")
+        overrides[key] = title.strip()
+    if not overrides:
+        raise ValueError("no key=value titles given")
+    return overrides
+
+
+def title_for_plot(path, lines, title_column=None, overrides=None):
+    """
+    Resolve the title of a single plot: an explicit override wins, then the
+    title column of the csv, then the input file name.
+    """
+    if overrides:
+        stem = os.path.splitext(os.path.basename(path))[0]
+        if stem in overrides:
+            return overrides[stem]
+        # input files are commonly named after the participant
+        # (proviral_landscape_3641.csv), which is also a usable key
+        for number in re.findall(r'\d{4}', stem):
+            if number in overrides:
+                return overrides[number]
+        # a bare key like 0913 should work even without --title-column, so
+        # fall back to the usual participant columns
+        for column in ([title_column] if title_column else []) + ['sample',
+                                                                   'samp_name']:
+            participant = participant_id(lines, column)
+            if participant in overrides:
+                return overrides[participant]
+    return plot_title(path, lines, title_column)
+
+
+def build_proviral_figure(lines, title=None, lineheight=None, with_legend=True,
+                            with_percentages=True, font_sizes=None):
     """
     Build the Figure for a single proviral landscape plot.
 
@@ -962,20 +1303,36 @@ def build_proviral_figure(lines, title=None, lineheight=None, with_legend=True):
     lineheight       : height of a single sample track; when given, every plot
                        can be given the same value so that plots on a shared
                        page have the same height
-    with_legend      : whether to draw this plot's own legend/sidebar. When
-                       plotting several inputs on one page a shared legend is
-                       drawn instead, so pass False.
+    with_legend      : whether to draw this plot's own legend. When plotting
+                       several inputs on one page a shared legend is drawn
+                       instead, so pass False.
+    with_percentages : whether to draw the percentage sidebar. Pass False only
+                       to get a bare plot.
+    font_sizes    : (title, subtitle, axis, sidebar) font sizes in plot units.
+                       A page scales the figures onto the paper, so it passes
+                       sizes that come out the right physical size there.
 
     Returns (figure, defect_types, highlighted_types).
     """
+    if font_sizes is None:
+        font_sizes = (TITLE_FONT_SIZE, SUBTITLE_FONT_SIZE,
+                      XAXIS_FONT_SIZE, SIDEBAR_FONT_SIZE)
+
     # set up figure and counters
     # total unique samples (across all defects)
     total_samples = len(set(r['samp_name'].strip() for r in lines if r['defect'].strip() in DEFECT_TYPE))
     figure = Figure()
-    plot = ProviralLandscapePlot(figure, total_samples, lineheight=lineheight)
+    plot = ProviralLandscapePlot(figure, total_samples, lineheight=lineheight,
+                                 title_font_size=font_sizes[0],
+                                 subtitle_font_size=font_sizes[1],
+                                 axis_font_size=font_sizes[2],
+                                 sidebar_font_size=font_sizes[3])
     # the title comes first so that it ends up above everything else
     if title:
-        figure.add(PlotTitle(str(title), samples=total_samples or None), gap=10)
+        figure.add(PlotTitle(str(title), samples=total_samples or None,
+                             font_size=plot.title_font_size,
+                             sub_font_size=plot.subtitle_font_size),
+                   gap=10)
     
     # keep raw counts while building percentages later
     defect_counts = defaultdict(int)
@@ -1038,9 +1395,10 @@ def build_proviral_figure(lines, title=None, lineheight=None, with_legend=True):
     # finalize plot
     plot.draw_current_multitrack()
     plot.add_xaxis()
-    if with_legend:
+    if with_percentages:
         plot.legends_and_percentages(defect_percentages, highlighted_set,
-                                     force_move_percentages=neighbour_flag)
+                                     force_move_percentages=neighbour_flag,
+                                     with_legend=with_legend)
     return figure, set(plot.defects), highlighted_set
 
 
@@ -1056,10 +1414,44 @@ def main(argv=None):
                         help="Output SVG (always the last argument)")
     parser.add_argument("-c", "--columns", type=int, default=GRID_COLUMNS,
                         help=f"Number of plots per row (default: {GRID_COLUMNS})")
+    parser.add_argument("--title-column", metavar="COLUMN",
+                        help="Take each plot's title from this csv column "
+                             "(e.g. sample) instead of from the input file "
+                             "name. Only the participant number every sample "
+                             "name in that file starts with is used.")
+    parser.add_argument("--legend-font-size", type=int, metavar="PX",
+                        help=f"Font size of the shared legend "
+                             f"(default: {SharedLegend.FONT_SIZE})")
+    parser.add_argument("--titles", metavar="KEY=TITLE[,KEY=TITLE...]",
+                        help="Explicit plot titles. KEY is either the input "
+                             "file stem (proviral_landscape_0913) or the "
+                             "participant number (0913); it wins over "
+                             "--title-column. Example: "
+                             "--titles 0913=BC023,0380=BC016")
+    parser.add_argument("--page-size", choices=[*PAGE_SIZES_MM, 'fit'],
+                        default=DEFAULT_PAGE_SIZE,
+                        help="Paper size the page is laid out for (default: "
+                             f"{DEFAULT_PAGE_SIZE}). The drawing declares this "
+                             "physical size, so it prints and rasterizes at it. "
+                             "Use 'fit' to let the page grow to fit its "
+                             "content instead.")
+    parser.add_argument("--dpi", type=int, metavar="DPI",
+                        help="Write a raster image (png, or tiff for a .tif/"
+                             ".tiff output name) at this resolution instead of "
+                             "an svg. Needs cairosvg, and pillow for tiff.")
     args = parser.parse_args(argv)
 
     if args.columns < 1:
         parser.error("--columns must be at least 1")
+    if args.legend_font_size is not None and args.legend_font_size < 5:
+        parser.error("--legend-font-size must be at least 5")
+    if args.dpi is not None and args.dpi < 1:
+        parser.error("--dpi must be at least 1")
+    page_size = None if args.page_size == 'fit' else args.page_size
+    try:
+        titles = parse_title_overrides(args.titles)
+    except ValueError as error:
+        parser.error(str(error))
     for path in args.proviral_landscape_csvs:
         if not os.path.exists(path):
             parser.error("input csv file not found: " + path)
@@ -1067,10 +1459,15 @@ def main(argv=None):
     if len(args.proviral_landscape_csvs) == 1:
         # a single input still gets the single-plot layout with its own legend
         lines = read_landscape_csv(args.proviral_landscape_csvs[0])
-        create_proviral_plot(lines, args.output_svg)
+        create_proviral_plot(lines, args.output_svg, dpi=args.dpi)
     else:
         create_proviral_page(args.proviral_landscape_csvs, args.output_svg,
-                             columns=args.columns)
+                             columns=args.columns,
+                             title_column=args.title_column,
+                             titles=titles,
+                             legend_font_size=args.legend_font_size,
+                             page_size=page_size,
+                             dpi=args.dpi)
 
 
 if __name__ == '__main__':

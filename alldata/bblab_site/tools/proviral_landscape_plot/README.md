@@ -31,12 +31,13 @@ The output file always goes last, after the input csvs.
 Give one csv per plot. With a single csv you get the classic single plot with
 its own legend and a percentage sidebar. With several csvs all plots are drawn
 on one page in a grid of 3 columns (however many rows that takes), sharing one
-legend placed at the bottom center of the page.
+legend placed at the bottom center of the page. Every plot keeps its own
+percentage sidebar.
 
 Every plot on a page is given exactly the same height, so the proportions of the
 defect categories can be compared directly between plots. A plot with many
 samples gets thinner sample tracks than a plot with few. Each plot is titled
-with its input file name and its sample count.
+with its input file name, with its sample count printed underneath.
 
 Example:
 
@@ -49,9 +50,49 @@ uv run --project . --frozen proviral_landscape_plot -c 2 a.csv b.csv c.csv outpu
 Running `python proviral_landscape_plot.py ...` against a checkout still works
 as long as `drawsvg` and `genetracks` are importable.
 
+Paper size and raster output
+----------------------------
+A page of several plots is laid out for a sheet of A4 in landscape by default.
+The drawing declares that physical size (`width="297mm" height="210mm"`), so it
+prints at the right dimensions and rasterizes at whatever resolution is asked
+for. The plots, the gaps between them and the text are all scaled onto the
+paper together, which is why the fonts keep a readable size however many plots
+share the page.
+
+`--dpi 300` writes a raster image instead of an svg. The format comes from the
+output file name: a `.tif`/`.tiff` output is a TIFF (LZW compressed, tagged
+with the resolution), anything else is a PNG. This needs two extra packages,
+which are in the `raster` extra:
+
+    uv run --project . --frozen --extra raster proviral_landscape_plot \
+        -c 4 --dpi 300 a.csv b.csv c.csv d.csv page.tiff
+
+Without `--extra raster` an svg is written, which is the normal case.
+
 Options:
 
 - `-c`/`--columns` : number of plots per row (default 3)
+- `--title-column COLUMN` : take each plot's title from that csv column
+  instead of from the input file name. The title is the participant number
+  that every sample name in the file starts with, so
+  `0380X00415ANFL11M11-NFLHIVDNA_S158` is titled `0380`. Sample names that
+  are not participant-numbered (a control, or a lab code such as
+  `Y04589ASGA-...`) are ignored; if what is left is ambiguous, the input file
+  name is used as before.
+- `--titles KEY=TITLE[,KEY=TITLE...]` : set the titles explicitly. `KEY` is
+  the input file stem, the participant number in the file name, or the
+  participant number in the sample names. These win over `--title-column`,
+  which is what you want when the titles are lab codes rather than
+  participant numbers, e.g.
+  `--titles 0913=BC023,0380=BC016,1094=BC024`
+- `--legend-font-size PX` : font size of the shared legend (default 15). The
+  legend grows to fit, so a bigger number is fine on a page of several plots.
+- `--page-size NAME` : paper the page is laid out for, `a4-landscape` (the
+  default), `a4-portrait`, or `fit` to let the page grow to fit its content
+  with no fixed physical size.
+- `--dpi DPI` : write a raster image (tiff for a `.tif`/`.tiff` output name,
+  png otherwise) at this resolution instead of an svg. Needs the `raster`
+  extra; see above.
 
 Required CSV columns
 ------------------------------------------
